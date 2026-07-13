@@ -128,14 +128,14 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         var num = window.JUSARAH.whatsapp;
         var base = "🔥 EMERGÊNCIA DE INCÊNDIO — preciso de combate aéreo da Jusarah.";
-        var open = function (loc) { window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(base + loc), "_blank"); };
+        var go = function (loc) { window.location.href = "https://wa.me/" + num + "?text=" + encodeURIComponent(base + loc); };
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            function (p) { open(" Minha localização: https://maps.google.com/?q=" + p.coords.latitude + "," + p.coords.longitude); },
-            function () { open(" (não consegui pegar a localização automática — já informo o local.)"); },
-            { enableHighAccuracy: true, timeout: 8000 }
+            function (p) { go(" Minha localização: https://maps.google.com/?q=" + p.coords.latitude + "," + p.coords.longitude); },
+            function () { go(" (não consegui pegar a localização automática — vou informar o local)"); },
+            { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
           );
-        } else { open(" (já informo o local.)"); }
+        } else { go(" (vou informar o local)"); }
       });
     }
   }
