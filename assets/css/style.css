@@ -354,7 +354,7 @@ p { margin: 0 0 1rem; }
 }
 .emergency-float svg { width: 22px; height: 22px; }
 @keyframes emPulse { 0%,100% { box-shadow: 0 10px 30px rgba(215,38,30,.5); } 50% { box-shadow: 0 12px 42px rgba(215,38,30,.9); } }
-@media (max-width: 520px) { .emergency-float { padding: 11px 15px; font-size: .84rem; gap: 7px; } .emergency-float svg { width: 20px; height: 20px; } }
+@media (max-width: 600px) { .emergency-float span { display: none; } .emergency-float { padding: 15px; border-radius: 50%; } .emergency-float svg { width: 24px; height: 24px; } }
 
 .em-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(20,10,8,.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 20px; }
 .em-overlay.is-open { display: flex; }
@@ -535,4 +535,13 @@ p { margin: 0 0 1rem; }
   .card:hover, .post:hover, .card:hover .card__icon, .imgbox:hover img, .post:hover .post__link { transform: none !important; }
   .btn::after { display: none !important; }
   .reveal.is-visible .card, .reveal.is-visible .post, .reveal.is-visible .member, .reveal.is-visible .cert__item { animation: none !important; }
+}
+
+/* Hero: texto legível com sombra + foto do avião aparecendo mais */
+.hero .tag, .hero h1, .hero p.lead { text-shadow: 0 2px 16px rgba(6,20,34,.55); }
+@media (max-width: 760px) {
+  .hero__bg::after { background: linear-gradient(180deg, rgba(8,28,46,.6) 0%, rgba(8,28,46,.38) 44%, rgba(8,28,46,.64) 100%); }
+  .hero__inner { padding: 78px 0 56px; }
+  /* Espaço extra no fim pra os botões flutuantes não taparem conteúdo */
+  .footer { padding-bottom: 40px; }
 }
