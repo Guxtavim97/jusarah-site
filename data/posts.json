@@ -4,17 +4,23 @@
     "categoria": "Jusarah Explica",
     "titulo": "Avião agrícola desperdiça produto? Mito ou verdade",
     "resumo": "Conteúdo educativo que gera autoridade e aproxima o produtor.",
-    "imagem": "assets/img/aviao-campo-3.jpg",
+    "autor": "Equipe Jusarah",
     "data": "2026-07-01",
+    "imagem": "assets/img/aviao-campo-3.jpg",
+    "galeria": [],
+    "corpo": "<p>Muita gente acha que o avião agrícola desperdiça produto. Na prática, a pulverização aérea é calibrada para aplicar a dose certa, com tecnologia de precisão que reduz perdas e evita sobras.</p><p>Nesta edição do <b>Jusarah Explica</b>, mostramos como a regulagem dos bicos, a altura de voo e as condições do tempo garantem uma aplicação eficiente e responsável.</p>",
     "link": ""
   },
   {
     "id": "eventos-demonstracao-voo",
     "categoria": "Eventos",
     "titulo": "IV MANHÃ DE CAMPO",
-    "resumo": "A Jusarah Agro Aérea teve a satisfação de participar da IV Manhã de Campo, promovida pela Agrovale Consultoria na Fazenda Santa Maria, em Rio Crespo/RO. 🌱✈️\n\nFoi uma oportunidade de compartilhar experiências, apresentar a realidade da aviação agrícola e participar de um evento que reuniu produtores, consultores e profissionais comprometidos com a evolução do agronegócio.\n\nAlém da demonstração de voo, tivemos momentos de troca de conhecimento e fortalecimento das conexões que impulsionam o agro da nossa região.\n\nParabéns à Agrovale Consultoria pela organização e a todos que estiveram presentes.",
-    "imagem": "assets/img/uploads/iv-manha-de-campo-1783972515889.jpg",
+    "resumo": "A Jusarah participou da IV Manhã de Campo, promovida pela Agrovale Consultoria, na Fazenda Santa Maria, em Rio Crespo/RO. 🌱✈️",
+    "autor": "Equipe Jusarah",
     "data": "2026-06-13",
+    "imagem": "assets/img/uploads/iv-manha-de-campo-1783972515889.jpg",
+    "galeria": [],
+    "corpo": "<p>A Jusarah Agro Aérea teve a satisfação de participar da IV Manhã de Campo, promovida pela Agrovale Consultoria na Fazenda Santa Maria, em Rio Crespo/RO. 🌱✈️</p><p>Foi uma oportunidade de compartilhar experiências, apresentar a realidade da aviação agrícola e participar de um evento que reuniu produtores, consultores e profissionais comprometidos com a evolução do agronegócio.</p><p>Além da demonstração de voo, tivemos momentos de troca de conhecimento e fortalecimento das conexões que impulsionam o agro da nossa região.</p><p>Parabéns à Agrovale Consultoria pela organização e a todos que estiveram presentes.</p>",
     "link": "https://www.instagram.com/p/DZnI-7flhhE/?img_index=1"
   },
   {
@@ -22,8 +28,11 @@
     "categoria": "Semeando Esperança",
     "titulo": "Nova edição leva educação às escolas da região",
     "resumo": "Mais uma turma do 5º ano aprendendo de onde vem o alimento.",
-    "imagem": "assets/img/aviao-campo-2.jpg",
+    "autor": "Equipe Jusarah",
     "data": "2026-06-05",
+    "imagem": "assets/img/aviao-campo-2.jpg",
+    "galeria": [],
+    "corpo": "<p>O projeto <b>Semeando Esperança</b> levou mais uma edição às escolas, com palestras e o concurso de redação sobre a importância da aviação agrícola para a cidade.</p>",
     "link": ""
   }
 ]

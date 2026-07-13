@@ -126,18 +126,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!Array.isArray(posts) || !posts.length) return;
         grid.innerHTML = "";
         posts.forEach(function (p) {
+          var url = "noticia.html?id=" + encodeURIComponent(p.id || "");
           var art = document.createElement("article");
           art.className = "post";
 
           var box = document.createElement("div");
           box.className = "imgbox";
           box.style.borderRadius = "0";
+          var boxLink = document.createElement("a");
+          boxLink.href = url;
           var img = document.createElement("img");
           img.src = p.imagem || "assets/img/aviao-campo-3.jpg";
           img.alt = p.titulo || "";
           img.loading = "lazy";
           img.style.aspectRatio = "16/10";
-          box.appendChild(img);
+          boxLink.appendChild(img);
+          box.appendChild(boxLink);
 
           var body = document.createElement("div");
           body.className = "post__body";
@@ -147,28 +151,23 @@ document.addEventListener("DOMContentLoaded", function () {
           meta.textContent = (p.categoria || "") + (p.data ? " · " + fmtData(p.data) : "");
 
           var h3 = document.createElement("h3");
-          if (p.link) {
-            var a = document.createElement("a");
-            a.href = p.link; a.target = "_blank"; a.rel = "noopener";
-            a.textContent = p.titulo || "";
-            h3.appendChild(a);
-          } else {
-            h3.textContent = p.titulo || "";
-          }
+          var a = document.createElement("a");
+          a.href = url;
+          a.textContent = p.titulo || "";
+          h3.appendChild(a);
 
           var desc = document.createElement("p");
           desc.textContent = p.resumo || "";
 
+          var link = document.createElement("a");
+          link.href = url;
+          link.className = "post__link";
+          link.textContent = "Ler mais →";
+
           body.appendChild(meta);
           body.appendChild(h3);
           body.appendChild(desc);
-          if (p.link) {
-            var link = document.createElement("a");
-            link.href = p.link; link.target = "_blank"; link.rel = "noopener";
-            link.className = "post__link";
-            link.textContent = "Ver mais →";
-            body.appendChild(link);
-          }
+          body.appendChild(link);
 
           art.appendChild(box);
           art.appendChild(body);

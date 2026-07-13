@@ -104,6 +104,28 @@
 
   .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
+  .opt{font-weight:400;color:var(--muted);font-size:.85em}
+
+  /* Editor de texto formatado */
+  .rt-toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .rt-toolbar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;font-size:.9rem;color:var(--ink);font-weight:600}
+  .rt-toolbar button:hover{background:var(--paper);border-color:var(--green)}
+  .rt-toolbar button:active{transform:translateY(1px)}
+  .rt-editor{min-height:170px;border:2px solid var(--line);border-radius:12px;padding:14px 15px;background:#fff;font-size:1rem;line-height:1.6;overflow-wrap:break-word}
+  .rt-editor:focus{outline:none;border-color:var(--green)}
+  .rt-editor:empty:before{content:attr(data-placeholder);color:#9aa7b2}
+  .rt-editor h3{font-size:1.15rem;margin:.7em 0 .3em}
+  .rt-editor p{margin:0 0 .7em}
+  .rt-editor ul{margin:0 0 .7em;padding-left:22px}
+  .rt-editor a{color:var(--blue)}
+
+  /* Galeria de fotos */
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
+  .gthumb{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:1;background:var(--paper)}
+  .gthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .gthumb button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(20,33,46,.78);color:#fff;font-size:15px;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}
+  .gthumb button:hover{background:var(--danger)}
+
   .hidden{display:none!important}
 </style>
 </head>
@@ -158,43 +180,68 @@
       <!-- Formulário (oculto até clicar) -->
       <div class="form hidden" id="post-form">
         <h3 id="form-title">Nova publicação</h3>
-        <div class="field">
-          <label>Tipo</label>
-          <select id="f-categoria">
-            <option>Notícias</option>
-            <option>Eventos</option>
-            <option>Semeando Esperança</option>
-            <option>Jusarah Explica</option>
-          </select>
+        <div class="row2">
+          <div class="field">
+            <label>Tipo</label>
+            <select id="f-categoria">
+              <option>Notícias</option>
+              <option>Eventos</option>
+              <option>Semeando Esperança</option>
+              <option>Jusarah Explica</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Data</label>
+            <input type="date" id="f-data">
+          </div>
         </div>
         <div class="field">
           <label>Título</label>
           <input type="text" id="f-titulo" placeholder="Ex: Jusarah na Rondônia Rural Show 2026">
         </div>
         <div class="field">
-          <label>Resumo</label>
-          <textarea id="f-resumo" placeholder="Uma ou duas frases sobre a publicação."></textarea>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label>Data</label>
-            <input type="date" id="f-data">
-          </div>
-          <div class="field">
-            <label>Link externo <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
-            <input type="url" id="f-link" placeholder="https://instagram.com/p/...">
-          </div>
+          <label>Autor <span class="opt">(quem escreveu)</span></label>
+          <input type="text" id="f-autor" placeholder="Ex: Taylla · Equipe Jusarah">
         </div>
         <div class="field">
-          <label>Foto</label>
+          <label>Chamada curta <span class="opt">(o textinho que aparece no card)</span></label>
+          <textarea id="f-resumo" placeholder="Uma ou duas frases que resumem a publicação."></textarea>
+        </div>
+        <div class="field">
+          <label>Texto da notícia</label>
+          <div class="rt-toolbar" id="rt-toolbar">
+            <button type="button" data-cmd="bold" title="Negrito"><b>N</b></button>
+            <button type="button" data-cmd="italic" title="Itálico"><i>I</i></button>
+            <button type="button" data-cmd="formatBlock" data-val="h3" title="Subtítulo">Subtítulo</button>
+            <button type="button" data-cmd="insertUnorderedList" title="Lista">• Lista</button>
+            <button type="button" data-cmd="createLink" title="Inserir link">🔗 Link</button>
+            <button type="button" data-cmd="formatBlock" data-val="p" title="Texto normal">¶ Normal</button>
+            <button type="button" data-cmd="removeFormat" title="Limpar formatação">✕ Limpar</button>
+          </div>
+          <div class="rt-editor" id="f-corpo" contenteditable="true" data-placeholder="Escreva a notícia completa aqui. Use os botões acima para negrito, subtítulos, listas e links…"></div>
+        </div>
+        <div class="field">
+          <label>Foto de capa <span class="opt">(a principal)</span></label>
           <label class="drop" for="f-file" id="drop">
             <input type="file" id="f-file" accept="image/*">
-            📷 Toque para escolher uma foto (do celular ou computador)
+            📷 Escolher a foto de capa
           </label>
           <div class="preview hidden" id="preview">
             <img id="preview-img" alt="">
             <span class="hint" id="preview-name"></span>
           </div>
+        </div>
+        <div class="field">
+          <label>Mais fotos <span class="opt">(galeria — pode escolher várias de uma vez)</span></label>
+          <label class="drop" for="f-gallery" id="drop-gallery">
+            <input type="file" id="f-gallery" accept="image/*" multiple>
+            🖼️ Adicionar fotos à galeria
+          </label>
+          <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+        <div class="field">
+          <label>Link externo <span class="opt">(opcional — ex: post do Instagram)</span></label>
+          <input type="url" id="f-link" placeholder="https://instagram.com/p/...">
         </div>
         <div class="form-acts">
           <button class="btn btn--green" id="btn-save">Publicar</button>
@@ -389,7 +436,7 @@ document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () 
 /* ============================================================
    POSTS (Notícias & Eventos)
    ============================================================ */
-let posts = [], postsSha = null, editIndex = -1, newImgB64 = null;
+let posts = [], postsSha = null, editIndex = -1, newImgB64 = null, galeria = [];
 
 async function loadPosts() {
   try {
@@ -413,7 +460,7 @@ function renderPosts() {
     body.innerHTML = '<span class="chip"></span><h3></h3><div class="date"></div>';
     body.querySelector(".chip").textContent = p.categoria || "";
     body.querySelector("h3").textContent = p.titulo || "(sem título)";
-    body.querySelector(".date").textContent = fmtData(p.data);
+    body.querySelector(".date").textContent = fmtData(p.data) + (p.autor ? " · " + p.autor : "");
     const acts = document.createElement("div");
     acts.className = "postrow__acts";
     const ed = document.createElement("button");
@@ -436,18 +483,66 @@ function openForm(i) {
   $("form-title").textContent = isEdit ? "Editar publicação" : "Nova publicação";
   $("f-categoria").value = p.categoria || "Notícias";
   $("f-titulo").value = p.titulo || "";
+  $("f-autor").value = p.autor || "";
   $("f-resumo").value = p.resumo || "";
+  $("f-corpo").innerHTML = p.corpo || "";
   $("f-data").value = p.data || new Date().toISOString().slice(0, 10);
   $("f-link").value = p.link || "";
+  galeria = (isEdit && Array.isArray(p.galeria)) ? p.galeria.map((path) => ({ path: path })) : [];
+  renderGallery();
   const prev = $("preview");
   if (isEdit && p.imagem) {
     prev.classList.remove("hidden");
     $("preview-img").src = "../" + p.imagem;
-    $("preview-name").textContent = "Foto atual (troque se quiser)";
+    $("preview-name").textContent = "Capa atual (troque se quiser)";
   } else { prev.classList.add("hidden"); }
   $("post-form").classList.remove("hidden");
   $("post-form").scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+/* Barra de formatação do texto */
+$("rt-toolbar").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  $("f-corpo").focus();
+  const cmd = b.dataset.cmd;
+  if (cmd === "createLink") {
+    const url = prompt("Endereço do link (comece com https://)");
+    if (url) document.execCommand("createLink", false, url);
+  } else if (cmd === "formatBlock") {
+    document.execCommand("formatBlock", false, b.dataset.val);
+  } else {
+    document.execCommand(cmd, false, null);
+  }
+});
+
+/* Galeria: guarda as fotos e só sobe ao publicar */
+function renderGallery() {
+  const g = $("gallery-grid");
+  g.innerHTML = "";
+  galeria.forEach((it, idx) => {
+    const d = document.createElement("div");
+    d.className = "gthumb";
+    const im = document.createElement("img");
+    im.src = it.path ? ("../" + it.path) : ("data:image/jpeg;base64," + it.b64);
+    const rm = document.createElement("button");
+    rm.type = "button"; rm.textContent = "×"; rm.title = "Remover";
+    rm.onclick = () => { galeria.splice(idx, 1); renderGallery(); };
+    d.appendChild(im); d.appendChild(rm);
+    g.appendChild(d);
+  });
+}
+$("f-gallery").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  toast("Preparando as fotos…");
+  for (const file of files) {
+    try { galeria.push({ b64: await compress(file, 1400) }); }
+    catch (err) { toast(err.message, "err"); }
+  }
+  e.target.value = "";
+  renderGallery();
+});
 $("btn-new").addEventListener("click", () => openForm(-1));
 $("btn-cancel").addEventListener("click", () => $("post-form").classList.add("hidden"));
 
@@ -473,17 +568,32 @@ $("btn-save").addEventListener("click", async () => {
     let imagem = isEdit ? (posts[editIndex].imagem || "") : "";
     if (newImgB64) {
       const path = "assets/img/uploads/" + slug(titulo) + "-" + Date.now() + ".jpg";
-      await putBinary(path, newImgB64, "Painel: foto de " + titulo);
+      await putBinary(path, newImgB64, "Painel: capa de " + titulo);
       imagem = path;
     }
     if (!imagem) imagem = "assets/img/aviao-campo-3.jpg";
+    // Galeria: mantém as já enviadas (path) e sobe as novas (b64)
+    const galeriaPaths = [];
+    for (const it of galeria) {
+      if (it.path) { galeriaPaths.push(it.path); }
+      else if (it.b64) {
+        const gp = "assets/img/uploads/g-" + slug(titulo) + "-" + Date.now() + "-" + galeriaPaths.length + ".jpg";
+        await putBinary(gp, it.b64, "Painel: galeria de " + titulo);
+        galeriaPaths.push(gp);
+      }
+    }
+    const corpoEl = $("f-corpo");
+    const corpo = corpoEl.textContent.trim() ? corpoEl.innerHTML.trim() : "";
     const post = {
       id: (isEdit && posts[editIndex].id) ? posts[editIndex].id : slug(titulo) + "-" + Date.now(),
       categoria: $("f-categoria").value,
       titulo: titulo,
       resumo: $("f-resumo").value.trim(),
-      imagem: imagem,
+      autor: $("f-autor").value.trim(),
       data: $("f-data").value,
+      imagem: imagem,
+      galeria: galeriaPaths,
+      corpo: corpo,
       link: $("f-link").value.trim()
     };
     if (isEdit) posts[editIndex] = post; else posts.unshift(post);
