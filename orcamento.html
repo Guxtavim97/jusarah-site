@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bora fazer um orçamento? | Jusarah Agro Aérea</title>
+  <meta name="description" content="Peça seu orçamento de aviação agrícola com a Jusarah. Rápido, fácil e sem compromisso.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .quote-hero { background: linear-gradient(135deg,#0B2942 0%,#123f6b 55%,#1B6E3B 100%); color:#fff; padding: clamp(48px,7vw,84px) 0 clamp(120px,16vw,160px); text-align:center; position:relative; }
+    .quote-hero .eyebrow { color:#9be3b6; justify-content:center; }
+    .quote-hero .eyebrow::before { background:#9be3b6; }
+    .quote-hero h1 { color:#fff; font-size:clamp(2rem,5vw,3rem); }
+    .quote-hero p { color:rgba(255,255,255,.92); font-size:1.18rem; max-width:44ch; margin:14px auto 0; }
+    .quote-wrap { max-width:620px; margin:-110px auto 0; padding:0 20px 80px; position:relative; z-index:2; }
+    .quote-card { background:#fff; border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow-lg); padding:clamp(24px,4vw,40px); }
+    .quote-card .intro { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .quote-card .intro .dot { width:44px;height:44px;border-radius:14px;background:var(--green-50);color:var(--green-700);display:grid;place-items:center; }
+    .quote-card .intro .dot svg { width:24px;height:24px; }
+    .quote-card h2 { font-size:1.5rem; margin:0; }
+    .quote-card .sub { color:var(--muted); margin:2px 0 26px; }
+    .q-field { margin-bottom:22px; }
+    .q-field > label { display:block; font-family:var(--font-head); font-weight:600; font-size:1.02rem; color:var(--ink); margin-bottom:9px; }
+    .q-field input[type=text], .q-field input[type=tel], .q-field select {
+      width:100%; font-family:var(--font-body); font-size:1.05rem; color:var(--ink);
+      padding:15px 16px; border:2px solid var(--line); border-radius:14px; background:var(--paper); transition:border-color .15s, box-shadow .15s;
+    }
+    .q-field input:focus, .q-field select:focus { outline:none; border-color:var(--green-600); box-shadow:0 0 0 4px var(--green-50); background:#fff; }
+    /* Slider de hectares */
+    .ha-box { background:var(--green-50); border:2px solid var(--green-100); border-radius:18px; padding:20px 20px 16px; }
+    .ha-top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
+    .ha-top .lbl { font-family:var(--font-head); font-weight:600; color:var(--green-900); }
+    .ha-val { font-family:var(--font-head); font-weight:800; font-size:2rem; color:var(--green-700); line-height:1; }
+    input[type=range].ha { -webkit-appearance:none; appearance:none; width:100%; height:12px; border-radius:999px; background:linear-gradient(90deg,var(--green-600) 0%, var(--green-600) 30%, #cfe6d6 30%, #cfe6d6 100%); outline:none; }
+    input[type=range].ha::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:30px; height:30px; border-radius:50%; background:#fff; border:4px solid var(--green-600); box-shadow:0 3px 10px rgba(21,110,59,.35); cursor:grab; }
+    input[type=range].ha::-moz-range-thumb { width:30px; height:30px; border-radius:50%; background:#fff; border:4px solid var(--green-600); box-shadow:0 3px 10px rgba(21,110,59,.35); cursor:grab; }
+    .ha-hint { display:flex; justify-content:space-between; font-size:.82rem; color:var(--muted); margin-top:8px; }
+    .q-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:520px){ .q-grid { grid-template-columns:1fr; } }
+    .geo-btn { display:inline-flex; align-items:center; gap:8px; background:var(--sky-50); color:var(--blue-700); border:2px solid var(--blue-100); border-radius:12px; padding:11px 16px; font-family:var(--font-head); font-weight:600; font-size:.95rem; cursor:pointer; margin-top:10px; }
+    .geo-btn:hover { background:#dcecf8; }
+    .geo-msg { font-size:.9rem; color:var(--muted); margin:8px 0 0; }
+    .q-actions { display:grid; gap:12px; margin-top:8px; }
+    .btn-send { background:var(--green-700); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--font-head); font-weight:700; font-size:1.15rem; cursor:pointer; box-shadow:0 8px 20px rgba(21,128,61,.28); transition:transform .15s, background .2s; }
+    .btn-send:hover { background:var(--green-600); transform:translateY(-2px); }
+    .btn-zap { display:flex; align-items:center; justify-content:center; gap:10px; background:#25D366; color:#fff; border:none; border-radius:14px; padding:16px; font-family:var(--font-head); font-weight:700; font-size:1.05rem; cursor:pointer; text-decoration:none; }
+    .btn-zap svg { width:24px; height:24px; }
+    .q-reassure { text-align:center; color:var(--muted); font-size:.95rem; margin-top:18px; }
+    .q-ok { display:none; background:var(--green-50); border:1px solid var(--green-100); border-radius:14px; padding:16px 18px; color:var(--green-900); margin-top:6px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="brand" aria-label="Jusarah Agro Aérea"><img class="brand__img" src="assets/img/logo.png" alt="Jusarah Agro Aérea"></a>
+      <a href="index.html" class="btn btn--outline">Voltar ao site</a>
+    </div>
+  </header>
+
+  <section class="quote-hero">
+    <div class="container">
+      <span class="eyebrow">Sem enrolação</span>
+      <h1>Bora fazer um orçamento pra sua lavoura?</h1>
+      <p>Preenche rapidinho aqui embaixo — ou chama a gente direto no Zap. A gente responde rápido e cuida do resto.</p>
+    </div>
+  </section>
+
+  <div class="quote-wrap">
+    <div class="quote-card">
+      <div class="intro">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15l4-4 4 4 5-6 5 6"/><circle cx="8" cy="7" r="2"/></svg></span>
+        <div>
+          <h2>Me conta sobre a sua área</h2>
+          <p class="sub">Leva menos de 1 minuto.</p>
+        </div>
+      </div>
+
+      <form id="form-orc" novalidate>
+        <div class="q-field">
+          <label for="nome">Como é o seu nome?</label>
+          <input type="text" id="nome" name="nome" placeholder="Pode ser o primeiro nome">
+        </div>
+
+        <div class="q-field">
+          <label for="zap">Seu WhatsApp (Zap)</label>
+          <input type="tel" id="zap" name="zap" placeholder="(69) 9 9999-9999">
+        </div>
+
+        <div class="q-field">
+          <label for="cultura">O que você planta?</label>
+          <select id="cultura" name="cultura">
+            <option>Soja</option><option>Milho</option><option>Algodão</option>
+            <option>Pastagem / capim</option><option>Arroz</option><option>Outra coisa</option>
+          </select>
+        </div>
+
+        <div class="q-field">
+          <div class="ha-box">
+            <div class="ha-top">
+              <span class="lbl">Quantos hectares?</span>
+              <span class="ha-val" id="ha-val">300 ha</span>
+            </div>
+            <input type="range" class="ha" id="ha" min="0" max="5000" step="10" value="300">
+            <div class="ha-hint"><span>0</span><span>arrasta até o tamanho da sua área</span><span>5.000+</span></div>
+          </div>
+        </div>
+
+        <div class="q-field">
+          <label>Onde fica a lavoura?</label>
+          <div class="q-grid">
+            <select id="uf" name="uf">
+              <option value="">Escolha o estado</option>
+              <option value="RO">Rondônia</option>
+              <option value="MT">Mato Grosso</option>
+              <option value="AC">Acre</option>
+            </select>
+            <select id="cidade" name="cidade" disabled>
+              <option>Escolha o estado antes</option>
+            </select>
+          </div>
+          <button type="button" class="geo-btn" id="geo">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/><circle cx="12" cy="10" r="2"/></svg>
+            Tô na fazenda agora (usar localização)
+          </button>
+          <p class="geo-msg" id="geo-msg" hidden></p>
+        </div>
+
+        <div class="q-field">
+          <label for="servico">O que você precisa?</label>
+          <select id="servico" name="servico">
+            <option>Pulverização</option>
+            <option>Adubação / fertilização</option>
+            <option>Semeadura aérea</option>
+            <option>Combate a incêndio</option>
+            <option>Não sei ainda, me ajuda</option>
+          </select>
+        </div>
+
+        <div class="q-actions">
+          <button type="submit" class="btn-send">Quero meu orçamento</button>
+          <a href="#" class="btn-zap" id="zap-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+            Prefiro chamar no Zap
+          </a>
+        </div>
+        <div class="q-ok" id="q-ok">Prontinho! Recebemos seus dados e já te chamamos no Zap. 👍</div>
+        <p class="q-reassure">A gente responde rapidinho. Sem compromisso e sem preço escondido.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Emergência de incêndio -->
+  <button class="emergency-float" data-em-open aria-label="Emergência de incêndio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 5 5 10a5 5 0 01-10 0c0-2 1-4 2-5 .5 2 2 2 2 2s-1-4 1-7z"/></svg>
+    <span>Emergência de Incêndio</span>
+  </button>
+  <div class="em-overlay" id="em-overlay" role="dialog" aria-modal="true" aria-label="Emergência de incêndio">
+    <div class="em-card">
+      <button class="em-close" data-em-close aria-label="Fechar">&times;</button>
+      <div class="em-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 5 5 10a5 5 0 01-10 0c0-2 1-4 2-5 .5 2 2 2 2 2s-1-4 1-7z"/></svg></div>
+      <h3>Incêndio agora? A gente atende.</h3>
+      <p class="em-sub">Fale direto com nossa equipe de combate aéreo.</p>
+      <a class="em-btn em-btn--call" href="tel:+5569993257000"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.2 2.2z"/></svg> LIGAR AGORA</a>
+      <a class="em-btn em-btn--wpp" id="em-wpp" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> WhatsApp com localização</a>
+      <div class="em-193">Risco à vida? Ligue <strong>193</strong> (Bombeiros). A Jusarah atua no <strong>combate aéreo</strong> ao fogo.</div>
+      <p class="em-hours">Atendimento todos os dias, das 6h às 19h (horário de voo).</p>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    var WPP = "5569993257000";
+    var cidades = {
+      RO:["Cerejeiras","Vilhena","Colorado do Oeste","Cabixi","Corumbiara","Pimenteiras do Oeste","Chupinguaia","Porto Velho","Ji-Paraná","Ariquemes","Cacoal","Rolim de Moura"],
+      MT:["Cuiabá","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Primavera do Leste","Campo Novo do Parecis","Sapezal","Nova Mutum","Tangará da Serra","Campo Verde","Diamantino"],
+      AC:["Rio Branco","Cruzeiro do Sul","Sena Madureira","Feijó","Brasiléia","Tarauacá","Senador Guiomard","Plácido de Castro"]
+    };
+    var ha = document.getElementById('ha'), haVal = document.getElementById('ha-val');
+    function fmtHa(v){ v = Math.round(v/10)*10; return v>=5000 ? "5.000+ ha" : v.toLocaleString('pt-BR')+" ha"; }
+    function paintHa(){ var pct = (ha.value/ha.max)*100; ha.style.background = "linear-gradient(90deg,var(--green-600) 0%, var(--green-600) "+pct+"%, #cfe6d6 "+pct+"%, #cfe6d6 100%)"; haVal.textContent = fmtHa(+ha.value); }
+    ha.addEventListener('input', paintHa); paintHa();
+    var uf = document.getElementById('uf'), cid = document.getElementById('cidade');
+    uf.addEventListener('change', function(){
+      var list = cidades[uf.value];
+      if(!list){ cid.innerHTML = "<option>Escolha o estado antes</option>"; cid.disabled = true; return; }
+      cid.disabled = false;
+      cid.innerHTML = "<option value=''>Selecione a cidade</option>" + list.map(function(c){return "<option>"+c+"</option>";}).join("");
+    });
+    var geo = document.getElementById('geo'), gm = document.getElementById('geo-msg');
+    geo.addEventListener('click', function(){
+      gm.hidden = false; gm.textContent = "Buscando sua localização…";
+      if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(
+        function(){ gm.textContent = "Localização encontrada! No site real, a cidade é preenchida sozinha."; },
+        function(){ gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
+      ); } else { gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
+    });
+    function montaMsg(){
+      var g = function(id){ return (document.getElementById(id)||{}).value || ""; };
+      return "*Pedido de orçamento — Jusarah*%0A%0A" +
+        "*Nome:* "+g('nome')+"%0A*Zap:* "+g('zap')+"%0A*Planta:* "+g('cultura')+
+        "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+g('cidade')+" / "+g('uf')+
+        "%0A*Serviço:* "+g('servico');
+    }
+    document.getElementById('zap-btn').setAttribute('href', "https://wa.me/"+WPP+"?text="+encodeURIComponent("Olá! Quero um orçamento com a Jusarah."));
+    document.getElementById('form-orc').addEventListener('submit', function(e){
+      e.preventDefault();
+      window.open("https://wa.me/"+WPP+"?text="+montaMsg(), "_blank");
+      document.getElementById('q-ok').style.display = "block";
+    });
+  </script>
+</body>
+</html>

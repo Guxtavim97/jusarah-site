@@ -1,0 +1,9 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Deps (caso adicione um CMS depois)
+node_modules/
+.vercel/
