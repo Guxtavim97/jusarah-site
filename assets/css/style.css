@@ -354,7 +354,7 @@ p { margin: 0 0 1rem; }
 }
 .emergency-float svg { width: 22px; height: 22px; }
 @keyframes emPulse { 0%,100% { box-shadow: 0 10px 30px rgba(215,38,30,.5); } 50% { box-shadow: 0 12px 42px rgba(215,38,30,.9); } }
-@media (max-width: 520px) { .emergency-float span { display: none; } .emergency-float { padding: 15px; } }
+@media (max-width: 520px) { .emergency-float { padding: 11px 15px; font-size: .84rem; gap: 7px; } .emergency-float svg { width: 20px; height: 20px; } }
 
 .em-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(20,10,8,.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 20px; }
 .em-overlay.is-open { display: flex; }
@@ -465,4 +465,74 @@ p { margin: 0 0 1rem; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .hero__bg, .hero .tag, .hero h1, .hero p.lead, .hero__actions, .hero__states, .counter, .wa-float, .hero__scroll span::after { animation: none !important; }
   html { scroll-behavior: auto; }
+}
+
+/* ==========================================================================
+   APRIMORAMENTOS — MOBILE + MAIS MOVIMENTO
+   ========================================================================== */
+
+/* --- Micro-interações (hover / toque) --- */
+.card, .post { transition: transform .28s cubic-bezier(.2,.7,.3,1), box-shadow .28s ease, border-color .28s; }
+.card:hover, .post:hover { transform: translateY(-6px); box-shadow: 0 20px 46px rgba(11,59,92,.15); }
+.imgbox img { transition: transform .7s cubic-bezier(.2,.7,.3,1); }
+.imgbox:hover img { transform: scale(1.06); }
+.card__icon { transition: transform .3s ease, background .3s ease; }
+.card:hover .card__icon { transform: translateY(-3px) scale(1.08); background: var(--green-100); }
+.post__link, .nav a, .footer a { transition: color .2s, transform .2s; }
+.post:hover .post__link { transform: translateX(4px); }
+
+/* Brilho passando nos botões */
+.btn { position: relative; overflow: hidden; }
+.btn::after { content: ""; position: absolute; top: 0; left: -130%; width: 55%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,.28), transparent); transform: skewX(-20deg); transition: left .6s ease; pointer-events: none; }
+.btn:hover::after { left: 140%; }
+
+/* --- Stagger: cards entram em sequência ao revelar --- */
+.reveal.is-visible .card,
+.reveal.is-visible .post,
+.reveal.is-visible .member,
+.reveal.is-visible .cert__item { animation: fadeUp .6s both; }
+.reveal.is-visible .card:nth-child(2), .reveal.is-visible .post:nth-child(2), .reveal.is-visible .member:nth-child(2), .reveal.is-visible .cert__item:nth-child(2) { animation-delay: .1s; }
+.reveal.is-visible .card:nth-child(3), .reveal.is-visible .post:nth-child(3), .reveal.is-visible .member:nth-child(3) { animation-delay: .2s; }
+.reveal.is-visible .card:nth-child(4), .reveal.is-visible .post:nth-child(4), .reveal.is-visible .member:nth-child(4) { animation-delay: .3s; }
+.reveal.is-visible .card:nth-child(5) { animation-delay: .4s; }
+.reveal.is-visible .card:nth-child(6) { animation-delay: .5s; }
+
+/* --- MOBILE: mais bonito e confortável --- */
+@media (max-width: 760px) {
+  .section { padding: 50px 0; }
+  .hero__inner { padding: 88px 0 68px; max-width: 100%; }
+  .hero h1 { font-size: clamp(1.85rem, 8vw, 2.5rem); }
+  .hero p.lead { font-size: 1.06rem; }
+  .hero__bg { background-position: 64% 42%; }
+  .hero__actions { flex-direction: column; align-items: stretch; gap: 11px; }
+  .hero__actions .btn { width: 100%; justify-content: center; }
+  .hero .tag { margin-bottom: 16px; }
+  .hero__states { justify-content: center; gap: 14px; font-size: .82rem; margin-top: 26px; }
+  .lead { font-size: 1.05rem; }
+  h2 { font-size: clamp(1.5rem, 6.5vw, 2.05rem); }
+  .split { gap: 26px; }
+  .imgbox--tall { aspect-ratio: 4/3; }
+  .cta-banner { padding: 36px 20px; }
+  .cta-banner .btn { width: 100%; }
+  .grid { gap: 16px; }
+  .counters { margin-top: -34px; }
+  .counter { padding: 26px 16px; }
+  .footer { padding: 48px 0 24px; }
+  .hero__scroll { display: none; }
+  /* Botões flutuantes bem posicionados no mobile */
+  .wa-float { width: 54px; height: 54px; right: 15px; bottom: 15px; }
+  .wa-float svg { width: 28px; height: 28px; }
+  .emergency-float { left: 15px; bottom: 15px; padding: 14px; box-shadow: 0 8px 24px rgba(215,38,30,.55); }
+}
+@media (max-width: 430px) {
+  .hero__states { flex-direction: column; align-items: center; gap: 9px; }
+  .em-card { padding: 26px 20px 22px; }
+  .em-card h3 { font-size: 1.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .post, .imgbox img, .card__icon, .post__link { transition: none !important; }
+  .card:hover, .post:hover, .card:hover .card__icon, .imgbox:hover img, .post:hover .post__link { transform: none !important; }
+  .btn::after { display: none !important; }
+  .reveal.is-visible .card, .reveal.is-visible .post, .reveal.is-visible .member, .reveal.is-visible .cert__item { animation: none !important; }
 }
