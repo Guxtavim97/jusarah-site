@@ -50,6 +50,57 @@
     .btn-zap svg { width:24px; height:24px; }
     .q-reassure { text-align:center; color:var(--muted); font-size:.95rem; margin-top:18px; }
     .q-ok { display:none; background:var(--green-50); border:1px solid var(--green-100); border-radius:14px; padding:16px 18px; color:var(--green-900); margin-top:6px; }
+
+    /* ---- Quebra de texto mais bonita ---- */
+    .quote-hero h1 { text-wrap:balance; line-height:1.12; letter-spacing:-.01em; margin:0 auto; max-width:16ch; }
+    .quote-hero p { text-wrap:pretty; }
+    .quote-card h2 { text-wrap:balance; line-height:1.18; }
+
+    /* ---- Micro-interações ---- */
+    .q-field select, .q-field input { transition:border-color .15s, box-shadow .15s, transform .15s; }
+    .q-field input:hover, .q-field select:hover { border-color:var(--green-200); }
+    .geo-btn { transition:background .15s, transform .15s; }
+    .geo-btn:active { transform:scale(.98); }
+    .btn-zap { transition:transform .15s, filter .2s; }
+    .btn-zap:hover { transform:translateY(-2px); filter:brightness(1.04); }
+    .btn-send:active, .btn-zap:active { transform:translateY(0) scale(.99); }
+
+    /* ---- Entrada animada (aparece deslizando de baixo) ---- */
+    @keyframes qCardIn { from { opacity:0; transform:translateY(26px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes qFieldIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    .quote-card { animation:qCardIn .6s cubic-bezier(.16,.84,.44,1) both; }
+    .quote-card .intro,
+    form .q-field, .q-actions, .q-reassure { animation:qFieldIn .5s ease both; }
+    .quote-card .intro { animation-delay:.04s; }
+    form > .q-field:nth-child(1) { animation-delay:.10s; }
+    form > .q-field:nth-child(2) { animation-delay:.16s; }
+    form > .q-field:nth-child(3) { animation-delay:.22s; }
+    form > .q-field:nth-child(4) { animation-delay:.28s; }
+    form > .q-field:nth-child(5) { animation-delay:.34s; }
+    form > .q-field:nth-child(6) { animation-delay:.40s; }
+    .q-actions { animation-delay:.46s; }
+    .q-reassure { animation-delay:.52s; }
+    @media (prefers-reduced-motion: reduce) {
+      .quote-card, .quote-card .intro, form .q-field, .q-actions, .q-reassure { animation:none; }
+    }
+
+    /* ---- Ajustes finos no celular ---- */
+    @media (max-width:600px) {
+      .quote-hero { padding:38px 0 128px; }
+      .quote-hero h1 { font-size:1.8rem; }
+      .quote-hero p { font-size:1rem; margin-top:12px; }
+      .quote-wrap { margin-top:-98px; padding-left:16px; padding-right:16px; }
+      .quote-card { padding:22px 18px 26px; border-radius:20px; }
+      .quote-card .intro { gap:10px; }
+      .quote-card .intro .dot { width:40px; height:40px; border-radius:12px; }
+      .quote-card h2 { font-size:1.24rem; }
+      .quote-card .sub { margin-bottom:20px; }
+      .q-field > label { font-size:.98rem; }
+      /* Emergência: círculo compacto no canto, pra NÃO cobrir os campos do form */
+      .emergency-float span { display:none; }
+      .emergency-float { padding:13px; border-radius:50%; }
+      .emergency-float svg { width:22px; height:22px; }
+    }
   </style>
 </head>
 <body>
