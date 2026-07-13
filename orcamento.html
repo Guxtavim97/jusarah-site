@@ -49,7 +49,13 @@
     .btn-zap { display:flex; align-items:center; justify-content:center; gap:10px; background:#25D366; color:#fff; border:none; border-radius:14px; padding:16px; font-family:var(--font-head); font-weight:700; font-size:1.05rem; cursor:pointer; text-decoration:none; }
     .btn-zap svg { width:24px; height:24px; }
     .q-reassure { text-align:center; color:var(--muted); font-size:.95rem; margin-top:18px; }
-    .q-ok { display:none; background:var(--green-50); border:1px solid var(--green-100); border-radius:14px; padding:16px 18px; color:var(--green-900); margin-top:6px; }
+    .q-ok { display:none; text-align:center; padding:16px 6px 8px; }
+    .q-ok__check { width:76px; height:76px; border-radius:50%; background:var(--green-600); color:#fff; font-size:2.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; box-shadow:0 12px 28px rgba(21,128,61,.35); animation:qpop .5s cubic-bezier(.2,.9,.3,1.35) both; }
+    .q-ok h3 { font-size:1.5rem; margin:0 0 10px; color:var(--green-900); }
+    .q-ok #q-ok-msg { color:var(--muted); font-size:1.06rem; line-height:1.6; margin:0 auto; max-width:40ch; }
+    .q-ok__back { display:inline-block; margin-top:22px; background:var(--green-700); color:#fff; padding:13px 26px; border-radius:12px; font-family:var(--font-head); font-weight:700; text-decoration:none; transition:background .2s; }
+    .q-ok__back:hover { background:var(--green-600); }
+    @keyframes qpop { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
 
     /* ---- Quebra de texto mais bonita ---- */
     .quote-hero h1 { text-wrap:balance; line-height:1.12; letter-spacing:-.01em; margin:0 auto; max-width:16ch; }
@@ -141,6 +147,11 @@
         </div>
 
         <div class="q-field">
+          <label for="email">Seu e-mail <span style="font-weight:400;color:var(--muted)">(opcional — pra receber a confirmação)</span></label>
+          <input type="email" id="email" name="email" placeholder="voce@email.com">
+        </div>
+
+        <div class="q-field">
           <label for="cultura">O que você planta?</label>
           <select id="cultura" name="cultura">
             <option>Soja</option><option>Milho</option><option>Algodão</option>
@@ -197,9 +208,14 @@
             Prefiro chamar no Zap
           </a>
         </div>
-        <div class="q-ok" id="q-ok">Prontinho! Recebemos seus dados e já te chamamos no Zap. 👍</div>
         <p class="q-reassure">A gente responde rapidinho. Sem compromisso e sem preço escondido.</p>
       </form>
+      <div class="q-ok" id="q-ok">
+        <div class="q-ok__check">✓</div>
+        <h3>Pedido enviado com sucesso!</h3>
+        <p id="q-ok-msg"></p>
+        <a href="index.html" class="q-ok__back">Voltar ao site</a>
+      </div>
     </div>
   </div>
 
@@ -248,18 +264,79 @@
         function(){ gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
       ); } else { gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
     });
+    function val(id){ return ((document.getElementById(id)||{}).value || "").trim(); }
     function montaMsg(){
-      var g = function(id){ return (document.getElementById(id)||{}).value || ""; };
+      var email = val('email');
       return "*Pedido de orçamento — Jusarah*%0A%0A" +
-        "*Nome:* "+g('nome')+"%0A*Zap:* "+g('zap')+"%0A*Planta:* "+g('cultura')+
-        "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+g('cidade')+" / "+g('uf')+
-        "%0A*Serviço:* "+g('servico');
+        "*Nome:* "+val('nome')+"%0A*Zap:* "+val('zap') +
+        (email ? "%0A*E-mail:* "+email : "") +
+        "%0A*Planta:* "+val('cultura') +
+        "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+val('cidade')+" / "+val('uf')+
+        "%0A*Serviço:* "+val('servico');
     }
     document.getElementById('zap-btn').setAttribute('href', "https://wa.me/"+WPP+"?text="+encodeURIComponent("Olá! Quero um orçamento com a Jusarah."));
+
+    /* ---- Confirmação por e-mail (OPCIONAL) --------------------------------
+       Preencha as 3 chaves abaixo para enviar um e-mail de confirmação
+       automático para quem informar o e-mail. Serviço grátis: emailjs.com
+       (crie conta → adicione um Email Service → crie um Template usando as
+       variáveis: to_email, nome, zap, cultura, area, local, servico → copie
+       as 3 chaves aqui). Deixando em branco, tudo funciona igual: aviso de
+       sucesso na tela + envio pelo WhatsApp. */
+    var EMAILJS = { publicKey: "", serviceId: "", templateId: "" };
+
+    var _ejs = null;
+    function carregaEmailJS(){
+      if(window.emailjs) return Promise.resolve();
+      if(_ejs) return _ejs;
+      _ejs = new Promise(function(res, rej){
+        var s = document.createElement('script');
+        s.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      return _ejs;
+    }
+    function enviaConfirmacao(email){
+      return carregaEmailJS().then(function(){
+        emailjs.init({ publicKey: EMAILJS.publicKey });
+        return emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
+          to_email: email,
+          nome: val('nome'),
+          zap: val('zap'),
+          cultura: val('cultura'),
+          area: fmtHa(+ha.value),
+          local: val('cidade')+" / "+val('uf'),
+          servico: val('servico')
+        }).then(function(){ return true; });
+      });
+    }
+    function mostraSucesso(email, comEmail){
+      var intro = document.querySelector('.quote-card .intro');
+      if(intro) intro.style.display = 'none';
+      document.getElementById('form-orc').style.display = 'none';
+      document.getElementById('q-ok-msg').innerHTML =
+        "Abrimos o WhatsApp pra você confirmar o envio — é só tocar em <b>enviar</b> na conversa. 👍" +
+        (comEmail ? "<br><br>📧 Enviamos uma confirmação para <b>"+email+"</b>." : "");
+      var ok = document.getElementById('q-ok');
+      ok.style.display = 'block';
+      ok.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
     document.getElementById('form-orc').addEventListener('submit', function(e){
       e.preventDefault();
+      var form = document.getElementById('form-orc');
+      if(!form.checkValidity()){ form.reportValidity(); return; }
+      var email = val('email');
+      /* WhatsApp — igual está hoje */
       window.open("https://wa.me/"+WPP+"?text="+montaMsg(), "_blank");
-      document.getElementById('q-ok').style.display = "block";
+      /* E-mail de confirmação — só se a pessoa informou e o serviço estiver configurado */
+      if(email && EMAILJS.publicKey && EMAILJS.serviceId && EMAILJS.templateId){
+        enviaConfirmacao(email)
+          .then(function(){ mostraSucesso(email, true); })
+          .catch(function(){ mostraSucesso(email, false); });
+      } else {
+        mostraSucesso(email, false);
+      }
     });
   </script>
 </body>
