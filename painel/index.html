@@ -270,6 +270,19 @@ async function gh(path, opts = {}) {
   }));
   return res;
 }
+/* Extrai a mensagem de erro real que o GitHub devolve */
+async function ghErr(res) {
+  let detail = "";
+  try {
+    const j = await res.json();
+    detail = j.message || "";
+    if (j.errors) detail += " — " + JSON.stringify(j.errors);
+  } catch (e) {}
+  if (res.status === 403 || res.status === 404) {
+    detail += " [Verifique se o token tem permissão 'Contents: Read and write' neste repositório.]";
+  }
+  return " (" + res.status + (detail ? ": " + detail : "") + ")";
+}
 async function getFile(path) {
   const res = await gh("/contents/" + path + "?ref=" + REPO.branch + "&t=" + Date.now());
   if (res.status === 404) return { text: null, sha: null };
@@ -282,13 +295,13 @@ async function putFile(path, contentStr, sha, message) {
   if (sha) body.sha = sha;
   const res = await gh("/contents/" + path, { method: "PUT", body: JSON.stringify(body) });
   if (res.status === 409) throw new Error("Conflito: recarregue a página e tente de novo.");
-  if (!res.ok) throw new Error("Erro ao salvar (" + res.status + ")");
+  if (!res.ok) throw new Error("Erro ao salvar" + await ghErr(res));
   return res.json();
 }
 async function putBinary(path, base64, message) {
   const res = await gh("/contents/" + path, { method: "PUT",
     body: JSON.stringify({ message, content: base64, branch: REPO.branch }) });
-  if (!res.ok) throw new Error("Erro ao enviar imagem (" + res.status + ")");
+  if (!res.ok) throw new Error("Erro ao enviar imagem" + await ghErr(res));
   return res.json();
 }
 
@@ -299,7 +312,7 @@ function toast(msg, kind) {
   t.textContent = msg;
   t.className = "toast show" + (kind ? " " + kind : "");
   clearTimeout(t._t);
-  t._t = setTimeout(() => (t.className = "toast"), 3200);
+  t._t = setTimeout(() => (t.className = "toast"), kind === "err" ? 9000 : 3200);
 }
 function slug(s) {
   return (s || "post").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
