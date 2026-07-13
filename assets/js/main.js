@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(function () {});
   }
 
-  /* ---- Conteúdo dinâmico: Projeto Sementes (data/projeto.json) ---- */
+  /* ---- Conteúdo dinâmico: Semeando Esperança (data/projeto.json) ---- */
   var proj = document.querySelector("[data-projeto]");
   if (proj) {
     fetch("data/projeto.json", { cache: "no-store" })

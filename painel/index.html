@@ -144,7 +144,7 @@
   <main>
     <div class="tabs">
       <button class="tab is-active" data-tab="posts">Notícias & Eventos</button>
-      <button class="tab" data-tab="projeto">Projeto Sementes</button>
+      <button class="tab" data-tab="projeto">Semeando Esperança</button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -163,7 +163,7 @@
           <select id="f-categoria">
             <option>Notícias</option>
             <option>Eventos</option>
-            <option>Projeto Sementes</option>
+            <option>Semeando Esperança</option>
             <option>Jusarah Explica</option>
           </select>
         </div>
@@ -209,16 +209,16 @@
 
     <!-- PAINEL: PROJETO SEMENTES -->
     <section class="panel" id="panel-projeto">
-      <div class="head-row"><h2>Projeto Sementes</h2></div>
+      <div class="head-row"><h2>Semeando Esperança</h2></div>
       <div class="form" id="projeto-form">
-        <h3>Editar a seção do Projeto Sementes</h3>
+        <h3>Editar a seção do Semeando Esperança</h3>
         <div class="field">
           <label>Selo (linha de cima)</label>
           <input type="text" id="p-eyebrow" placeholder="Responsabilidade social">
         </div>
         <div class="field">
           <label>Título</label>
-          <input type="text" id="p-titulo" placeholder="Projeto Sementes">
+          <input type="text" id="p-titulo" placeholder="Semeando Esperança">
         </div>
         <div class="field">
           <label>Texto <span style="font-weight:400;color:var(--muted)">(um parágrafo por linha em branco)</span></label>
@@ -228,7 +228,7 @@
           <label>Foto da seção</label>
           <label class="drop" for="p-file" id="p-drop">
             <input type="file" id="p-file" accept="image/*">
-            📷 Trocar a foto do Projeto Sementes
+            📷 Trocar a foto do Semeando Esperança
           </label>
           <div class="preview hidden" id="p-preview">
             <img id="p-preview-img" alt="">
@@ -537,17 +537,17 @@ $("btn-save-projeto").addEventListener("click", async () => {
     let imagem = projeto.imagem || "assets/img/aviao-campo-2.jpg";
     if (projImgB64) {
       const path = "assets/img/uploads/projeto-sementes-" + Date.now() + ".jpg";
-      await putBinary(path, projImgB64, "Painel: foto do Projeto Sementes");
+      await putBinary(path, projImgB64, "Painel: foto do Semeando Esperança");
       imagem = path;
     }
     const data = {
       eyebrow: $("p-eyebrow").value.trim() || "Responsabilidade social",
-      titulo: $("p-titulo").value.trim() || "Projeto Sementes",
+      titulo: $("p-titulo").value.trim() || "Semeando Esperança",
       imagem: imagem,
       paragrafos: $("p-texto").value.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean)
     };
     const r = await putFile("data/projeto.json", JSON.stringify(data, null, 2) + "\n", projetoSha,
-      "Painel: atualiza Projeto Sementes");
+      "Painel: atualiza Semeando Esperança");
     projeto = data; projetoSha = r.content.sha; projImgB64 = null;
     toast("Salvo! O site atualiza em ~30s.", "ok");
   } catch (e) {

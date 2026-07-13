@@ -5,7 +5,7 @@ Site estático (HTML/CSS/JS, sem build). **Deploy zero-config na Vercel.**
 ## Estrutura
 ```
 site/
-├── index.html          # Home (one-page: hero, serviços, frota, empresa, certificações, Projeto Sementes, notícias, contato)
+├── index.html          # Home (one-page: hero, serviços, frota, empresa, certificações, Semeando Esperança, notícias, contato)
 ├── orcamento.html      # Formulário de orçamento (slider de hectares, estado→cidade, geolocalização, WhatsApp)
 └── assets/
     ├── css/style.css   # Design system (verde/azul, componentes reaproveitáveis)
