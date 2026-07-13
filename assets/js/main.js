@@ -109,6 +109,101 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /* ---- Conteúdo dinâmico: Notícias/Eventos (data/posts.json) ---- */
+  var fmtData = function (iso) {
+    if (!iso) return "";
+    var meses = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    var p = String(iso).split("-");
+    if (p.length < 3) return "";
+    return parseInt(p[2], 10) + " " + meses[parseInt(p[1], 10) - 1] + " " + p[0];
+  };
+
+  var grid = document.querySelector("[data-posts]");
+  if (grid) {
+    fetch("data/posts.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (posts) {
+        if (!Array.isArray(posts) || !posts.length) return;
+        grid.innerHTML = "";
+        posts.forEach(function (p) {
+          var art = document.createElement("article");
+          art.className = "post";
+
+          var box = document.createElement("div");
+          box.className = "imgbox";
+          box.style.borderRadius = "0";
+          var img = document.createElement("img");
+          img.src = p.imagem || "assets/img/aviao-campo-3.jpg";
+          img.alt = p.titulo || "";
+          img.loading = "lazy";
+          img.style.aspectRatio = "16/10";
+          box.appendChild(img);
+
+          var body = document.createElement("div");
+          body.className = "post__body";
+
+          var meta = document.createElement("span");
+          meta.className = "post__meta";
+          meta.textContent = (p.categoria || "") + (p.data ? " · " + fmtData(p.data) : "");
+
+          var h3 = document.createElement("h3");
+          if (p.link) {
+            var a = document.createElement("a");
+            a.href = p.link; a.target = "_blank"; a.rel = "noopener";
+            a.textContent = p.titulo || "";
+            h3.appendChild(a);
+          } else {
+            h3.textContent = p.titulo || "";
+          }
+
+          var desc = document.createElement("p");
+          desc.textContent = p.resumo || "";
+
+          body.appendChild(meta);
+          body.appendChild(h3);
+          body.appendChild(desc);
+          if (p.link) {
+            var link = document.createElement("a");
+            link.href = p.link; link.target = "_blank"; link.rel = "noopener";
+            link.className = "post__link";
+            link.textContent = "Ver mais →";
+            body.appendChild(link);
+          }
+
+          art.appendChild(box);
+          art.appendChild(body);
+          grid.appendChild(art);
+        });
+      })
+      .catch(function () {});
+  }
+
+  /* ---- Conteúdo dinâmico: Projeto Sementes (data/projeto.json) ---- */
+  var proj = document.querySelector("[data-projeto]");
+  if (proj) {
+    fetch("data/projeto.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        var eb = proj.querySelector("[data-projeto-eyebrow]");
+        var tt = proj.querySelector("[data-projeto-titulo]");
+        var tx = proj.querySelector("[data-projeto-texto]");
+        var im = proj.querySelector("[data-projeto-img]");
+        if (eb && d.eyebrow) eb.textContent = d.eyebrow;
+        if (tt && d.titulo) tt.textContent = d.titulo;
+        if (im && d.imagem) im.src = d.imagem;
+        if (tx && Array.isArray(d.paragrafos)) {
+          tx.innerHTML = "";
+          d.paragrafos.forEach(function (par) {
+            var el = document.createElement("p");
+            el.textContent = par;
+            tx.appendChild(el);
+          });
+        }
+      })
+      .catch(function () {});
+  }
+
   /* ---- Ano no rodapé ---- */
   document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
 

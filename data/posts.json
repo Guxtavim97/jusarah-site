@@ -1,0 +1,29 @@
+[
+  {
+    "id": "jusarah-explica-desperdicio",
+    "categoria": "Jusarah Explica",
+    "titulo": "Avião agrícola desperdiça produto? Mito ou verdade",
+    "resumo": "Conteúdo educativo que gera autoridade e aproxima o produtor.",
+    "imagem": "assets/img/aviao-campo-3.jpg",
+    "data": "2026-07-01",
+    "link": ""
+  },
+  {
+    "id": "eventos-demonstracao-voo",
+    "categoria": "Eventos",
+    "titulo": "Jusarah marca presença com demonstração de voo",
+    "resumo": "A participação da empresa em feiras e eventos do agro da região.",
+    "imagem": "assets/img/pulverizacao-lavoura.jpg",
+    "data": "2026-06-20",
+    "link": ""
+  },
+  {
+    "id": "sementes-nova-edicao",
+    "categoria": "Projeto Sementes",
+    "titulo": "Nova edição leva educação às escolas da região",
+    "resumo": "Mais uma turma do 5º ano aprendendo de onde vem o alimento.",
+    "imagem": "assets/img/aviao-campo-2.jpg",
+    "data": "2026-06-05",
+    "link": ""
+  }
+]
