@@ -7,7 +7,7 @@
     "autor": "Equipe Jusarah",
     "data": "2026-07-01",
     "imagem": "assets/img/aviao-campo-3.jpg",
-    "galeria": [],
+    "galeria": ["assets/img/pulverizacao-lavoura.jpg", "assets/img/empresa-base-hangar.jpg", "assets/img/aviao-campo-2.jpg"],
     "corpo": "<p>Muita gente acha que o avião agrícola desperdiça produto. Na prática, a pulverização aérea é calibrada para aplicar a dose certa, com tecnologia de precisão que reduz perdas e evita sobras.</p><p>Nesta edição do <b>Jusarah Explica</b>, mostramos como a regulagem dos bicos, a altura de voo e as condições do tempo garantem uma aplicação eficiente e responsável.</p>",
     "link": ""
   },

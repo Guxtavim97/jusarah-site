@@ -26,10 +26,21 @@
     .article-body a{color:var(--blue-700,#1B3F8F);text-decoration:underline}
     .article-body img{max-width:100%;border-radius:14px;margin:1em 0}
     .article-body b,.article-body strong{font-weight:700}
-    .article-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:34px}
-    .article-gallery a{display:block;border-radius:12px;overflow:hidden;aspect-ratio:1;box-shadow:var(--shadow-sm)}
-    .article-gallery img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-    .article-gallery a:hover img{transform:scale(1.06)}
+    /* Carrossel de fotos (galeria da notícia) */
+    .carousel{position:relative;margin-top:34px;border-radius:18px;overflow:hidden;box-shadow:var(--shadow-lg);background:#0a1a12}
+    .carousel__viewport{overflow:hidden}
+    .carousel__track{display:flex;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+    .carousel__slide{min-width:100%;aspect-ratio:16/10;display:block}
+    .carousel__slide img{width:100%;height:100%;object-fit:cover;display:block}
+    .carousel__btn{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.86);color:var(--ink);font-size:1.7rem;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.25);transition:background .15s,transform .15s;font-family:var(--font-head)}
+    .carousel__btn:hover{background:#fff}
+    .carousel__btn:active{transform:translateY(-50%) scale(.94)}
+    .carousel__btn--prev{left:12px}
+    .carousel__btn--next{right:12px}
+    .carousel__dots{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:8px}
+    .carousel__dots button{width:9px;height:9px;border-radius:50%;border:none;background:rgba(255,255,255,.55);cursor:pointer;padding:0;transition:width .25s,background .2s}
+    .carousel__dots button.is-active{background:#fff;width:24px;border-radius:999px}
+    @media(max-width:520px){.carousel__btn{width:38px;height:38px;font-size:1.35rem}}
     .article-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:44px;padding-top:30px;border-top:1px solid var(--line)}
     @media(max-width:520px){.article-cta .btn{width:100%;justify-content:center}}
   </style>
@@ -50,7 +61,7 @@
       <div class="article-meta" id="a-meta"></div>
       <img class="article-cover" id="a-cover" alt="" hidden>
       <div class="article-body" id="a-body"></div>
-      <div class="article-gallery" id="a-gallery"></div>
+      <div id="a-gallery" hidden></div>
       <div class="article-cta">
         <a href="orcamento.html" class="btn btn--primary btn--lg">Solicitar Orçamento</a>
         <a href="index.html#noticias" class="btn btn--ghost btn--lg">Ver outras notícias</a>
@@ -177,17 +188,81 @@
         if (p.corpo && p.corpo.trim()) { body.innerHTML = p.corpo; }
         else if (p.resumo) { var pp = document.createElement("p"); pp.textContent = p.resumo; body.appendChild(pp); }
 
-        var gal = document.getElementById("a-gallery");
-        (p.galeria || []).forEach(function (src) {
-          var a = document.createElement("a");
-          a.href = src; a.target = "_blank"; a.rel = "noopener";
-          var im = document.createElement("img");
-          im.src = src; im.alt = ""; im.loading = "lazy";
-          a.appendChild(im);
-          gal.appendChild(a);
-        });
+        var fotos = p.galeria || [];
+        if (fotos.length) buildCarousel(document.getElementById("a-gallery"), fotos);
 
         artEl.hidden = false;
+      }
+
+      /* Carrossel automático da galeria */
+      function buildCarousel(container, fotos) {
+        container.hidden = false;
+        container.className = "carousel";
+
+        var viewport = document.createElement("div");
+        viewport.className = "carousel__viewport";
+        var track = document.createElement("div");
+        track.className = "carousel__track";
+        fotos.forEach(function (src) {
+          var slide = document.createElement("a");
+          slide.className = "carousel__slide";
+          slide.href = src; slide.target = "_blank"; slide.rel = "noopener";
+          var im = document.createElement("img");
+          im.src = src; im.alt = ""; im.loading = "lazy";
+          slide.appendChild(im);
+          track.appendChild(slide);
+        });
+        viewport.appendChild(track);
+        container.appendChild(viewport);
+
+        var n = fotos.length, idx = 0, dots = null, timer = null;
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        function go(i) {
+          idx = (i + n) % n;
+          track.style.transform = "translateX(-" + (idx * 100) + "%)";
+          if (dots) dots.forEach(function (d, k) { d.className = k === idx ? "is-active" : ""; });
+        }
+        function start() { if (!reduce && n > 1) timer = setInterval(function () { go(idx + 1); }, 4000); }
+        function stop() { clearInterval(timer); }
+        function restart() { stop(); start(); }
+
+        if (n > 1) {
+          var prev = document.createElement("button");
+          prev.className = "carousel__btn carousel__btn--prev"; prev.innerHTML = "‹";
+          prev.setAttribute("aria-label", "Foto anterior");
+          prev.onclick = function () { go(idx - 1); restart(); };
+          var next = document.createElement("button");
+          next.className = "carousel__btn carousel__btn--next"; next.innerHTML = "›";
+          next.setAttribute("aria-label", "Próxima foto");
+          next.onclick = function () { go(idx + 1); restart(); };
+          container.appendChild(prev); container.appendChild(next);
+
+          var dotsWrap = document.createElement("div");
+          dotsWrap.className = "carousel__dots";
+          dots = fotos.map(function (_, k) {
+            var b = document.createElement("button");
+            b.setAttribute("aria-label", "Ir para a foto " + (k + 1));
+            b.onclick = function () { go(k); restart(); };
+            dotsWrap.appendChild(b);
+            return b;
+          });
+          container.appendChild(dotsWrap);
+
+          container.addEventListener("mouseenter", stop);
+          container.addEventListener("mouseleave", start);
+
+          var x0 = null;
+          viewport.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; stop(); }, { passive: true });
+          viewport.addEventListener("touchend", function (e) {
+            if (x0 === null) return;
+            var dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+            x0 = null; start();
+          }, { passive: true });
+        }
+        go(0);
+        start();
       }
     })();
   </script>
