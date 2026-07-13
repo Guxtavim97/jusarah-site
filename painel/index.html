@@ -390,6 +390,29 @@ function compress(file, maxW) {
     img.src = url;
   });
 }
+/* Limpa o HTML do editor (remove lixo de colagem, títulos gigantes, parágrafos vazios) */
+function cleanHTML(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  tmp.querySelectorAll("style,script,meta,link").forEach((e) => e.remove());
+  tmp.querySelectorAll("*").forEach((el) => {
+    Array.prototype.slice.call(el.attributes).forEach((attr) => {
+      const n = attr.name.toLowerCase();
+      const keep = (el.tagName === "A" && (n === "href" || n === "target" || n === "rel")) ||
+                   (el.tagName === "IMG" && (n === "src" || n === "alt"));
+      if (!keep) el.removeAttribute(attr.name);
+    });
+    if (el.tagName === "H1" || el.tagName === "H2" || el.tagName === "H4") {
+      const h3 = document.createElement("h3");
+      h3.innerHTML = el.innerHTML;
+      el.parentNode.replaceChild(h3, el);
+    }
+  });
+  tmp.querySelectorAll("p").forEach((p) => {
+    if (!p.textContent.trim() && !p.querySelector("img")) p.remove();
+  });
+  return tmp.innerHTML.trim();
+}
 
 /* ============================================================
    LOGIN
@@ -583,7 +606,7 @@ $("btn-save").addEventListener("click", async () => {
       }
     }
     const corpoEl = $("f-corpo");
-    const corpo = corpoEl.textContent.trim() ? corpoEl.innerHTML.trim() : "";
+    const corpo = corpoEl.textContent.trim() ? cleanHTML(corpoEl.innerHTML) : "";
     const post = {
       id: (isEdit && posts[editIndex].id) ? posts[editIndex].id : slug(titulo) + "-" + Date.now(),
       categoria: $("f-categoria").value,

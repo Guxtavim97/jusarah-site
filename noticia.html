@@ -185,7 +185,7 @@
         if (p.imagem) { cover.src = p.imagem; cover.alt = p.titulo || ""; cover.hidden = false; }
 
         var body = document.getElementById("a-body");
-        if (p.corpo && p.corpo.trim()) { body.innerHTML = p.corpo; }
+        if (p.corpo && p.corpo.trim()) { body.innerHTML = limpaHTML(p.corpo); }
         else if (p.resumo) { var pp = document.createElement("p"); pp.textContent = p.resumo; body.appendChild(pp); }
 
         var fotos = p.galeria || [];
@@ -263,6 +263,30 @@
         }
         go(0);
         start();
+      }
+
+      /* Limpa HTML colado (remove atributos de lixo, títulos gigantes e parágrafos vazios) */
+      function limpaHTML(html) {
+        var tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        tmp.querySelectorAll("style,script,meta,link").forEach(function (e) { e.remove(); });
+        tmp.querySelectorAll("*").forEach(function (el) {
+          Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+            var n = attr.name.toLowerCase();
+            var keep = (el.tagName === "A" && (n === "href" || n === "target" || n === "rel")) ||
+                       (el.tagName === "IMG" && (n === "src" || n === "alt"));
+            if (!keep) el.removeAttribute(attr.name);
+          });
+          if (el.tagName === "H1" || el.tagName === "H2" || el.tagName === "H4") {
+            var h3 = document.createElement("h3");
+            h3.innerHTML = el.innerHTML;
+            el.parentNode.replaceChild(h3, el);
+          }
+        });
+        tmp.querySelectorAll("p").forEach(function (p) {
+          if (!p.textContent.trim() && !p.querySelector("img")) p.remove();
+        });
+        return tmp.innerHTML;
       }
     })();
   </script>
