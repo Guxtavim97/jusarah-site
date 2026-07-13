@@ -545,3 +545,48 @@ p { margin: 0 0 1rem; }
   /* Espaço extra no fim pra os botões flutuantes não taparem conteúdo */
   .footer { padding-bottom: 40px; }
 }
+
+/* ==================== Vídeo "Nossa Rotina" ==================== */
+.video-embed {
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .45);
+  background: #000 center/cover no-repeat;
+  cursor: pointer;
+}
+.video-embed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 14, 9, .30);
+  transition: background .3s;
+}
+.video-embed:hover::after { background: rgba(4, 14, 9, .12); }
+.video-embed.is-playing { cursor: default; }
+.video-embed.is-playing::after { display: none; }
+.video-embed__play {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: none; border: none; padding: 0;
+  cursor: pointer; z-index: 2;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .45));
+  transition: transform .2s;
+}
+.video-embed__play svg { width: 86px; height: auto; display: block; }
+.video-embed__bg { opacity: .9; transition: opacity .2s; }
+.video-embed:hover .video-embed__play { transform: translate(-50%, -50%) scale(1.09); }
+.video-embed:hover .video-embed__bg { opacity: 1; }
+.video-embed iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; z-index: 3;
+}
+@media (max-width: 560px) {
+  .video-embed { border-radius: 16px; }
+  .video-embed__play svg { width: 64px; }
+}

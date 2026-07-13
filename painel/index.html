@@ -167,6 +167,7 @@
     <div class="tabs">
       <button class="tab is-active" data-tab="posts">Notícias & Eventos</button>
       <button class="tab" data-tab="projeto">Semeando Esperança</button>
+      <button class="tab" data-tab="rotina">Nossa Rotina</button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -284,6 +285,34 @@
         </div>
         <div class="form-acts">
           <button class="btn btn--green" id="btn-save-projeto">Salvar alterações</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAINEL: NOSSA ROTINA (VÍDEO) -->
+    <section class="panel" id="panel-rotina">
+      <div class="head-row"><h2>Nossa Rotina (vídeo)</h2></div>
+      <div class="form">
+        <h3>Seção de vídeo da home</h3>
+        <div class="field">
+          <label>Selo (linha de cima)</label>
+          <input type="text" id="r-eyebrow" placeholder="Por dentro da operação">
+        </div>
+        <div class="field">
+          <label>Título</label>
+          <input type="text" id="r-titulo" placeholder="Nossa Rotina">
+        </div>
+        <div class="field">
+          <label>Texto</label>
+          <textarea id="r-texto" placeholder="Acompanhe um pouco do dia a dia da Jusarah no campo…"></textarea>
+        </div>
+        <div class="field">
+          <label>Link do vídeo no YouTube</label>
+          <input type="url" id="r-youtube" placeholder="https://www.youtube.com/watch?v=...">
+          <p class="hint" id="r-yt-hint"></p>
+        </div>
+        <div class="form-acts">
+          <button class="btn btn--green" id="btn-save-rotina">Salvar alterações</button>
         </div>
       </div>
     </section>
@@ -444,6 +473,7 @@ function showApp() {
   $("app").classList.remove("hidden");
   loadPosts();
   loadProjeto();
+  loadRotina();
 }
 
 /* ============================================================
@@ -699,6 +729,55 @@ $("btn-save-projeto").addEventListener("click", async () => {
   } catch (e) {
     toast(e.message, "err");
     if (String(e.message).indexOf("Conflito") >= 0) loadProjeto();
+  } finally { btn.innerHTML = "Salvar alterações"; }
+});
+
+/* ============================================================
+   NOSSA ROTINA (vídeo)
+   ============================================================ */
+let rotinaSha = null, rotina = {};
+function ytId(url) {
+  if (!url) return "";
+  var m = String(url).match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|\/v\/)([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{11}$/.test(String(url).trim()) ? String(url).trim() : "";
+}
+function updateYtHint() {
+  var id = ytId($("r-youtube").value);
+  $("r-yt-hint").textContent = id ? ("Vídeo identificado ✓ (" + id + ")") : "Cole o link completo do vídeo do YouTube.";
+}
+async function loadRotina() {
+  try {
+    const f = await getFile("data/rotina.json");
+    rotina = f.text ? JSON.parse(f.text) : {};
+    rotinaSha = f.sha;
+    $("r-eyebrow").value = rotina.eyebrow || "";
+    $("r-titulo").value = rotina.titulo || "";
+    $("r-texto").value = rotina.texto || "";
+    $("r-youtube").value = rotina.youtube ? ("https://www.youtube.com/watch?v=" + rotina.youtube) : "";
+    updateYtHint();
+  } catch (e) { toast(e.message, "err"); }
+}
+$("r-youtube").addEventListener("input", updateYtHint);
+$("btn-save-rotina").addEventListener("click", async () => {
+  const id = ytId($("r-youtube").value);
+  if (!id) { toast("Link do YouTube inválido. Cole o link completo do vídeo.", "err"); return; }
+  const btn = $("btn-save-rotina");
+  btn.innerHTML = '<span class="spin"></span> Salvando…';
+  try {
+    const data = {
+      eyebrow: $("r-eyebrow").value.trim() || "Por dentro da operação",
+      titulo: $("r-titulo").value.trim() || "Nossa Rotina",
+      texto: $("r-texto").value.trim(),
+      youtube: id
+    };
+    const r = await putFile("data/rotina.json", JSON.stringify(data, null, 2) + "\n", rotinaSha,
+      "Painel: atualiza Nossa Rotina");
+    rotina = data; rotinaSha = r.content.sha;
+    toast("Salvo! O site atualiza em ~30s.", "ok");
+  } catch (e) {
+    toast(e.message, "err");
+    if (String(e.message).indexOf("Conflito") >= 0) loadRotina();
   } finally { btn.innerHTML = "Salvar alterações"; }
 });
 

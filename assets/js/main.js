@@ -203,6 +203,48 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(function () {});
   }
 
+  /* ---- Nossa Rotina: conteúdo + vídeo do YouTube (carrega só ao clicar) ---- */
+  var wireVideo = function () {
+    var el = document.querySelector(".video-embed");
+    if (!el) return;
+    var id = el.getAttribute("data-yt");
+    if (id) el.style.backgroundImage = "url(https://i.ytimg.com/vi/" + id + "/hqdefault.jpg)";
+    var btn = el.querySelector(".video-embed__play");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        var vid = el.getAttribute("data-yt");
+        if (!vid) return;
+        var iframe = document.createElement("iframe");
+        iframe.src = "https://www.youtube-nocookie.com/embed/" + vid + "?autoplay=1&rel=0&modestbranding=1";
+        iframe.title = "Vídeo — Nossa Rotina Jusarah";
+        iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        iframe.setAttribute("allowfullscreen", "");
+        el.classList.add("is-playing");
+        el.innerHTML = "";
+        el.appendChild(iframe);
+      });
+    }
+  };
+  var rotina = document.querySelector("[data-rotina]");
+  if (rotina) {
+    fetch("data/rotina.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (d) {
+          var eb = rotina.querySelector("[data-rotina-eyebrow]");
+          var tt = rotina.querySelector("[data-rotina-titulo]");
+          var tx = rotina.querySelector("[data-rotina-texto]");
+          var ve = rotina.querySelector(".video-embed");
+          if (eb && d.eyebrow) eb.textContent = d.eyebrow;
+          if (tt && d.titulo) tt.textContent = d.titulo;
+          if (tx && d.texto) tx.textContent = d.texto;
+          if (ve && d.youtube) ve.setAttribute("data-yt", d.youtube);
+        }
+        wireVideo();
+      })
+      .catch(wireVideo);
+  } else { wireVideo(); }
+
   /* ---- Ano no rodapé ---- */
   document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
 
