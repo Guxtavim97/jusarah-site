@@ -334,25 +334,30 @@
     }
     function enviaConfirmacao(email){
       return carregaEmailJS().then(function(){
-        emailjs.init({ publicKey: EMAILJS.publicKey });
         return emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
           to_email: email,
+          email: email,
           nome: val('nome'),
           zap: val('zap'),
           cultura: val('cultura'),
           area: fmtHa(+ha.value),
           local: localStr(),
           servico: val('servico')
-        }).then(function(){ return true; });
+        }, { publicKey: EMAILJS.publicKey }).then(function(){ return true; });
       });
     }
-    function mostraSucesso(email, comEmail){
+    function mostraSucesso(email, comEmail, erro){
       var intro = document.querySelector('.quote-card .intro');
       if(intro) intro.style.display = 'none';
       document.getElementById('form-orc').style.display = 'none';
-      document.getElementById('q-ok-msg').innerHTML =
-        "Abrimos o WhatsApp pra você confirmar o envio — é só tocar em <b>enviar</b> na conversa. 👍" +
+      var msg = "Abrimos o WhatsApp pra você confirmar o envio — é só tocar em <b>enviar</b> na conversa. 👍" +
         (comEmail ? "<br><br>📧 Enviamos uma confirmação para <b>"+email+"</b>." : "");
+      if(erro){
+        var det = (erro && (erro.text || erro.message)) ? (erro.text || erro.message) : JSON.stringify(erro);
+        var st = (erro && erro.status) ? (" [" + erro.status + "]") : "";
+        msg += "<br><br><span style='color:#c0392b;font-size:.82rem'>⚠️ diagnóstico do e-mail" + st + ": " + det + "</span>";
+      }
+      document.getElementById('q-ok-msg').innerHTML = msg;
       var ok = document.getElementById('q-ok');
       ok.style.display = 'block';
       ok.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -368,7 +373,7 @@
       if(email && EMAILJS.publicKey && EMAILJS.serviceId && EMAILJS.templateId){
         enviaConfirmacao(email)
           .then(function(){ mostraSucesso(email, true); })
-          .catch(function(){ mostraSucesso(email, false); });
+          .catch(function(err){ console.error("EmailJS erro:", err); mostraSucesso(email, false, err); });
       } else {
         mostraSucesso(email, false);
       }
