@@ -24,7 +24,7 @@
     .quote-card .sub { color:var(--muted); margin:2px 0 26px; }
     .q-field { margin-bottom:22px; }
     .q-field > label { display:block; font-family:var(--font-head); font-weight:600; font-size:1.02rem; color:var(--ink); margin-bottom:9px; }
-    .q-field input[type=text], .q-field input[type=tel], .q-field select {
+    .q-field input[type=text], .q-field input[type=tel], .q-field input[type=email], .q-field select {
       width:100%; font-family:var(--font-body); font-size:1.05rem; color:var(--ink);
       padding:15px 16px; border:2px solid var(--line); border-radius:14px; background:var(--paper); transition:border-color .15s, box-shadow .15s;
     }
@@ -240,6 +240,7 @@
   <script src="assets/js/main.js"></script>
   <script>
     var WPP = "5569993257000";
+    var geoCoords = "";
     var cidades = {
       RO:["Cerejeiras","Vilhena","Colorado do Oeste","Cabixi","Corumbiara","Pimenteiras do Oeste","Chupinguaia","Porto Velho","Ji-Paraná","Ariquemes","Cacoal","Rolim de Moura"],
       MT:["Cuiabá","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Primavera do Leste","Campo Novo do Parecis","Sapezal","Nova Mutum","Tangará da Serra","Campo Verde","Diamantino"],
@@ -258,20 +259,36 @@
     });
     var geo = document.getElementById('geo'), gm = document.getElementById('geo-msg');
     geo.addEventListener('click', function(){
-      gm.hidden = false; gm.textContent = "Buscando sua localização…";
-      if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(
-        function(){ gm.textContent = "Localização encontrada! No site real, a cidade é preenchida sozinha."; },
-        function(){ gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
-      ); } else { gm.textContent = "Tudo bem — é só escolher o estado e a cidade acima."; }
+      gm.hidden = false; gm.textContent = "📡 Buscando sua localização…";
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+          function(p){
+            geoCoords = p.coords.latitude.toFixed(6) + "," + p.coords.longitude.toFixed(6);
+            gm.textContent = "📍 Localização capturada! Vamos usar ela pra chegar na sua lavoura. ✓";
+            geo.style.background = "#dcecf8";
+          },
+          function(){
+            geoCoords = "";
+            gm.textContent = "Não consegui pegar a localização — sem problema, é só escolher o estado e a cidade acima. 👆";
+          },
+          { enableHighAccuracy:true, timeout:8000, maximumAge:60000 }
+        );
+      } else { gm.textContent = "Seu navegador não permite localização — é só escolher o estado e a cidade acima. 👆"; }
     });
     function val(id){ return ((document.getElementById(id)||{}).value || "").trim(); }
+    function localStr(){
+      var cid = val('cidade'), uf = val('uf'), out = "";
+      if(cid || uf){ out = (cid || "") + (uf ? " / " + uf : ""); }
+      if(geoCoords){ out += (out ? " — " : "") + "https://maps.google.com/?q=" + geoCoords; }
+      return out || "(não informado)";
+    }
     function montaMsg(){
       var email = val('email');
       return "*Pedido de orçamento — Jusarah*%0A%0A" +
         "*Nome:* "+val('nome')+"%0A*Zap:* "+val('zap') +
         (email ? "%0A*E-mail:* "+email : "") +
         "%0A*Planta:* "+val('cultura') +
-        "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+val('cidade')+" / "+val('uf')+
+        "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+localStr()+
         "%0A*Serviço:* "+val('servico');
     }
     document.getElementById('zap-btn').setAttribute('href', "https://wa.me/"+WPP+"?text="+encodeURIComponent("Olá! Quero um orçamento com a Jusarah."));
@@ -306,7 +323,7 @@
           zap: val('zap'),
           cultura: val('cultura'),
           area: fmtHa(+ha.value),
-          local: val('cidade')+" / "+val('uf'),
+          local: localStr(),
           servico: val('servico')
         }).then(function(){ return true; });
       });
