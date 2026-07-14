@@ -43,6 +43,12 @@
     .geo-btn { display:inline-flex; align-items:center; gap:8px; background:var(--sky-50); color:var(--blue-700); border:2px solid var(--blue-100); border-radius:12px; padding:11px 16px; font-family:var(--font-head); font-weight:600; font-size:.95rem; cursor:pointer; margin-top:10px; }
     .geo-btn:hover { background:#dcecf8; }
     .geo-msg { font-size:.9rem; color:var(--muted); margin:8px 0 0; }
+    .q-help { font-size:.9rem; color:var(--muted); margin:0 0 12px; line-height:1.5; }
+    .geo-ok { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:10px; background:var(--green-50); border:2px solid var(--green-100); border-radius:12px; padding:11px 14px; }
+    .geo-ok__txt { font-family:var(--font-head); font-weight:600; color:var(--green-900); font-size:.95rem; }
+    .geo-ok__link { color:var(--blue-700); font-weight:600; font-size:.9rem; text-decoration:underline; }
+    .geo-ok__rm { margin-left:auto; background:none; border:none; color:var(--muted); font-size:.85rem; cursor:pointer; padding:2px 4px; }
+    .geo-ok__rm:hover { color:#c0392b; }
     .q-actions { display:grid; gap:12px; margin-top:8px; }
     .btn-send { background:var(--green-700); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--font-head); font-weight:700; font-size:1.15rem; cursor:pointer; box-shadow:0 8px 20px rgba(21,128,61,.28); transition:transform .15s, background .2s; }
     .btn-send:hover { background:var(--green-600); transform:translateY(-2px); }
@@ -172,6 +178,7 @@
 
         <div class="q-field">
           <label>Onde fica a lavoura?</label>
+          <p class="q-help">Escolha o <strong>estado e a cidade</strong>. E, se você estiver na fazenda, marque também o <strong>ponto exato</strong> pelo GPS — a gente recebe um pino no mapa. 📍</p>
           <div class="q-grid">
             <select id="uf" name="uf">
               <option value="">Escolha o estado</option>
@@ -185,8 +192,13 @@
           </div>
           <button type="button" class="geo-btn" id="geo">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/><circle cx="12" cy="10" r="2"/></svg>
-            Tô na fazenda agora (usar localização)
+            Marcar o ponto exato da fazenda (GPS)
           </button>
+          <div class="geo-ok" id="geo-ok" hidden>
+            <span class="geo-ok__txt">📍 Ponto da fazenda marcado!</span>
+            <a class="geo-ok__link" id="geo-link" href="#" target="_blank" rel="noopener">ver no mapa</a>
+            <button type="button" class="geo-ok__rm" id="geo-remove">remover ✕</button>
+          </div>
           <p class="geo-msg" id="geo-msg" hidden></p>
         </div>
 
@@ -258,22 +270,28 @@
       cid.innerHTML = "<option value=''>Selecione a cidade</option>" + list.map(function(c){return "<option>"+c+"</option>";}).join("");
     });
     var geo = document.getElementById('geo'), gm = document.getElementById('geo-msg');
+    var geoOk = document.getElementById('geo-ok'), geoLink = document.getElementById('geo-link');
     geo.addEventListener('click', function(){
+      geoOk.hidden = true;
       gm.hidden = false; gm.textContent = "📡 Buscando sua localização…";
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(
           function(p){
             geoCoords = p.coords.latitude.toFixed(6) + "," + p.coords.longitude.toFixed(6);
-            gm.textContent = "📍 Localização capturada! Vamos usar ela pra chegar na sua lavoura. ✓";
-            geo.style.background = "#dcecf8";
+            geoLink.href = "https://maps.google.com/?q=" + geoCoords;
+            gm.hidden = true;
+            geoOk.hidden = false;
           },
           function(){
             geoCoords = "";
-            gm.textContent = "Não consegui pegar a localização — sem problema, é só escolher o estado e a cidade acima. 👆";
+            gm.textContent = "Não consegui pegar a localização — sem problema, dá pra escolher o estado e a cidade acima. 👆";
           },
           { enableHighAccuracy:true, timeout:8000, maximumAge:60000 }
         );
       } else { gm.textContent = "Seu navegador não permite localização — é só escolher o estado e a cidade acima. 👆"; }
+    });
+    document.getElementById('geo-remove').addEventListener('click', function(){
+      geoCoords = ""; geoOk.hidden = true; gm.hidden = true;
     });
     function val(id){ return ((document.getElementById(id)||{}).value || "").trim(); }
     function localStr(){
