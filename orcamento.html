@@ -62,8 +62,11 @@
     .q-ok__check { width:76px; height:76px; border-radius:50%; background:var(--green-600); color:#fff; font-size:2.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; box-shadow:0 12px 28px rgba(21,128,61,.35); animation:qpop .5s cubic-bezier(.2,.9,.3,1.35) both; }
     .q-ok h3 { font-size:1.5rem; margin:0 0 10px; color:var(--green-900); }
     .q-ok #q-ok-msg { color:var(--muted); font-size:1.06rem; line-height:1.6; margin:0 auto; max-width:40ch; }
-    .q-ok__back { display:inline-block; margin-top:22px; background:var(--green-700); color:#fff; padding:13px 26px; border-radius:12px; font-family:var(--font-head); font-weight:700; text-decoration:none; transition:background .2s; }
-    .q-ok__back:hover { background:var(--green-600); }
+    .q-ok__acts { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:24px; }
+    .q-ok__wa { display:inline-flex; align-items:center; gap:9px; background:#25D366; color:#fff; padding:14px 26px; border-radius:12px; font-family:var(--font-head); font-weight:700; text-decoration:none; transition:filter .2s; }
+    .q-ok__wa:hover { filter:brightness(1.06); }
+    .q-ok__back { display:inline-flex; align-items:center; background:var(--paper); color:var(--muted); padding:14px 24px; border-radius:12px; font-family:var(--font-head); font-weight:600; text-decoration:none; border:1px solid var(--line); transition:background .2s; }
+    .q-ok__back:hover { background:#eef1f4; }
     @keyframes qpop { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
 
     /* ---- Quebra de texto mais bonita ---- */
@@ -233,7 +236,13 @@
         <div class="q-ok__check">✓</div>
         <h3>Pedido enviado com sucesso!</h3>
         <p id="q-ok-msg"></p>
-        <a href="index.html" class="q-ok__back">Voltar ao site</a>
+        <div class="q-ok__acts">
+          <a href="#" id="q-ok-wa" class="q-ok__wa" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+            Confirmar no WhatsApp
+          </a>
+          <a href="index.html" class="q-ok__back">Voltar ao site</a>
+        </div>
       </div>
     </div>
   </div>
@@ -385,36 +394,42 @@
         }, { publicKey: EMAILJS.publicKey }).then(function(){ return true; });
       });
     }
-    function mostraSucesso(email, comEmail, erro){
+    function mostraSucesso(email, comEmail, erro, waUrl){
       var intro = document.querySelector('.quote-card .intro');
       if(intro) intro.style.display = 'none';
       document.getElementById('form-orc').style.display = 'none';
-      var msg = "Abrimos o WhatsApp pra você confirmar o envio — é só tocar em <b>enviar</b> na conversa. 👍" +
-        (comEmail ? "<br><br>📧 Enviamos uma confirmação para <b>"+email+"</b>." : "");
+      var msg = comEmail
+        ? "📧 Enviamos uma confirmação para <b>"+email+"</b>.<br><br>Agora toque no botão abaixo pra finalizar seu pedido no WhatsApp 👇"
+        : "Toque no botão abaixo pra finalizar seu pedido no WhatsApp 👇";
       if(erro){
         var det = (erro && (erro.text || erro.message)) ? (erro.text || erro.message) : JSON.stringify(erro);
         var st = (erro && erro.status) ? (" [" + erro.status + "]") : "";
-        msg += "<br><br><span style='color:#c0392b;font-size:.82rem'>⚠️ diagnóstico do e-mail" + st + ": " + det + "</span>";
+        msg += "<br><br><span style='color:#c0392b;font-size:.82rem'>⚠️ (diagnóstico) o e-mail não saiu" + st + ": " + det + "</span>";
       }
       document.getElementById('q-ok-msg').innerHTML = msg;
+      var wa = document.getElementById('q-ok-wa');
+      if(wa && waUrl){ wa.href = waUrl; }
       var ok = document.getElementById('q-ok');
       ok.style.display = 'block';
       ok.scrollIntoView({ behavior:'smooth', block:'center' });
+      if(waUrl){ try { window.open(waUrl, "_blank"); } catch(e){} }
     }
     document.getElementById('form-orc').addEventListener('submit', function(e){
       e.preventDefault();
       var form = document.getElementById('form-orc');
       if(!form.checkValidity()){ form.reportValidity(); return; }
       var email = val('email');
-      /* WhatsApp — igual está hoje */
-      window.open("https://wa.me/"+WPP+"?text="+montaMsg(), "_blank");
-      /* E-mail de confirmação — só se a pessoa informou e o serviço estiver configurado */
+      var waUrl = "https://wa.me/"+WPP+"?text="+montaMsg();
+      var btn = document.querySelector('.btn-send');
+      /* E-mail PRIMEIRO (espera terminar), depois mostra o sucesso com o botão do WhatsApp */
       if(email && EMAILJS.publicKey && EMAILJS.serviceId && EMAILJS.templateId){
+        if(btn){ btn.disabled = true; btn.textContent = "Enviando…"; }
         enviaConfirmacao(email)
-          .then(function(){ mostraSucesso(email, true); })
-          .catch(function(err){ console.error("EmailJS erro:", err); mostraSucesso(email, false, err); });
+          .then(function(){ mostraSucesso(email, true, null, waUrl); })
+          .catch(function(err){ console.error("EmailJS erro:", err); mostraSucesso(email, false, err, waUrl); })
+          .then(function(){ if(btn){ btn.disabled = false; btn.textContent = "Quero meu orçamento"; } });
       } else {
-        mostraSucesso(email, false);
+        mostraSucesso(email, false, null, waUrl);
       }
     });
   </script>
