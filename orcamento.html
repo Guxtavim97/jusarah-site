@@ -49,6 +49,9 @@
     .geo-ok__link { color:var(--blue-700); font-weight:600; font-size:.9rem; text-decoration:underline; }
     .geo-ok__rm { margin-left:auto; background:none; border:none; color:var(--muted); font-size:.85rem; cursor:pointer; padding:2px 4px; }
     .geo-ok__rm:hover { color:#c0392b; }
+    .geo-map-wrap { margin-top:10px; }
+    .geo-map { height:270px; border-radius:14px; overflow:hidden; border:2px solid var(--line); position:relative; z-index:0; }
+    .geo-map-hint { font-size:.85rem; color:var(--muted); margin:8px 0 0; }
     .q-actions { display:grid; gap:12px; margin-top:8px; }
     .btn-send { background:var(--green-700); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--font-head); font-weight:700; font-size:1.15rem; cursor:pointer; box-shadow:0 8px 20px rgba(21,128,61,.28); transition:transform .15s, background .2s; }
     .btn-send:hover { background:var(--green-600); transform:translateY(-2px); }
@@ -178,7 +181,7 @@
 
         <div class="q-field">
           <label>Onde fica a lavoura?</label>
-          <p class="q-help">Escolha o <strong>estado e a cidade</strong>. E, se você estiver na fazenda, marque também o <strong>ponto exato</strong> pelo GPS — a gente recebe um pino no mapa. 📍</p>
+          <p class="q-help">Escolha o <strong>estado e a cidade</strong>. E, pra gente achar sua lavoura certinho, <strong>marque a fazenda no mapa</strong> 👇</p>
           <div class="q-grid">
             <select id="uf" name="uf">
               <option value="">Escolha o estado</option>
@@ -192,14 +195,18 @@
           </div>
           <button type="button" class="geo-btn" id="geo">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/><circle cx="12" cy="10" r="2"/></svg>
-            Marcar o ponto exato da fazenda (GPS)
+            Marcar a fazenda no mapa
           </button>
-          <div class="geo-ok" id="geo-ok" hidden>
-            <span class="geo-ok__txt">📍 Ponto da fazenda marcado!</span>
-            <a class="geo-ok__link" id="geo-link" href="#" target="_blank" rel="noopener">ver no mapa</a>
-            <button type="button" class="geo-ok__rm" id="geo-remove">remover ✕</button>
-          </div>
           <p class="geo-msg" id="geo-msg" hidden></p>
+          <div class="geo-map-wrap" id="geo-map-wrap" hidden>
+            <div id="geo-map" class="geo-map"></div>
+            <p class="geo-map-hint">📍 Arraste o pino até a sua fazenda — ou toque no mapa pra marcar.</p>
+            <div class="geo-ok" id="geo-ok" hidden>
+              <span class="geo-ok__txt">✅ Fazenda marcada!</span>
+              <a class="geo-ok__link" id="geo-link" href="#" target="_blank" rel="noopener">abrir no Google Maps</a>
+              <button type="button" class="geo-ok__rm" id="geo-remove">remover ✕</button>
+            </div>
+          </div>
         </div>
 
         <div class="q-field">
@@ -271,27 +278,59 @@
     });
     var geo = document.getElementById('geo'), gm = document.getElementById('geo-msg');
     var geoOk = document.getElementById('geo-ok'), geoLink = document.getElementById('geo-link');
+    var mapWrap = document.getElementById('geo-map-wrap');
+    var mapa = null, marcador = null;
+
+    function carregaLeaflet(){
+      if(window.L) return Promise.resolve();
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(css);
+      return new Promise(function(res, rej){
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    function setCoords(lat, lng){
+      geoCoords = lat.toFixed(6) + "," + lng.toFixed(6);
+      geoLink.href = "https://maps.google.com/?q=" + geoCoords;
+      geoOk.hidden = false;
+    }
+    function abreMapa(lat, lng){
+      mapWrap.hidden = false;
+      carregaLeaflet().then(function(){
+        if(!mapa){
+          mapa = L.map('geo-map').setView([lat, lng], 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
+          marcador = L.marker([lat, lng], { draggable: true }).addTo(mapa);
+          marcador.on('dragend', function(){ var ll = marcador.getLatLng(); setCoords(ll.lat, ll.lng); });
+          mapa.on('click', function(e){ marcador.setLatLng(e.latlng); setCoords(e.latlng.lat, e.latlng.lng); });
+        } else {
+          mapa.setView([lat, lng], 15);
+          marcador.setLatLng([lat, lng]);
+        }
+        setCoords(lat, lng);
+        setTimeout(function(){ mapa.invalidateSize(); }, 250);
+      }).catch(function(){
+        gm.hidden = false; gm.textContent = "Não consegui carregar o mapa. É só escolher o estado e a cidade acima. 👆";
+      });
+    }
     geo.addEventListener('click', function(){
-      geoOk.hidden = true;
       gm.hidden = false; gm.textContent = "📡 Buscando sua localização…";
+      var fallback = [-12.5, -61.4]; // região aproximada de RO
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(
-          function(p){
-            geoCoords = p.coords.latitude.toFixed(6) + "," + p.coords.longitude.toFixed(6);
-            geoLink.href = "https://maps.google.com/?q=" + geoCoords;
-            gm.hidden = true;
-            geoOk.hidden = false;
-          },
-          function(){
-            geoCoords = "";
-            gm.textContent = "Não consegui pegar a localização — sem problema, dá pra escolher o estado e a cidade acima. 👆";
-          },
-          { enableHighAccuracy:true, timeout:8000, maximumAge:60000 }
+          function(p){ gm.hidden = true; abreMapa(p.coords.latitude, p.coords.longitude); },
+          function(){ gm.textContent = "Não peguei o GPS — toque no mapa pra marcar a fazenda 👇"; abreMapa(fallback[0], fallback[1]); },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
-      } else { gm.textContent = "Seu navegador não permite localização — é só escolher o estado e a cidade acima. 👆"; }
+      } else { gm.textContent = "Toque no mapa pra marcar a fazenda 👇"; abreMapa(fallback[0], fallback[1]); }
     });
     document.getElementById('geo-remove').addEventListener('click', function(){
-      geoCoords = ""; geoOk.hidden = true; gm.hidden = true;
+      geoCoords = ""; geoOk.hidden = true; mapWrap.hidden = true; gm.hidden = true;
     });
     function val(id){ return ((document.getElementById(id)||{}).value || "").trim(); }
     function localStr(){
