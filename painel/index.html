@@ -171,6 +171,8 @@
   .plano-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
   .plano-head .pl-nome{flex:1;min-width:120px;font-family:var(--font-head);font-weight:700;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:1rem}
   .plano-head .pl-rec{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .plano-head .pl-rm{border:none;background:#fdf2f2;color:#c0392b;border-radius:8px;cursor:pointer;padding:0 11px;font-size:.95rem;flex:none;align-self:stretch}
+  .plano-head .pl-rm:hover{background:#f8dcdc}
   .pl-tag{width:100%;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:.92rem;margin-bottom:10px}
   .plano-head .pl-nome:focus,.pl-tag:focus{outline:none;border-color:var(--green)}
   .pl-add{margin-top:6px}
@@ -526,8 +528,9 @@
         </div>
 
         <div class="field">
-          <label>Planos da proposta <span class="opt">(preencha 1, 2 ou os 3 — o cliente compara)</span></label>
+          <label>Planos da proposta <span class="opt">(a Econômica leva o essencial, a Ideal o pacote completo)</span></label>
           <div id="planos-wrap"></div>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-add-plano" style="margin-top:4px">+ Adicionar outro plano</button>
         </div>
         <div class="form-acts">
           <button class="btn btn--green" id="btn-gerar-prop">Gerar proposta</button>
@@ -1173,18 +1176,19 @@ function addItem(container, preset){
 /* Monta os 3 construtores de plano */
 var PLANOS_DEF = [
   { nome:"Econômica", tag:"O essencial pra sua safra", rec:false },
-  { nome:"Ideal", tag:"O melhor custo-benefício", rec:false },
-  { nome:"TOP 1", tag:"O máximo da Jusarah", rec:true }
+  { nome:"Ideal", tag:"O pacote completo pra sua safra", rec:true }
 ];
-PLANOS_DEF.forEach(function(pl, i){
+function criaPlanoCard(pl){
+  pl = pl || { nome:"", tag:"", rec:false };
   var card = document.createElement('div');
   card.className = 'plano-card' + (pl.rec ? ' rec' : '');
   card.innerHTML =
     '<div class="plano-head">' +
-      '<input class="pl-nome" type="text" value="'+pl.nome+'">' +
+      '<input class="pl-nome" type="text" placeholder="Nome do plano" value="'+(pl.nome||'')+'">' +
       '<label class="pl-rec"><input type="radio" name="pl-rec"'+(pl.rec?' checked':'')+'> ⭐ recomendado</label>' +
+      '<button type="button" class="pl-rm" title="Remover este plano">✕</button>' +
     '</div>' +
-    '<input class="pl-tag" type="text" placeholder="Frase curta do plano" value="'+pl.tag+'">' +
+    '<input class="pl-tag" type="text" placeholder="Frase curta do plano" value="'+(pl.tag||'')+'">' +
     '<div class="pl-itens"></div>' +
     '<button type="button" class="btn btn--ghost btn--sm pl-add">+ Adicionar serviço</button>' +
     '<div class="pl-total"></div>';
@@ -1194,8 +1198,18 @@ PLANOS_DEF.forEach(function(pl, i){
     document.querySelectorAll('#planos-wrap .plano-card').forEach(function(c){ c.classList.remove('rec'); });
     card.classList.add('rec');
   });
+  card.querySelector('.pl-rm').addEventListener('click', function(){
+    if(document.querySelectorAll('#planos-wrap .plano-card').length <= 1){ toast('Deixe pelo menos um plano.', 'err'); return; }
+    card.remove(); atualizaTotais();
+  });
   addItem(itensBox);
   $('planos-wrap').appendChild(card);
+  return card;
+}
+PLANOS_DEF.forEach(function(pl){ criaPlanoCard(pl); });
+$('btn-add-plano').addEventListener('click', function(){
+  if(document.querySelectorAll('#planos-wrap .plano-card').length >= 3){ toast('O cliente compara melhor com até 3 planos.', 'err'); return; }
+  criaPlanoCard({ nome:"", tag:"", rec:false });
 });
 
 /* Catálogo de aviões — múltipla escolha */
