@@ -1041,7 +1041,7 @@ function coletaItens(box){
   return itens;
 }
 
-$('btn-gerar-prop').addEventListener('click', function(){
+$('btn-gerar-prop').addEventListener('click', async function(){
   var nome = pv('pr-nome');
   if(!nome){ toast('Coloque o nome do produtor.', 'err'); return; }
   var planos = [];
@@ -1056,19 +1056,18 @@ $('btn-gerar-prop').addEventListener('click', function(){
     });
   });
   if(!planos.length){ toast('Preencha pelo menos um plano com um serviço.', 'err'); return; }
-  var prop = {
-    produtor: nome,
-    apresentador: pv('pr-apresentador'),
-    fazenda: pv('pr-fazenda'),
-    local: pv('pr-local'),
-    area: parseFloat(pv('pr-area')) || 0,
-    validade: pv('pr-validade'),
-    mensagem: pv('pr-msg'),
-    aviaoId: $('pr-aviao').value || "",
-    planos: planos
-  };
-  var b64 = encB64(JSON.stringify(prop)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  var link = location.origin + "/proposta.html#" + b64;
+  var area = parseFloat(pv('pr-area')) || 0;
+  var rec = planos.filter(function(p){ return p.recomendado; })[0] || planos[0];
+  var valorTotal = (rec.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return s + (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }, 0);
+  var btnG = $('btn-gerar-prop'); btnG.disabled = true; btnG.textContent = "Gerando…";
+  var ins = await sb.from('propostas').insert({
+    apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
+    area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
+    aviao_id: $('pr-aviao').value || null, planos: planos, valor_total: valorTotal
+  }).select('id').single();
+  btnG.disabled = false; btnG.textContent = "Gerar proposta";
+  if(ins.error){ toast('Erro ao salvar: ' + ins.error.message, 'err'); return; }
+  var link = location.origin + "/proposta.html?id=" + ins.data.id;
   $('prop-link').value = link;
   $('prop-preview').href = link;
   var num = pv('pr-whats').replace(/\D/g, '');
