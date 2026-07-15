@@ -528,7 +528,7 @@
         </div>
 
         <div class="field">
-          <label>Planos da proposta <span class="opt">(a Econômica leva o essencial, a Ideal o pacote completo)</span></label>
+          <label>Planos da proposta <span class="opt">(3 opções — quem monta define o escopo de cada uma)</span></label>
           <div id="planos-wrap"></div>
           <button type="button" class="btn btn--ghost btn--sm" id="btn-add-plano" style="margin-top:4px">+ Adicionar outro plano</button>
         </div>
@@ -1175,8 +1175,9 @@ function addItem(container, preset){
 
 /* Monta os 3 construtores de plano */
 var PLANOS_DEF = [
-  { nome:"Econômica", tag:"O essencial pra sua safra", rec:false },
-  { nome:"Ideal", tag:"O pacote completo pra sua safra", rec:true }
+  { nome:"Safra Essencial", tag:"Proteção certa pra sua lavoura", rec:false },
+  { nome:"Safra Reforçada", tag:"Mais proteção e produtividade", rec:true },
+  { nome:"Safra Completa", tag:"O pacote completo, do começo ao fim", rec:false }
 ];
 function criaPlanoCard(pl){
   pl = pl || { nome:"", tag:"", rec:false };
