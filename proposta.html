@@ -439,11 +439,12 @@
         ids.forEach(function(id){
           var a=(list||[]).filter(function(x){return x.id===id;})[0];
           if(!a) return; achou=true;
+          var fotoMain=(a.fotos&&a.fotos[0])||'';
           var specs=(a.caracteristicas||[]).map(function(c){return '<li>'+esc(c)+'</li>';}).join('');
-          var thumbs=(a.fotos||[]).slice(1).map(function(f){return '<img src="'+esc(f)+'" alt="">';}).join('');
+          var thumbs=(a.fotos||[]).slice(1).map(function(f){return '<img src="'+esc(f)+'" alt="" onerror="this.style.display=\'none\'">';}).join('');
           var div=document.createElement('div'); div.className='av-block';
           div.innerHTML='<h2>'+esc(a.nome)+'</h2><p class="sec__lead">'+esc(a.modelo||'')+'</p>'+
-            '<div class="av-main"><img src="'+esc((a.fotos&&a.fotos[0])||'')+'" alt=""></div>'+
+            (fotoMain?'<div class="av-main"><img src="'+esc(fotoMain)+'" alt="" onerror="var m=this.closest(\'.av-main\'); if(m) m.style.display=\'none\'"></div>':'')+
             '<ul class="av-specs">'+specs+'</ul>'+(thumbs?'<div class="av-thumbs">'+thumbs+'</div>':'');
           box.appendChild(div);
         });

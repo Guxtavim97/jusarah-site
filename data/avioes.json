@@ -1,8 +1,8 @@
 [
   {
     "id": "ipanema-ps-jus",
-    "nome": "Ipanema PS-JUS",
-    "modelo": "Embraer EMB-202 Ipanema",
+    "nome": "Embraer Ipanema 203",
+    "modelo": "Aeronave agrícola de aplicação · Brasil",
     "fotos": [
       "assets/img/hero-aviao-decolagem.jpg",
       "assets/img/aviao-campo-3.jpg",
@@ -10,10 +10,43 @@
     ],
     "caracteristicas": [
       "Aeronave agrícola 100% brasileira, referência no país",
-      "Movida a etanol — mais sustentável e econômica",
-      "Sistema de pulverização de alta precisão",
-      "Grande capacidade de carga por voo",
-      "Ideal para cobrir grandes áreas com agilidade e segurança"
+      "Movida a etanol — mais econômica e sustentável",
+      "Excelente manobra em áreas menores e com obstáculos",
+      "Alta precisão nas aplicações e baixo custo operacional",
+      "Pulverização, fungicidas, inseticidas, herbicidas e fertilizantes foliares",
+      "Fácil manutenção, com ampla disponibilidade de peças no Brasil"
+    ]
+  },
+  {
+    "id": "air-tractor-502",
+    "nome": "Air Tractor AT-502",
+    "modelo": "Aeronave agrícola de alta performance · EUA",
+    "fotos": [
+      "assets/img/air-tractor-502.jpg"
+    ],
+    "caracteristicas": [
+      "Grande capacidade de carga e alta produtividade diária",
+      "Motor turboélice de alta confiabilidade",
+      "Elevada velocidade de deslocamento e aplicação",
+      "Menor necessidade de reabastecimento durante a operação",
+      "Excelente rendimento em culturas extensivas e grandes áreas",
+      "Ideal para operações de alta demanda, com rapidez e eficiência"
+    ]
+  },
+  {
+    "id": "thrush-510p2",
+    "nome": "Thrush 510P2",
+    "modelo": "Turboélice agrícola de alta capacidade · EUA",
+    "fotos": [
+      "assets/img/thrush-510p2.jpg"
+    ],
+    "caracteristicas": [
+      "Motor turboélice Pratt & Whitney, ~750 HP",
+      "Hopper com capacidade próxima de 1.930 litros",
+      "Estrutura reforçada para operar intensivamente durante toda a safra",
+      "Excelente estabilidade e alta produtividade por hora de voo",
+      "Pulverização, fungicidas, inseticidas, herbicidas, fertilizantes e semeadura aérea",
+      "Configurável para combate aéreo a incêndios em missões especiais"
     ]
   }
 ]

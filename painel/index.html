@@ -1201,7 +1201,7 @@ fetch('../data/avioes.json', { cache:'no-store' })
     box.innerHTML = AVIOES.map(function(a){
       var foto = (a.fotos && a.fotos[0]) || '';
       return '<label class="av-check"><input type="checkbox" value="'+a.id+'"'+(AVIOES.length===1?' checked':'')+'>'+
-        (foto?'<img src="../'+esc(foto)+'" alt="">':'')+
+        (foto?'<img src="../'+esc(foto)+'" alt="" onerror="this.style.display=\'none\'">':'')+
         '<span><b>'+esc(a.nome)+'</b><small>'+esc(a.modelo||'')+'</small></span></label>';
     }).join('');
   }).catch(function(){});
