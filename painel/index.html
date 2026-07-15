@@ -133,9 +133,11 @@
   .prop-item-card input,.prop-item-card select{padding:10px 11px;border:2px solid var(--line);border-radius:10px;font-size:.95rem;background:#fff;font-family:inherit}
   .prop-item-card input:focus,.prop-item-card select:focus{outline:none;border-color:var(--green)}
   .pi-detalhe{width:100%;margin-bottom:8px}
+  .pi-vazao{width:100%;margin-bottom:8px}
   .prop-item-price{display:flex;gap:8px}
-  .prop-item-price .pi-preco{flex:1}
-  .prop-item-price .pi-unidade{flex:1}
+  .prop-item-price .pi-preco{flex:1.3}
+  .prop-item-price .pi-unidade{flex:1.2}
+  .prop-item-price .pi-aplic{width:62px;flex:none;text-align:center}
   .prop-rm{border:none;background:#fdf2f2;color:#c0392b;border-radius:8px;cursor:pointer;padding:0 13px;font-size:1rem;flex:none}
   .prop-rm:hover{background:#f8dcdc}
   .prop-result{margin-top:20px;padding:18px;background:var(--green-50);border:2px solid var(--green-100);border-radius:14px}
@@ -875,9 +877,11 @@ function addItem(container){
       '<button type="button" class="prop-rm" title="Remover">✕</button>' +
     '</div>' +
     '<input class="pi-detalhe" type="text" placeholder="Detalhe (opcional — senão vem descrição pronta)">' +
+    '<input class="pi-vazao" type="text" placeholder="Vazão / volume (ex: 12 L/ha) — opcional">' +
     '<div class="prop-item-price">' +
-      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Preço (R$)">' +
+      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Preço por ha (R$)">' +
       '<select class="pi-unidade"><option value="ha">por hectare</option><option value="fixo">valor fechado</option></select>' +
+      '<input class="pi-aplic" type="number" min="1" step="1" value="1" title="Nº de aplicações">' +
     '</div>';
   card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); });
   container.appendChild(card);
@@ -932,7 +936,7 @@ function coletaItens(box){
   box.querySelectorAll('.prop-item-card').forEach(function(c){
     var s = c.querySelector('.pi-servico').value.trim();
     if(!s) return;
-    itens.push({ servico:s, detalhe:c.querySelector('.pi-detalhe').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value });
+    itens.push({ servico:s, detalhe:c.querySelector('.pi-detalhe').value.trim(), vazao:c.querySelector('.pi-vazao').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value, aplicacoes:Math.max(1,parseInt(c.querySelector('.pi-aplic').value)||1) });
   });
   return itens;
 }

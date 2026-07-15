@@ -101,9 +101,11 @@
     .plan__total{font-family:var(--font-head);font-weight:800;font-size:2rem;color:var(--green-700);line-height:1}
     .plan__perha{color:var(--muted);font-size:.86rem;margin-top:3px}
     .plan__items{list-style:none;padding:16px 0;margin:16px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px;flex:1}
-    .plan__items li{display:flex;justify-content:space-between;gap:10px;font-size:.93rem}
+    .plan__items li{display:flex;justify-content:space-between;gap:10px;font-size:.93rem;align-items:flex-start}
     .plan__items li span{color:var(--ink-soft)}
     .plan__items li b{font-family:var(--font-head);color:var(--ink);white-space:nowrap}
+    .pl-lab{display:flex;flex-direction:column;gap:1px}
+    .pl-lab .pl-s{font-size:.76rem;color:var(--muted)}
     .plan__btn{margin-top:18px;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:15px;font-family:var(--font-head);font-weight:700;font-size:1.02rem;cursor:pointer;transition:filter .2s,transform .15s}
     .plan.rec .plan__btn{background:var(--green-700)}
     .plan__btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
@@ -326,7 +328,7 @@
     {k:["semead","semente"],d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio."},
     {k:["incend","fogo"],d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e patrimônio."}
   ];
-  function itemVal(it,area){ return it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0); }
+  function itemVal(it,area){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }
   function decodifica(){
     var h=location.hash.slice(1); if(!h) return null;
     try{ h=h.replace(/-/g,'+').replace(/_/g,'/'); while(h.length%4)h+='='; return JSON.parse(decodeURIComponent(escape(atob(h)))); }catch(e){ return null; }
@@ -382,7 +384,7 @@
       var total=(pl.itens||[]).reduce(function(s,it){return s+itemVal(it,area);},0);
       var card=document.createElement('div');
       card.className='plan'+(pl.recomendado?' rec':'');
-      var lis=(pl.itens||[]).map(function(){return '<li><span></span><b></b></li>';}).join('');
+      var lis=(pl.itens||[]).map(function(){return '<li><span class="pl-lab"></span><b></b></li>';}).join('');
       var perha=area>0?('≈ '+brl(total/area)+' /ha'):'';
       card.innerHTML=(pl.recomendado?'<div class="plan__badge">⭐ Recomendado</div>':'')+
         '<div class="plan__name"></div><div class="plan__tag"></div>'+
@@ -394,7 +396,10 @@
       var liEls=card.querySelectorAll('.plan__items li');
       (pl.itens||[]).forEach(function(it,i){
         if(!liEls[i]) return;
-        liEls[i].querySelector('span').textContent=it.servico||"Serviço";
+        var lab=liEls[i].querySelector('.pl-lab'), ap=Math.max(1,parseInt(it.aplicacoes)||1);
+        var sub=[]; if(it.vazao) sub.push(it.vazao); if(ap>1) sub.push(ap+"x aplicações");
+        var nm=document.createElement('span'); nm.className='pl-n'; nm.textContent=it.servico||"Serviço"; lab.appendChild(nm);
+        if(sub.length){ var ss=document.createElement('span'); ss.className='pl-s'; ss.textContent=sub.join(' · '); lab.appendChild(ss); }
         liEls[i].querySelector('b').textContent=brl(itemVal(it,area));
       });
       card.querySelector('.plan__btn').addEventListener('click',function(){ aceitar(pl,total,area); });
