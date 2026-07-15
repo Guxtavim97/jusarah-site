@@ -152,6 +152,9 @@
   .solic-box{background:linear-gradient(120deg,#eef6ff,#eefaf1);border:1px solid #d3e7dd;border-radius:14px;padding:14px 16px;margin-bottom:18px}
   .solic-box select{width:100%;padding:12px 13px;border:2px solid var(--line);border-radius:11px;font-size:1rem;background:#fff;font-family:inherit}
   .solic-box select:focus{outline:none;border-color:var(--green)}
+  .msg-picks{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+  .msg-pick{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:700;color:var(--ink);cursor:pointer;transition:background .12s,border-color .12s}
+  .msg-pick:hover{background:var(--paper);border-color:var(--green)}
   .av-checks{display:grid;gap:9px}
   .av-check{display:flex;align-items:center;gap:12px;padding:9px 13px;border:2px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s}
   .av-check:hover{border-color:var(--green-v)}
@@ -540,8 +543,13 @@
           <div class="field"><label>Válida até <span class="opt">(opcional)</span></label><input type="date" id="pr-validade"></div>
         </div>
         <div class="field">
-          <label>Mensagem personalizada <span class="opt">(opcional — pra ele se sentir especial)</span></label>
-          <textarea id="pr-msg" placeholder="Ex: Foi um prazer conversar com você! Preparei esta proposta pensando na sua lavoura e no melhor pra sua safra."></textarea>
+          <label>Mensagem personalizada <span class="opt">(aparece no topo da proposta — já vem pronta, é só usar ou editar)</span></label>
+          <div class="msg-picks">
+            <button type="button" class="msg-pick" data-msg="0">💚 Calorosa</button>
+            <button type="button" class="msg-pick" data-msg="1">🎯 Objetiva</button>
+            <button type="button" class="msg-pick" data-msg="2">🤝 Parceria</button>
+          </div>
+          <textarea id="pr-msg" placeholder="Escreva uma mensagem ou escolha um tom acima 👆"></textarea>
         </div>
         <div class="field">
           <label>Avião(ões) da operação <span class="opt">(marque um ou mais que vão voar na área)</span></label>
@@ -1277,6 +1285,17 @@ $('pr-aviao-nome-sel').addEventListener('change', function(){
   var outro = this.value === '__outro';
   $('pr-aviao-nome').classList.toggle('hidden', !outro);
   if(outro) $('pr-aviao-nome').focus();
+});
+
+/* Mensagem personalizada — prontas (calorosa / objetiva / parceria) */
+var MSGS = [
+  "Foi um prazer falar com você! Preparei esta proposta com cuidado, pensando em cada detalhe da sua lavoura e no melhor pra sua safra. Pode contar com a nossa equipe do começo ao fim — bora fazer essa safra voar juntos! 🌱✈️",
+  "Preparei esta proposta sob medida pra sua área: precisão na aplicação, segurança em cada voo e o melhor custo pra sua safra. Qualquer dúvida, é só me chamar — estamos prontos pra decolar com você. ✈️",
+  "Mais do que voar sobre a sua lavoura, a gente quer caminhar junto safra após safra. Esta proposta foi pensada pra entregar resultado com segurança e proximidade. Conte com a Jusarah do início ao fim. 🤝🌱"
+];
+$('pr-msg').value = MSGS[0];
+document.querySelectorAll('.msg-pick').forEach(function(b){
+  b.addEventListener('click', function(){ $('pr-msg').value = MSGS[parseInt(b.getAttribute('data-msg'))] || ''; });
 });
 
 /* Puxar dados de uma solicitação (lead do site) */
