@@ -135,6 +135,10 @@
   .prop-item-card input:focus,.prop-item-card select:focus{outline:none;border-color:var(--green)}
   .pi-detalhe{width:100%;margin-bottom:8px}
   .pi-vazao{width:100%;margin-bottom:8px}
+  .prop-item-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .pi-l{display:flex;flex-direction:column;gap:3px;font-size:.74rem;color:var(--muted);font-weight:700}
+  .pi-l input{width:100%;font-weight:600}
+  .prop-item-card .pi-unidade{width:100%}
   .prop-item-price{display:flex;gap:8px}
   .prop-item-price .pi-preco{flex:1.3}
   .prop-item-price .pi-unidade{flex:1.2}
@@ -1126,22 +1130,26 @@ var TIPOS_APLIC = ["Pulverização","Inseticida","Fungicida","Pós-emergente","H
 
 function addItem(container, preset){
   preset = preset || {};
+  var areaG = parseFloat(pv('pr-area')) || '';
+  var qtd = (preset.quantidade!=null && preset.quantidade!=='') ? preset.quantidade : areaG;
   var card = document.createElement('div');
   card.className = 'prop-item-card';
   var opts = '<option value="">— tipo de aplicação —</option>' +
     TIPOS_APLIC.map(function(t){ return '<option'+(preset.servico===t?' selected':'')+'>'+t+'</option>'; }).join('');
+  var uni = preset.unidade || 'ha';
   card.innerHTML =
     '<div class="prop-item-top">' +
       '<select class="pi-servico">'+opts+'</select>' +
       '<button type="button" class="prop-rm" title="Remover">✕</button>' +
     '</div>' +
-    '<div class="prop-item-price">' +
-      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Valor (R$)" value="'+(preset.preco!=null?preset.preco:'')+'">' +
-      '<select class="pi-unidade"><option value="ha">por hectare</option><option value="fixo">valor fechado</option></select>' +
-      '<input class="pi-aplic" type="number" min="1" step="1" value="'+(preset.aplicacoes||1)+'" title="Nº de aplicações">' +
+    '<div class="prop-item-grid">' +
+      '<label class="pi-l">Vazão (L/ha)<input class="pi-vazao" type="text" placeholder="ex: 12" value="'+(preset.vazao||'')+'"></label>' +
+      '<label class="pi-l">Valor por ha (R$)<input class="pi-preco" type="number" min="0" step="0.01" placeholder="ex: 50,00" value="'+(preset.preco!=null?preset.preco:'')+'"></label>' +
+      '<label class="pi-l">Hectares desta aplicação<input class="pi-qtd" type="number" min="0" step="1" placeholder="ex: 1000" value="'+(qtd||'')+'"></label>' +
+      '<label class="pi-l">Nº de aplicações<input class="pi-aplic" type="number" min="1" step="1" value="'+(preset.aplicacoes||1)+'"></label>' +
     '</div>' +
-    '<input class="pi-vazao" type="text" placeholder="Vazão (ex: 12 L/ha) — opcional" value="'+(preset.vazao||'')+'">';
-  card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); });
+    '<select class="pi-unidade"><option value="ha"'+(uni==='ha'?' selected':'')+'>preço por hectare (× hectares)</option><option value="fixo"'+(uni==='fixo'?' selected':'')+'>valor fechado</option></select>';
+  card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); atualizaTotais(); });
   container.appendChild(card);
 }
 
@@ -1216,7 +1224,7 @@ function preencheDaSolicitacao(s){
   var apl = Math.max(1, parseInt(s.qtd_aplicacoes) || 1);
   document.querySelectorAll('#planos-wrap .plano-card .pl-itens').forEach(function(box){
     box.innerHTML = '';
-    tipos.forEach(function(t){ addItem(box, { servico:t, aplicacoes:apl }); });
+    tipos.forEach(function(t){ addItem(box, { servico:t, aplicacoes:apl, quantidade:(s.hectares||'') }); });
   });
   atualizaTotais();
   toast('Cliente carregado! Agora é só pôr os valores e marcar o avião. ✓', 'ok');
@@ -1234,7 +1242,7 @@ function coletaItens(box){
   box.querySelectorAll('.prop-item-card').forEach(function(c){
     var s = c.querySelector('.pi-servico').value.trim();
     if(!s) return;
-    itens.push({ servico:s, vazao:c.querySelector('.pi-vazao').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value, aplicacoes:Math.max(1,parseInt(c.querySelector('.pi-aplic').value)||1) });
+    itens.push({ servico:s, vazao:c.querySelector('.pi-vazao').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, quantidade:parseFloat(c.querySelector('.pi-qtd').value)||0, unidade:c.querySelector('.pi-unidade').value, aplicacoes:Math.max(1,parseInt(c.querySelector('.pi-aplic').value)||1) });
   });
   return itens;
 }
@@ -1242,25 +1250,26 @@ function coletaItens(box){
 /* Total ao vivo por plano (mostra "de X por Y" — Y real, X +15%) */
 function brlP(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function planoTotal(card){
-  var area = parseFloat(pv('pr-area'))||0, t=0;
+  var t=0, ha=0;
   card.querySelectorAll('.prop-item-card').forEach(function(c){
     var s = c.querySelector('.pi-servico').value.trim(); if(!s) return;
     var preco = parseFloat(c.querySelector('.pi-preco').value)||0;
+    var qt = parseFloat(c.querySelector('.pi-qtd').value)||0;
     var un = c.querySelector('.pi-unidade').value;
     var ap = Math.max(1, parseInt(c.querySelector('.pi-aplic').value)||1);
-    t += (un==='ha' ? preco*area : preco)*ap;
+    t += (un==='ha' ? preco*qt : preco)*ap;
+    if(un==='ha') ha += qt*ap;
   });
-  return t;
+  return { total:t, ha:ha };
 }
 function atualizaTotais(){
-  var area = parseFloat(pv('pr-area'))||0;
   document.querySelectorAll('#planos-wrap .plano-card').forEach(function(card){
     var el = card.querySelector('.pl-total'); if(!el) return;
-    var t = planoTotal(card);
+    var r = planoTotal(card), t = r.total;
     if(t<=0){ el.innerHTML=''; return; }
     var cheio = Math.ceil(t*1.15/10)*10;
     el.innerHTML = '<span class="pl-t-lab">O cliente vê:</span> de <s>'+brlP(cheio)+'</s> por <b>'+brlP(t)+'</b>' +
-      (area>0 ? ' <small>≈ '+brlP(t/area)+'/ha</small>' : '') + ' <em>−15%</em>';
+      (r.ha>0 ? ' <small>≈ '+brlP(t/r.ha)+'/ha · '+r.ha.toLocaleString('pt-BR')+' ha</small>' : '') + ' <em>−15%</em>';
   });
 }
 $('planos-wrap').addEventListener('input', atualizaTotais);
@@ -1289,7 +1298,7 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   if(!planos.length){ toast('Preencha pelo menos um plano com um serviço.', 'err'); return; }
   var area = parseFloat(pv('pr-area')) || 0;
   var rec = planos.filter(function(p){ return p.recomendado; })[0] || planos[0];
-  var valorTotal = (rec.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return s + (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }, 0);
+  var valorTotal = (rec.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); var qt=(it.quantidade!=null&&it.quantidade!=='')?(Number(it.quantidade)||0):area; return s + (it.unidade==='ha' ? (Number(it.preco)||0)*qt : (Number(it.preco)||0))*ap; }, 0);
   var btnG = $('btn-gerar-prop'); btnG.disabled = true; btnG.textContent = "Gerando…";
   var codigo = geraCodigo();
   var avSel = avioesSelecionados();

@@ -370,7 +370,8 @@
     {k:["semead","semente"],d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio."},
     {k:["incend","fogo"],d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e patrimônio."}
   ];
-  function itemVal(it,area){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }
+  function itemQtd(it,area){ return (it.quantidade!=null&&it.quantidade!=='') ? (Number(it.quantidade)||0) : area; }
+  function itemVal(it,area){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return (it.unidade==='ha' ? (Number(it.preco)||0)*itemQtd(it,area) : (Number(it.preco)||0))*ap; }
   function decodifica(){
     var h=location.hash.slice(1); if(!h) return null;
     try{ h=h.replace(/-/g,'+').replace(/_/g,'/'); while(h.length%4)h+='='; return JSON.parse(decodeURIComponent(escape(atob(h)))); }catch(e){ return null; }
@@ -458,11 +459,12 @@
     wrap.className='plans plans--'+Math.min(planos.length,3);
     planos.forEach(function(pl){
       var total=(pl.itens||[]).reduce(function(s,it){return s+itemVal(it,area);},0);
+      var planHa=(pl.itens||[]).reduce(function(s,it){ return s + (it.unidade==='ha' ? itemQtd(it,area) : 0); },0);
       var cheio=Math.ceil(total*1.15/10)*10, economia=cheio-total;
       var card=document.createElement('div');
       card.className='plan'+(pl.recomendado?' rec':'');
       var lis=(pl.itens||[]).map(function(){return '<li><span class="pl-lab"></span><b></b></li>';}).join('');
-      var perha=area>0?('≈ '+brl(total/area)+' por hectare'):'';
+      var perha=planHa>0?('≈ '+brl(total/planHa)+' por hectare'):(area>0?('≈ '+brl(total/area)+' por hectare'):'');
       card.innerHTML=(pl.recomendado?'<div class="plan__badge">⭐ Recomendado</div>':'')+
         '<div class="plan__name"></div><div class="plan__tag"></div>'+
         '<div class="plan__price">'+
@@ -479,7 +481,7 @@
       (pl.itens||[]).forEach(function(it,i){
         if(!liEls[i]) return;
         var lab=liEls[i].querySelector('.pl-lab'), ap=Math.max(1,parseInt(it.aplicacoes)||1);
-        var sub=[]; if(it.vazao) sub.push(it.vazao); if(ap>1) sub.push(ap+"x aplicações");
+        var sub=[]; if(it.vazao) sub.push(it.vazao); var _q=itemQtd(it,area); if(it.unidade==='ha'&&_q) sub.push(_q.toLocaleString('pt-BR')+" ha"); if(ap>1) sub.push(ap+"x aplicações");
         var nm=document.createElement('span'); nm.className='pl-n'; nm.textContent=it.servico||"Serviço"; lab.appendChild(nm);
         if(sub.length){ var ss=document.createElement('span'); ss.className='pl-s'; ss.textContent=sub.join(' · '); lab.appendChild(ss); }
         liEls[i].querySelector('b').textContent=brl(itemVal(it,area));
