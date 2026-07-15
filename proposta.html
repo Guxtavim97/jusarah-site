@@ -38,6 +38,7 @@
 
     .hero{background:linear-gradient(150deg,var(--blue-900) 0%,#123f6b 50%,var(--green-900) 130%);color:#fff;padding:52px 0 60px;position:relative;overflow:hidden}
     .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(95,177,48,.28),transparent 68%)}
+    .hero__logo{height:54px;margin-bottom:26px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
     .hero__eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9be3b6;margin-bottom:16px}
     .hero h1{font-size:clamp(2rem,6vw,3rem);margin-bottom:12px}
     .hero__sub{font-family:var(--font-head);font-weight:500;font-size:1.12rem;color:rgba(255,255,255,.92)}
@@ -142,11 +143,12 @@
   </div></div>
 
   <header class="hero"><div class="wrap">
-    <span class="hero__eyebrow">✈️ Proposta exclusiva</span>
+    <img class="hero__logo" src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
+    <span class="hero__eyebrow">✈️ Proposta exclusiva e confidencial</span>
     <h1 id="h-nome">Olá!</h1>
     <p class="hero__sub" id="h-sub"></p>
     <div class="hero__meta" id="h-meta"></div>
-    <p class="hero__by">Preparada com cuidado pela equipe <strong>Jusarah Agro Aérea</strong>.</p>
+    <p class="hero__by" id="h-by">Preparada com cuidado pela equipe <strong>Jusarah Agro Aérea</strong>.</p>
   </div></header>
 
   <section class="sec" id="sec-msg" hidden><div class="wrap reveal"><div class="msg-card" id="h-msg"></div></div></section>
@@ -288,6 +290,8 @@
     if(p.validade) meta.innerHTML+='<span class="hero__chip">⏳ válida até '+fmtData(p.validade)+'</span>';
 
     if(p.mensagem){ document.getElementById('h-msg').textContent='“'+p.mensagem+'”'; document.getElementById('sec-msg').hidden=false; }
+
+    if(p.apresentador){ var by=document.getElementById('h-by'); by.innerHTML='Apresentada por <strong></strong> — equipe Jusarah Agro Aérea 🌱'; by.querySelector('strong').textContent=p.apresentador; }
 
     document.getElementById('h-ask').href="https://wa.me/"+JUSARAH_WPP+"?text="+encodeURIComponent("Olá! Estou vendo a proposta da Jusarah"+(p.fazenda?(" para a "+p.fazenda):"")+" e tenho uma dúvida.");
     document.getElementById('final-h').textContent="Bora fazer a safra da "+(p.fazenda||"sua fazenda")+" voar?";

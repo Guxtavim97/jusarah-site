@@ -354,6 +354,7 @@
       <div class="head-row"><h2>Gerar proposta pro produtor</h2></div>
       <div class="form">
         <p class="opt" style="margin:-4px 0 18px">Preencha, clique em <b>Gerar proposta</b> e envie o link no WhatsApp do produtor. Os valores ficam só no link — nunca no site.</p>
+        <div class="field"><label>Apresentado por <span class="opt">(seu nome — quem está enviando)</span></label><input type="text" id="pr-apresentador" placeholder="Ex: Gustavo Andrade"></div>
         <div class="row2">
           <div class="field"><label>Nome do produtor</label><input type="text" id="pr-nome" placeholder="Ex: João da Silva"></div>
           <div class="field"><label>WhatsApp do produtor</label><input type="text" id="pr-whats" placeholder="(69) 9 9999-9999"></div>
@@ -953,6 +954,7 @@ $('btn-gerar-prop').addEventListener('click', function(){
   if(!planos.length){ toast('Preencha pelo menos um plano com um serviço.', 'err'); return; }
   var prop = {
     produtor: nome,
+    apresentador: pv('pr-apresentador'),
     fazenda: pv('pr-fazenda'),
     local: pv('pr-local'),
     area: parseFloat(pv('pr-area')) || 0,
