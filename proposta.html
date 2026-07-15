@@ -389,6 +389,7 @@
   (async function(){
     var qs = new URLSearchParams(location.search);
     var cod = qs.get('p'), id = qs.get('id');
+    if(!cod){ var mm = location.pathname.match(/\/p\/([^\/?#]+)/); if(mm) cod = decodeURIComponent(mm[1]); }
     try{
       if(cod){ var rc = await sb.from('propostas').select('*').eq('codigo', cod).single(); if(rc.data){ P = mapRow(rc.data); propId = rc.data.id; } }
       else if(id){ var r = await sb.from('propostas').select('*').eq('id', id).single(); if(r.data){ P = mapRow(r.data); propId = id; } }
