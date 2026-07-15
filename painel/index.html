@@ -126,6 +126,21 @@
   .gthumb button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(20,33,46,.78);color:#fff;font-size:15px;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}
   .gthumb button:hover{background:var(--danger)}
 
+  /* Construtor de propostas */
+  .prop-item-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--paper)}
+  .prop-item-top{display:flex;gap:8px;margin-bottom:8px}
+  .prop-item-top .pi-servico{flex:1}
+  .prop-item-card input,.prop-item-card select{padding:10px 11px;border:2px solid var(--line);border-radius:10px;font-size:.95rem;background:#fff;font-family:inherit}
+  .prop-item-card input:focus,.prop-item-card select:focus{outline:none;border-color:var(--green)}
+  .pi-detalhe{width:100%;margin-bottom:8px}
+  .prop-item-price{display:flex;gap:8px}
+  .prop-item-price .pi-preco{flex:1}
+  .prop-item-price .pi-unidade{flex:1}
+  .prop-rm{border:none;background:#fdf2f2;color:#c0392b;border-radius:8px;cursor:pointer;padding:0 13px;font-size:1rem;flex:none}
+  .prop-rm:hover{background:#f8dcdc}
+  .prop-result{margin-top:20px;padding:18px;background:var(--green-50);border:2px solid var(--green-100);border-radius:14px}
+  .prop-result input{width:100%;padding:11px 12px;border:2px solid var(--line);border-radius:10px;font-size:.88rem;background:#fff;color:var(--ink)}
+
   .hidden{display:none!important}
 </style>
 </head>
@@ -168,6 +183,7 @@
       <button class="tab is-active" data-tab="posts">Notícias & Eventos</button>
       <button class="tab" data-tab="projeto">Semeando Esperança</button>
       <button class="tab" data-tab="rotina">Nossa Rotina</button>
+      <button class="tab" data-tab="propostas">Propostas 💰</button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -313,6 +329,48 @@
         </div>
         <div class="form-acts">
           <button class="btn btn--green" id="btn-save-rotina">Salvar alterações</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAINEL: PROPOSTAS -->
+    <section class="panel" id="panel-propostas">
+      <div class="head-row"><h2>Gerar proposta pro produtor</h2></div>
+      <div class="form">
+        <p class="opt" style="margin:-4px 0 18px">Preencha, clique em <b>Gerar proposta</b> e envie o link no WhatsApp do produtor. Os valores ficam só no link — nunca no site.</p>
+        <div class="row2">
+          <div class="field"><label>Nome do produtor</label><input type="text" id="pr-nome" placeholder="Ex: João da Silva"></div>
+          <div class="field"><label>WhatsApp do produtor</label><input type="text" id="pr-whats" placeholder="(69) 9 9999-9999"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Fazenda</label><input type="text" id="pr-fazenda" placeholder="Ex: Fazenda Santa Maria"></div>
+          <div class="field"><label>Local (cidade/estado)</label><input type="text" id="pr-local" placeholder="Ex: Rio Crespo/RO"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Área (hectares)</label><input type="text" id="pr-area" placeholder="Ex: 300"></div>
+          <div class="field"><label>Válida até <span class="opt">(opcional)</span></label><input type="date" id="pr-validade"></div>
+        </div>
+        <div class="field">
+          <label>Mensagem personalizada <span class="opt">(opcional — pra ele se sentir especial)</span></label>
+          <textarea id="pr-msg" placeholder="Ex: Foi um prazer conversar com você! Preparei esta proposta pensando na sua lavoura e no melhor pra sua safra."></textarea>
+        </div>
+        <div class="field">
+          <label>Serviços da proposta</label>
+          <div id="prop-itens"></div>
+          <button type="button" class="btn btn--ghost btn--sm" id="prop-add" style="margin-top:8px">+ Adicionar serviço</button>
+        </div>
+        <div class="form-acts">
+          <button class="btn btn--green" id="btn-gerar-prop">Gerar proposta</button>
+        </div>
+
+        <div class="prop-result hidden" id="prop-result">
+          <label style="font-weight:700;font-size:.92rem;display:block;margin-bottom:7px;color:var(--green-900)">✅ Proposta pronta! Link pra enviar ao produtor:</label>
+          <input type="text" id="prop-link" readonly onclick="this.select()">
+          <div class="form-acts" style="margin-top:12px">
+            <button class="btn btn--green" id="prop-enviar">📲 Enviar no WhatsApp do produtor</button>
+            <a class="btn btn--blue" id="prop-preview" href="#" target="_blank" rel="noopener">👁 Abrir prévia</a>
+            <button class="btn btn--ghost" id="prop-copiar">Copiar link</button>
+          </div>
         </div>
       </div>
     </section>
@@ -779,6 +837,71 @@ $("btn-save-rotina").addEventListener("click", async () => {
     toast(e.message, "err");
     if (String(e.message).indexOf("Conflito") >= 0) loadRotina();
   } finally { btn.innerHTML = "Salvar alterações"; }
+});
+
+/* ============================================================
+   PROPOSTAS — gera link com os dados na URL (preços privados, sem salvar nada)
+   ============================================================ */
+function pv(id){ return ($(id).value || "").trim(); }
+function addPropItem(){
+  var card = document.createElement('div');
+  card.className = 'prop-item-card';
+  card.innerHTML =
+    '<div class="prop-item-top">' +
+      '<input class="pi-servico" type="text" placeholder="Serviço (ex: Pulverização)">' +
+      '<button type="button" class="prop-rm" title="Remover">✕</button>' +
+    '</div>' +
+    '<input class="pi-detalhe" type="text" placeholder="Detalhe do serviço (opcional)">' +
+    '<div class="prop-item-price">' +
+      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Preço (R$)">' +
+      '<select class="pi-unidade"><option value="ha">por hectare</option><option value="fixo">valor fechado</option></select>' +
+    '</div>';
+  card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); });
+  $('prop-itens').appendChild(card);
+}
+$('prop-add').addEventListener('click', function(){ addPropItem(); });
+addPropItem();
+
+$('btn-gerar-prop').addEventListener('click', function(){
+  var nome = pv('pr-nome');
+  if(!nome){ toast('Coloque o nome do produtor.', 'err'); return; }
+  var itens = [];
+  document.querySelectorAll('#prop-itens .prop-item-card').forEach(function(c){
+    var s = c.querySelector('.pi-servico').value.trim();
+    if(!s) return;
+    itens.push({
+      servico: s,
+      detalhe: c.querySelector('.pi-detalhe').value.trim(),
+      preco: parseFloat(c.querySelector('.pi-preco').value) || 0,
+      unidade: c.querySelector('.pi-unidade').value
+    });
+  });
+  if(!itens.length){ toast('Adicione pelo menos um serviço (com nome).', 'err'); return; }
+  var prop = {
+    produtor: nome,
+    fazenda: pv('pr-fazenda'),
+    local: pv('pr-local'),
+    area: parseFloat(pv('pr-area')) || 0,
+    validade: pv('pr-validade'),
+    mensagem: pv('pr-msg'),
+    itens: itens
+  };
+  var b64 = encB64(JSON.stringify(prop)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  var link = location.origin + "/proposta.html#" + b64;
+  $('prop-link').value = link;
+  $('prop-preview').href = link;
+  var num = pv('pr-whats').replace(/\D/g, '');
+  if(num && num.length <= 11) num = "55" + num;
+  var wmsg = "Olá" + (nome ? (" " + nome.split(' ')[0]) : "") + "! Preparei uma proposta especial pra você, da Jusarah Agro Aérea. É só abrir aqui pra ver: " + link;
+  $('prop-enviar').onclick = function(){ window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(wmsg), "_blank"); };
+  $('prop-result').classList.remove('hidden');
+  $('prop-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  toast('Proposta gerada! ✓', 'ok');
+});
+$('prop-copiar').addEventListener('click', function(){
+  var inp = $('prop-link'); inp.select();
+  if(navigator.clipboard){ navigator.clipboard.writeText(inp.value).then(function(){ toast('Link copiado! ✓', 'ok'); }).catch(function(){ toast('Selecionado — copie com Ctrl+C', 'ok'); }); }
+  else { try { document.execCommand('copy'); toast('Link copiado!', 'ok'); } catch(e){ toast('Selecione e copie (Ctrl+C)'); } }
 });
 
 /* ---- Início ---- */

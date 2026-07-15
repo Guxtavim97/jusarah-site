@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sua Proposta · Jusarah Agro Aérea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body { background:#eef2f5; }
+    .prop-wrap { max-width:720px; margin:0 auto; padding:26px 16px 60px; }
+    .prop-doc { background:#fff; border-radius:22px; overflow:hidden; box-shadow:0 24px 60px rgba(11,59,92,.16); opacity:0; transform:translateY(20px); animation:pRise .7s cubic-bezier(.16,.84,.44,1) forwards; }
+    @keyframes pRise { to { opacity:1; transform:translateY(0); } }
+    .prop-hero { background:linear-gradient(135deg,#0B2942 0%,#123f6b 52%,#1B6E3B 100%); color:#fff; padding:38px 30px 34px; position:relative; overflow:hidden; }
+    .prop-hero::after { content:""; position:absolute; right:-40px; top:-40px; width:180px; height:180px; background:radial-gradient(circle,rgba(95,177,48,.35),transparent 70%); }
+    .prop-hero__logo { height:38px; margin-bottom:22px; filter:brightness(0) invert(1); opacity:.95; }
+    .prop-eyebrow { display:inline-block; font-family:var(--font-head); font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9be3b6; margin-bottom:10px; }
+    .prop-hero h1 { font-size:clamp(1.8rem,5vw,2.5rem); margin:0 0 8px; line-height:1.12; text-wrap:balance; }
+    .prop-sub { color:rgba(255,255,255,.9); font-size:1.08rem; margin:0; font-family:var(--font-head); font-weight:500; }
+    .prop-msg { color:rgba(255,255,255,.92); font-size:1.02rem; line-height:1.6; margin:18px 0 0; max-width:52ch; }
+    .prop-area { display:inline-flex; align-items:center; gap:8px; margin-top:20px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:8px 16px; font-family:var(--font-head); font-weight:600; font-size:.95rem; }
+
+    .prop-body { padding:30px; }
+    .prop-body h2 { font-size:1.15rem; margin:0 0 18px; color:var(--ink); }
+    .prop-item { display:flex; gap:14px; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--line); }
+    .prop-item:first-of-type { border-top:1px solid var(--line); }
+    .prop-item__ico { width:42px; height:42px; border-radius:12px; background:var(--green-50); color:var(--green-700); display:grid; place-items:center; flex:none; font-size:1.2rem; }
+    .prop-item__main { flex:1; min-width:0; }
+    .prop-item__nome { font-family:var(--font-head); font-weight:600; color:var(--ink); font-size:1.05rem; }
+    .prop-item__det { color:var(--muted); font-size:.9rem; margin-top:2px; }
+    .prop-item__calc { color:var(--muted); font-size:.82rem; margin-top:4px; }
+    .prop-item__val { font-family:var(--font-head); font-weight:700; color:var(--green-700); font-size:1.05rem; white-space:nowrap; text-align:right; }
+
+    .prop-total { display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding:20px 22px; background:linear-gradient(135deg,var(--green-50),#f0f8f2); border:2px solid var(--green-100); border-radius:16px; }
+    .prop-total span { font-family:var(--font-head); font-weight:600; color:var(--green-900); }
+    .prop-total strong { font-family:var(--font-head); font-weight:800; font-size:1.9rem; color:var(--green-700); line-height:1; }
+    .prop-validade { text-align:center; color:var(--muted); font-size:.9rem; margin:16px 0 0; }
+
+    .prop-cta { display:flex; flex-direction:column; gap:12px; margin-top:26px; }
+    .prop-accept { background:var(--green-700); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--font-head); font-weight:700; font-size:1.18rem; cursor:pointer; box-shadow:0 10px 26px rgba(21,110,59,.32); transition:transform .15s, filter .2s; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .prop-accept:hover { transform:translateY(-2px); filter:brightness(1.05); }
+    .prop-accept:active { transform:translateY(0); }
+    .prop-falar { display:flex; align-items:center; justify-content:center; gap:9px; background:#fff; color:var(--blue-700); border:2px solid var(--line); border-radius:14px; padding:14px; font-family:var(--font-head); font-weight:600; text-decoration:none; }
+    .prop-falar:hover { background:var(--paper); }
+    .prop-falar svg, .prop-accept svg { width:22px; height:22px; }
+
+    .prop-trust { text-align:center; color:var(--muted); font-size:.82rem; margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+    .prop-foot { text-align:center; color:var(--muted); font-size:.82rem; margin-top:22px; line-height:1.6; }
+
+    .prop-nf { max-width:520px; margin:12vh auto; background:#fff; border-radius:20px; box-shadow:0 24px 60px rgba(11,59,92,.16); padding:40px 30px; text-align:center; }
+    .prop-nf h1 { font-size:1.6rem; margin:0 0 10px; }
+    .prop-nf p { color:var(--muted); margin:0 0 20px; }
+
+    @media(max-width:520px){
+      .prop-hero, .prop-body { padding-left:20px; padding-right:20px; }
+      .prop-total strong { font-size:1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="prop-wrap">
+    <article class="prop-doc" id="prop" hidden>
+      <div class="prop-hero">
+        <img class="prop-hero__logo" src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
+        <span class="prop-eyebrow">Proposta exclusiva</span>
+        <h1 id="p-saudacao"></h1>
+        <p class="prop-sub" id="p-sub"></p>
+        <p class="prop-msg" id="p-msg" hidden></p>
+        <div class="prop-area" id="p-area" hidden></div>
+      </div>
+      <div class="prop-body">
+        <h2>O que preparamos pra sua lavoura</h2>
+        <div id="p-itens"></div>
+        <div class="prop-total">
+          <span>Investimento total</span>
+          <strong id="p-total"></strong>
+        </div>
+        <p class="prop-validade" id="p-validade" hidden></p>
+        <div class="prop-cta">
+          <button class="prop-accept" id="p-accept">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            Aceitar esta proposta
+          </button>
+          <a class="prop-falar" id="p-falar" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+            Tenho uma dúvida
+          </a>
+        </div>
+        <div class="prop-trust">Jusarah Agro Aérea · Registro ANAC · Registro MAPA · Frota moderna</div>
+        <p class="prop-foot">Cerejeiras–RO · Atendemos Rondônia, Mato Grosso e Acre<br>Valores sujeitos a confirmação após vistoria da área.</p>
+      </div>
+    </article>
+
+    <div class="prop-nf" id="prop-nf" hidden>
+      <h1>Proposta não encontrada 🌱</h1>
+      <p>Esse link pode estar incompleto ou expirado. Peça o link atualizado à equipe da Jusarah.</p>
+      <a href="index.html" class="btn btn--primary">Ir para o site</a>
+    </div>
+  </div>
+
+  <script>
+    var JUSARAH_WPP = "5569993257000";
+    function brl(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+    function fmtData(iso){
+      if(!iso) return "";
+      var m=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+      var p=String(iso).split("-"); if(p.length<3) return "";
+      return parseInt(p[2],10)+" de "+m[parseInt(p[1],10)-1]+" de "+p[0];
+    }
+    function decodifica(){
+      var h = location.hash.slice(1);
+      if(!h) return null;
+      try {
+        h = h.replace(/-/g, '+').replace(/_/g, '/');
+        while(h.length % 4) h += '=';
+        return JSON.parse(decodeURIComponent(escape(atob(h))));
+      } catch(e){ return null; }
+    }
+
+    var p = decodifica();
+    if(!p || !p.produtor){
+      document.getElementById('prop-nf').hidden = false;
+    } else {
+      render(p);
+    }
+
+    function render(p){
+      var area = Number(p.area)||0;
+      var itens = Array.isArray(p.itens) ? p.itens : [];
+      document.title = "Proposta · " + (p.produtor||"") + " · Jusarah";
+
+      document.getElementById('p-saudacao').textContent = "Olá, " + p.produtor + "! 👋";
+      var sub = [];
+      if(p.fazenda) sub.push(p.fazenda);
+      if(p.local) sub.push(p.local);
+      document.getElementById('p-sub').textContent = sub.join(" · ") || "Proposta comercial";
+
+      if(p.mensagem){ var em=document.getElementById('p-msg'); em.textContent=p.mensagem; em.hidden=false; }
+      if(area){ var ea=document.getElementById('p-area'); ea.innerHTML="📐 Área considerada: <strong style='margin-left:4px'>"+area.toLocaleString('pt-BR')+" hectares</strong>"; ea.hidden=false; }
+
+      var wrap = document.getElementById('p-itens');
+      var total = 0;
+      itens.forEach(function(it){
+        var porHa = (it.unidade === 'ha');
+        var val = porHa ? (Number(it.preco)||0)*area : (Number(it.preco)||0);
+        total += val;
+        var row = document.createElement('div');
+        row.className = 'prop-item';
+        var calc = porHa ? (area.toLocaleString('pt-BR')+" ha × "+brl(it.preco)) : "Valor fechado";
+        row.innerHTML =
+          '<div class="prop-item__ico">✈️</div>'+
+          '<div class="prop-item__main">'+
+            '<div class="prop-item__nome"></div>'+
+            '<div class="prop-item__det"></div>'+
+            '<div class="prop-item__calc">'+calc+'</div>'+
+          '</div>'+
+          '<div class="prop-item__val">'+brl(val)+'</div>';
+        row.querySelector('.prop-item__nome').textContent = it.servico || "Serviço";
+        var det = row.querySelector('.prop-item__det');
+        if(it.detalhe){ det.textContent = it.detalhe; } else { det.remove(); }
+        wrap.appendChild(row);
+      });
+
+      document.getElementById('p-total').textContent = brl(total);
+
+      if(p.validade){ var ev=document.getElementById('p-validade'); ev.textContent="Proposta válida até "+fmtData(p.validade)+"."; ev.hidden=false; }
+
+      // Falar / dúvida
+      var falarMsg = "Olá! Estou vendo a proposta da Jusarah"+(p.fazenda?(" para a "+p.fazenda):"")+" e tenho uma dúvida.";
+      document.getElementById('p-falar').href = "https://wa.me/"+JUSARAH_WPP+"?text="+encodeURIComponent(falarMsg);
+
+      // Aceitar
+      document.getElementById('p-accept').addEventListener('click', function(){
+        var linhas = itens.map(function(it){
+          var porHa = (it.unidade === 'ha');
+          var val = porHa ? (Number(it.preco)||0)*area : (Number(it.preco)||0);
+          return "• "+(it.servico||"Serviço")+": "+brl(val);
+        }).join("%0A");
+        var msg = "✅ *Aceito a proposta da Jusarah!*%0A%0A"+
+          "*Produtor:* "+p.produtor+"%0A"+
+          (p.fazenda?("*Fazenda:* "+p.fazenda+"%0A"):"")+
+          (p.local?("*Local:* "+p.local+"%0A"):"")+
+          (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+
+          "%0A"+linhas+"%0A%0A"+
+          "*Total:* "+brl(total)+"%0A%0A"+
+          "Podemos seguir? 🌱";
+        window.location.href = "https://wa.me/"+JUSARAH_WPP+"?text="+msg;
+      });
+
+      document.getElementById('prop').hidden = false;
+    }
+  </script>
+</body>
+</html>
