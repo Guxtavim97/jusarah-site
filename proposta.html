@@ -370,7 +370,7 @@
     {k:["semead","semente"],d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio."},
     {k:["incend","fogo"],d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e patrimônio."}
   ];
-  function itemQtd(it,area){ return (it.quantidade!=null&&it.quantidade!=='') ? (Number(it.quantidade)||0) : area; }
+  function itemQtd(it,area){ var q=Number(it.quantidade); return (q>0)?q:(Number(area)||0); }
   function itemVal(it,area){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return (it.unidade==='ha' ? (Number(it.preco)||0)*itemQtd(it,area) : (Number(it.preco)||0))*ap; }
   function decodifica(){
     var h=location.hash.slice(1); if(!h) return null;
