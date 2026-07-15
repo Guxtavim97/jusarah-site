@@ -137,10 +137,12 @@
     .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3}
 
     /* Comemoração */
-    .celebra{position:fixed;inset:0;z-index:80;background:rgba(8,28,46,.78);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px}
+    .celebra{position:fixed;inset:0;z-index:80;background:rgba(8,28,46,.80);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px}
     .celebra.show{display:flex}
     #confete{position:fixed;inset:0;pointer-events:none;z-index:90}
-    .celebra__card{position:relative;z-index:81;background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:38px 30px;text-align:center;max-width:430px;animation:celebraPop .5s cubic-bezier(.2,.9,.3,1.45)}
+    #aviao{position:fixed;left:0;top:0;z-index:95;pointer-events:none;display:none;will-change:transform;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+    .celebra__card{position:relative;z-index:100;background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:38px 30px;text-align:center;max-width:430px;opacity:0}
+    .celebra.go .celebra__card{opacity:1;animation:celebraPop .5s cubic-bezier(.2,.9,.3,1.45)}
     @keyframes celebraPop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
     .celebra__emoji{font-size:2.8rem;margin-bottom:10px}
     .celebra__card h2{font-size:1.8rem;color:var(--green-700);margin-bottom:8px}
@@ -273,6 +275,25 @@
 </div>
 
 <canvas id="confete"></canvas>
+<div id="aviao">
+  <svg viewBox="0 0 210 110" width="190" xmlns="http://www.w3.org/2000/svg">
+    <line x1="60" y1="72" x2="152" y2="72" stroke="#5a6b73" stroke-width="2.5"/>
+    <line x1="72" y1="72" x2="72" y2="79" stroke="#5a6b73" stroke-width="2"/>
+    <line x1="100" y1="72" x2="100" y2="79" stroke="#5a6b73" stroke-width="2"/>
+    <line x1="128" y1="72" x2="128" y2="79" stroke="#5a6b73" stroke-width="2"/>
+    <path d="M58 62 L156 60 Q170 60 170 65 L58 69 Z" fill="#1B6E3B"/>
+    <path d="M22 60 L11 30 Q9 26 14 29 L36 53 Z" fill="#2E86C1"/>
+    <path d="M24 58 L3 54 Q-1 54 3 59 L30 62 Z" fill="#1B3F8F"/>
+    <path d="M24 56 Q34 44 66 43 L170 46 Q192 48 200 56 Q192 64 170 65 L48 65 Q30 64 24 56 Z" fill="#1B3F8F"/>
+    <path d="M48 58 L190 56 L190 60 L48 61 Z" fill="#f5c518"/>
+    <path d="M92 43 Q108 28 130 34 L147 45 Z" fill="#bfe6ff" stroke="#8fb8d6" stroke-width="1"/>
+    <path d="M190 48 Q201 49 203 56 Q201 63 190 64 Z" fill="#12212e"/>
+    <ellipse cx="204" cy="56" rx="3" ry="25" fill="rgba(60,70,80,.32)"/>
+    <line x1="204" y1="31" x2="204" y2="81" stroke="rgba(30,40,50,.5)" stroke-width="2.5"/>
+    <line x1="86" y1="65" x2="80" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="79" cy="85" r="6" fill="#1a1a1a"/>
+    <line x1="122" y1="65" x2="128" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="129" cy="85" r="6" fill="#1a1a1a"/>
+  </svg>
+</div>
 <div class="celebra" id="celebra">
   <div class="celebra__card">
     <div class="celebra__emoji">🎉🚜✈️</div>
@@ -414,23 +435,52 @@
     document.getElementById('celebra-p').textContent="Bora fazer a safra da "+(P.fazenda||"sua fazenda")+" voar! 🌱✈️";
     document.getElementById('celebra-go').onclick=function(){ window.location.href=waUrl; };
     document.getElementById('celebra').classList.add('show');
-    soltaConfete(); tocaSom();
-    setTimeout(function(){ window.location.href=waUrl; }, 6000);
+    somAviao(); animaAviao();
+    setTimeout(function(){ document.getElementById('celebra').classList.add('go'); }, 1500);
+    setTimeout(function(){ window.location.href=waUrl; }, 6500);
   }
-  function soltaConfete(){
+  function animaAviao(){
     var c=document.getElementById('confete'); c.width=innerWidth; c.height=innerHeight;
-    var ctx=c.getContext('2d'), cores=['#5FB130','#15803D','#2E86C1','#f5c518','#e74c3c','#ffffff'], ps=[];
-    for(var i=0;i<170;i++){ ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.6,r:6+Math.random()*8,col:cores[i%cores.length],vy:2+Math.random()*4,vx:-2.5+Math.random()*5,rot:Math.random()*6,vr:-.25+Math.random()*.5}); }
-    var t0=Date.now();
-    (function frame(){ ctx.clearRect(0,0,c.width,c.height);
-      ps.forEach(function(p){ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.vy+=.03; ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.col;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.62);ctx.restore(); });
-      if(Date.now()-t0<6000) requestAnimationFrame(frame); else ctx.clearRect(0,0,c.width,c.height);
+    var ctx=c.getContext('2d'), plane=document.getElementById('aviao');
+    var W=innerWidth, H=innerHeight, y0=H*0.24;
+    var startX=-260, endX=W+150, dur=3300, t0=Date.now();
+    var cores=['#5FB130','#15803D','#2E86C1','#f5c518','#e74c3c','#ffffff'], ps=[];
+    plane.style.display='block';
+    (function frame(){
+      var prog=Math.min((Date.now()-t0)/dur,1);
+      var px=startX+(endX-startX)*prog, py=y0+Math.sin(prog*Math.PI*3)*16;
+      plane.style.transform='translate('+px+'px,'+py+'px)';
+      if(prog<1){ for(var k=0;k<5;k++){ ps.push({x:px+58+Math.random()*95,y:py+74,r:5+Math.random()*7,col:cores[(Math.random()*cores.length)|0],vy:.8+Math.random()*2,vx:-1+Math.random()*1.2,rot:Math.random()*6,vr:-.2+Math.random()*.4}); } }
+      ctx.clearRect(0,0,W,H);
+      ps.forEach(function(p){ p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.rot+=p.vr; ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.col;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.62);ctx.restore(); });
+      ps=ps.filter(function(p){ return p.y<H+40; });
+      if(prog<1 || ps.length>0){ requestAnimationFrame(frame); }
+      else { plane.style.display='none'; ctx.clearRect(0,0,W,H); }
     })();
   }
-  function tocaSom(){
-    try{ var AC=window.AudioContext||window.webkitAudioContext; var ac=new AC();
-      [523.25,659.25,783.99,1046.5,1318.5].forEach(function(f,i){ var o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
-        var t=ac.currentTime+i*0.12; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.28,t+0.03); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); });
+  function somAviao(){
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext, ac=new AC(), dur=3.4, t=ac.currentTime;
+      var master=ac.createGain(); master.gain.value=0;
+      var lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1100; lp.connect(master); master.connect(ac.destination);
+      var o1=ac.createOscillator(), o2=ac.createOscillator(); o1.type='sawtooth'; o2.type='sawtooth'; o1.connect(lp); o2.connect(lp);
+      var base=85;
+      [o1,o2].forEach(function(o,i){ var d=i?1.012:1;
+        o.frequency.setValueAtTime(base*0.78*d,t);
+        o.frequency.linearRampToValueAtTime(base*1.18*d,t+dur*0.45);
+        o.frequency.linearRampToValueAtTime(base*0.66*d,t+dur);
+      });
+      master.gain.setValueAtTime(0,t);
+      master.gain.linearRampToValueAtTime(0.24,t+dur*0.45);
+      master.gain.linearRampToValueAtTime(0.0,t+dur);
+      var lfo=ac.createOscillator(), lg=ac.createGain(); lfo.type='sine'; lfo.frequency.value=20; lg.gain.value=0.09; lfo.connect(lg); lg.connect(master.gain);
+      var nb=ac.createBuffer(1,Math.floor(ac.sampleRate*dur),ac.sampleRate), dch=nb.getChannelData(0);
+      for(var n=0;n<dch.length;n++) dch[n]=(Math.random()*2-1)*0.35;
+      var ns=ac.createBufferSource(); ns.buffer=nb; var nf=ac.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=320; nf.Q.value=0.7; var ng=ac.createGain(); ng.gain.value=0;
+      ns.connect(nf); nf.connect(ng); ng.connect(ac.destination);
+      ng.gain.setValueAtTime(0,t); ng.gain.linearRampToValueAtTime(0.10,t+dur*0.45); ng.gain.linearRampToValueAtTime(0,t+dur);
+      o1.start(t); o2.start(t); lfo.start(t); ns.start(t);
+      o1.stop(t+dur); o2.stop(t+dur); lfo.stop(t+dur); ns.stop(t+dur);
     }catch(e){}
   }
 </script>
