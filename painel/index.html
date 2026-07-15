@@ -170,6 +170,13 @@
   .pl-tag{width:100%;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:.92rem;margin-bottom:10px}
   .plano-head .pl-nome:focus,.pl-tag:focus{outline:none;border-color:var(--green)}
   .pl-add{margin-top:6px}
+  .pl-total{margin-top:12px;font-size:.9rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px;line-height:1.7}
+  .pl-total:empty{display:none}
+  .pl-total .pl-t-lab{font-weight:700;color:var(--ink)}
+  .pl-total s{color:#c0392b}
+  .pl-total b{font-family:var(--font);color:var(--green-d);font-size:1.08rem}
+  .pl-total small{color:var(--muted)}
+  .pl-total em{color:#fff;background:var(--green);font-style:normal;font-weight:700;font-size:.72rem;padding:2px 8px;border-radius:999px;margin-left:4px}
 
   /* Usuários */
   .userrow{display:flex;gap:12px;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -1154,7 +1161,8 @@ PLANOS_DEF.forEach(function(pl, i){
     '</div>' +
     '<input class="pl-tag" type="text" placeholder="Frase curta do plano" value="'+pl.tag+'">' +
     '<div class="pl-itens"></div>' +
-    '<button type="button" class="btn btn--ghost btn--sm pl-add">+ Adicionar serviço</button>';
+    '<button type="button" class="btn btn--ghost btn--sm pl-add">+ Adicionar serviço</button>' +
+    '<div class="pl-total"></div>';
   var itensBox = card.querySelector('.pl-itens');
   card.querySelector('.pl-add').addEventListener('click', function(){ addItem(itensBox); });
   card.querySelector('.pl-rec input').addEventListener('change', function(){
@@ -1210,6 +1218,7 @@ function preencheDaSolicitacao(s){
     box.innerHTML = '';
     tipos.forEach(function(t){ addItem(box, { servico:t, aplicacoes:apl }); });
   });
+  atualizaTotais();
   toast('Cliente carregado! Agora é só pôr os valores e marcar o avião. ✓', 'ok');
 }
 $('pr-solic').addEventListener('change', function(){
@@ -1229,6 +1238,34 @@ function coletaItens(box){
   });
   return itens;
 }
+
+/* Total ao vivo por plano (mostra "de X por Y" — Y real, X +15%) */
+function brlP(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function planoTotal(card){
+  var area = parseFloat(pv('pr-area'))||0, t=0;
+  card.querySelectorAll('.prop-item-card').forEach(function(c){
+    var s = c.querySelector('.pi-servico').value.trim(); if(!s) return;
+    var preco = parseFloat(c.querySelector('.pi-preco').value)||0;
+    var un = c.querySelector('.pi-unidade').value;
+    var ap = Math.max(1, parseInt(c.querySelector('.pi-aplic').value)||1);
+    t += (un==='ha' ? preco*area : preco)*ap;
+  });
+  return t;
+}
+function atualizaTotais(){
+  var area = parseFloat(pv('pr-area'))||0;
+  document.querySelectorAll('#planos-wrap .plano-card').forEach(function(card){
+    var el = card.querySelector('.pl-total'); if(!el) return;
+    var t = planoTotal(card);
+    if(t<=0){ el.innerHTML=''; return; }
+    var cheio = Math.ceil(t*1.15/10)*10;
+    el.innerHTML = '<span class="pl-t-lab">O cliente vê:</span> de <s>'+brlP(cheio)+'</s> por <b>'+brlP(t)+'</b>' +
+      (area>0 ? ' <small>≈ '+brlP(t/area)+'/ha</small>' : '') + ' <em>−15%</em>';
+  });
+}
+$('planos-wrap').addEventListener('input', atualizaTotais);
+$('planos-wrap').addEventListener('change', atualizaTotais);
+$('pr-area').addEventListener('input', atualizaTotais);
 
 function geraCodigo(){
   var c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', s = '';

@@ -101,8 +101,12 @@
     .plan__badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green-600);color:#fff;font-family:var(--font-head);font-weight:700;font-size:.74rem;letter-spacing:.03em;padding:5px 15px;border-radius:999px;white-space:nowrap}
     .plan__name{font-family:var(--font-head);font-weight:800;font-size:1.35rem;color:var(--ink)}
     .plan__tag{color:var(--muted);font-size:.9rem;margin-bottom:16px;min-height:1.1em}
-    .plan__total{font-family:var(--font-head);font-weight:800;font-size:2rem;color:var(--green-700);line-height:1}
+    .plan__price{margin-bottom:2px}
+    .plan__from{display:block;font-size:1rem;color:var(--muted);margin-bottom:1px}
+    .plan__from s{color:#c0392b;text-decoration-thickness:2px;font-weight:600}
+    .plan__total{font-family:var(--font-head);font-weight:800;font-size:2.2rem;color:var(--green-700);line-height:1}
     .plan__perha{color:var(--muted);font-size:.86rem;margin-top:3px}
+    .plan__save{display:inline-block;margin-top:9px;background:#e9f6ee;color:var(--green-700);font-family:var(--font-head);font-weight:700;font-size:.82rem;padding:6px 13px;border-radius:999px;border:1px solid #cfe9d6}
     .plan__items{list-style:none;padding:16px 0;margin:16px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px;flex:1}
     .plan__items li{display:flex;justify-content:space-between;gap:10px;font-size:.93rem;align-items:flex-start}
     .plan__items li span{color:var(--ink-soft)}
@@ -453,13 +457,19 @@
     wrap.className='plans plans--'+Math.min(planos.length,3);
     planos.forEach(function(pl){
       var total=(pl.itens||[]).reduce(function(s,it){return s+itemVal(it,area);},0);
+      var cheio=Math.ceil(total*1.15/10)*10, economia=cheio-total;
       var card=document.createElement('div');
       card.className='plan'+(pl.recomendado?' rec':'');
       var lis=(pl.itens||[]).map(function(){return '<li><span class="pl-lab"></span><b></b></li>';}).join('');
-      var perha=area>0?('≈ '+brl(total/area)+' /ha'):'';
+      var perha=area>0?('≈ '+brl(total/area)+' por hectare'):'';
       card.innerHTML=(pl.recomendado?'<div class="plan__badge">⭐ Recomendado</div>':'')+
         '<div class="plan__name"></div><div class="plan__tag"></div>'+
-        '<div class="plan__total">'+brl(total)+'</div>'+(perha?'<div class="plan__perha">'+perha+'</div>':'')+
+        '<div class="plan__price">'+
+          (total>0?'<span class="plan__from">de <s>'+brl(cheio)+'</s> por</span>':'')+
+          '<div class="plan__total">'+brl(total)+'</div>'+
+          (perha?'<div class="plan__perha">'+perha+'</div>':'')+
+          (economia>0?'<span class="plan__save">🌱 você economiza '+brl(economia)+' &nbsp;·&nbsp; −15%</span>':'')+
+        '</div>'+
         '<ul class="plan__items">'+lis+'</ul>'+
         '<button class="plan__btn">Escolher este plano</button>';
       card.querySelector('.plan__name').textContent=pl.nome||"Plano";
