@@ -75,6 +75,7 @@
     .av-specs li::before{content:"✓";color:var(--green-600);font-weight:800;flex:none}
     .av-thumbs{display:flex;gap:10px;margin-top:16px;overflow-x:auto;padding-bottom:4px}
     .av-thumbs img{height:88px;border-radius:10px;flex:none}
+    .av-block+.av-block{margin-top:34px;padding-top:30px;border-top:1px solid var(--line)}
 
     .difs{display:grid;gap:14px;margin-top:24px}
     @media(min-width:600px){.difs{grid-template-columns:1fr 1fr}}
@@ -216,12 +217,8 @@
 
   <!-- AVIÃO -->
   <section class="sec" id="sec-aviao" hidden><div class="wrap reveal">
-    <div class="sec__num">03 — O AVIÃO DA SUA OPERAÇÃO</div>
-    <h2 id="av-nome"></h2>
-    <p class="sec__lead" id="av-modelo"></p>
-    <div class="av-main"><img id="av-foto" alt=""></div>
-    <ul class="av-specs" id="av-specs"></ul>
-    <div class="av-thumbs" id="av-thumbs"></div>
+    <div class="sec__num" id="av-num">03 — O AVIÃO DA SUA OPERAÇÃO</div>
+    <div id="av-list"></div>
   </div></section>
 
   <section class="sec sec--tint"><div class="wrap reveal">
@@ -383,7 +380,7 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function mapRow(row){
     return { produtor:row.produtor, apresentador:row.apresentador, fazenda:row.fazenda, local:row.local,
-             area:Number(row.area)||0, validade:row.validade, mensagem:row.mensagem, aviaoId:row.aviao_id, aviaoNome:row.aviao_nome, planos:row.planos||[] };
+             area:Number(row.area)||0, validade:row.validade, mensagem:row.mensagem, aviaoId:row.aviao_id, aviaoIds:row.aviao_ids, aviaoNome:row.aviao_nome, planos:row.planos||[] };
   }
   (async function(){
     var qs = new URLSearchParams(location.search);
@@ -428,19 +425,26 @@
       document.getElementById('mascote').hidden = false;
     }
 
-    // Avião
-    if(p.aviaoId){
+    // Avião(ões)
+    var ids = (p.aviaoIds && p.aviaoIds.length) ? p.aviaoIds : (p.aviaoId ? [p.aviaoId] : []);
+    if(ids.length){
       fetch('data/avioes.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():[];}).then(function(list){
-        var a=(list||[]).filter(function(x){return x.id===p.aviaoId;})[0];
-        if(!a) return;
-        document.getElementById('av-nome').textContent=a.nome;
-        document.getElementById('av-modelo').textContent=a.modelo||"";
-        if(a.fotos&&a.fotos[0]) document.getElementById('av-foto').src=a.fotos[0];
-        var specs=document.getElementById('av-specs');
-        (a.caracteristicas||[]).forEach(function(c){ var li=document.createElement('li'); li.textContent=c; specs.appendChild(li); });
-        var th=document.getElementById('av-thumbs');
-        (a.fotos||[]).slice(1).forEach(function(f){ var im=document.createElement('img'); im.src=f; im.alt=""; th.appendChild(im); });
-        document.getElementById('sec-aviao').hidden=false;
+        var box=document.getElementById('av-list'), achou=false;
+        ids.forEach(function(id){
+          var a=(list||[]).filter(function(x){return x.id===id;})[0];
+          if(!a) return; achou=true;
+          var specs=(a.caracteristicas||[]).map(function(c){return '<li>'+esc(c)+'</li>';}).join('');
+          var thumbs=(a.fotos||[]).slice(1).map(function(f){return '<img src="'+esc(f)+'" alt="">';}).join('');
+          var div=document.createElement('div'); div.className='av-block';
+          div.innerHTML='<h2>'+esc(a.nome)+'</h2><p class="sec__lead">'+esc(a.modelo||'')+'</p>'+
+            '<div class="av-main"><img src="'+esc((a.fotos&&a.fotos[0])||'')+'" alt=""></div>'+
+            '<ul class="av-specs">'+specs+'</ul>'+(thumbs?'<div class="av-thumbs">'+thumbs+'</div>':'');
+          box.appendChild(div);
+        });
+        if(achou){
+          if(ids.length>1) document.getElementById('av-num').textContent='03 — OS AVIÕES DA SUA OPERAÇÃO';
+          document.getElementById('sec-aviao').hidden=false;
+        }
       }).catch(function(){});
     }
 

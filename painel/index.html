@@ -145,6 +145,17 @@
   .prop-result input{width:100%;padding:11px 12px;border:2px solid var(--line);border-radius:10px;font-size:.88rem;background:#fff;color:var(--ink)}
   #pr-aviao{width:100%;padding:12px 13px;border:2px solid var(--line);border-radius:11px;font-size:1rem;background:var(--paper);font-family:inherit}
   #pr-aviao:focus{outline:none;border-color:var(--green);background:#fff}
+  .solic-box{background:linear-gradient(120deg,#eef6ff,#eefaf1);border:1px solid #d3e7dd;border-radius:14px;padding:14px 16px;margin-bottom:18px}
+  .solic-box select{width:100%;padding:12px 13px;border:2px solid var(--line);border-radius:11px;font-size:1rem;background:#fff;font-family:inherit}
+  .solic-box select:focus{outline:none;border-color:var(--green)}
+  .av-checks{display:grid;gap:9px}
+  .av-check{display:flex;align-items:center;gap:12px;padding:9px 13px;border:2px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s}
+  .av-check:hover{border-color:var(--green-v)}
+  .av-check:has(input:checked){border-color:var(--green);background:#f1fbf5}
+  .av-check input{width:19px;height:19px;accent-color:var(--green);flex:none}
+  .av-check img{width:56px;height:40px;border-radius:9px;object-fit:cover;background:var(--paper);flex:none}
+  .av-check b{display:block;font-size:.96rem;line-height:1.2}
+  .av-check small{color:var(--muted);font-size:.82rem}
   .aviao-prev{margin-top:12px;display:flex;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
   .aviao-prev img{width:110px;height:76px;object-fit:cover;border-radius:8px;flex:none}
   .aviao-prev__txt{font-size:.86rem;color:var(--muted);line-height:1.5}
@@ -462,7 +473,12 @@
     <section class="panel" id="panel-propostas">
       <div class="head-row"><h2>Gerar proposta pro produtor</h2></div>
       <div class="form">
-        <p class="opt" style="margin:-4px 0 18px">Preencha, clique em <b>Gerar proposta</b> e envie o link no WhatsApp do produtor. Os valores ficam só no link — nunca no site.</p>
+        <p class="opt" style="margin:-4px 0 16px">Preencha, clique em <b>Gerar proposta</b> e envie o link no WhatsApp do produtor. Os valores ficam só no link — nunca no site.</p>
+        <div class="solic-box">
+          <label style="font-weight:700;font-size:.92rem;display:block;margin-bottom:7px">⚡ Puxar dados de um cliente que pediu orçamento</label>
+          <select id="pr-solic"><option value="">— começar do zero —</option></select>
+          <div class="hint">Escolha uma solicitação: nome, fazenda, área e os tipos de aplicação já vêm prontos. Você só põe o valor e o avião. 😉</div>
+        </div>
         <div class="field"><label>Apresentado por <span class="opt">(seu nome — quem está enviando)</span></label><input type="text" id="pr-apresentador" placeholder="Ex: Gustavo Andrade"></div>
         <div class="row2">
           <div class="field"><label>Nome do produtor</label><input type="text" id="pr-nome" placeholder="Ex: João da Silva"></div>
@@ -481,9 +497,8 @@
           <textarea id="pr-msg" placeholder="Ex: Foi um prazer conversar com você! Preparei esta proposta pensando na sua lavoura e no melhor pra sua safra."></textarea>
         </div>
         <div class="field">
-          <label>Avião da operação <span class="opt">(o que vai voar na área do cliente)</span></label>
-          <select id="pr-aviao"><option value="">— escolher depois —</option></select>
-          <div class="aviao-prev hidden" id="pr-aviao-prev"></div>
+          <label>Avião(ões) da operação <span class="opt">(marque um ou mais que vão voar na área)</span></label>
+          <div id="pr-avioes" class="av-checks"><span class="hint">Carregando frota…</span></div>
         </div>
         <div class="field">
           <label>Nome do aviãozinho <span class="opt">(aparece falando com o cliente na proposta 😄)</span></label>
@@ -1099,21 +1114,26 @@ $("btn-save-rotina").addEventListener("click", async () => {
    ============================================================ */
 function pv(id){ return ($(id).value || "").trim(); }
 
-function addItem(container){
+/* Tipos de aplicação já prontos (o usuário só seleciona) */
+var TIPOS_APLIC = ["Pulverização","Inseticida","Fungicida","Pós-emergente","Herbicida","Dessecação","Adubação / Fertilizante","Semeadura","Combate a incêndio"];
+
+function addItem(container, preset){
+  preset = preset || {};
   var card = document.createElement('div');
   card.className = 'prop-item-card';
+  var opts = '<option value="">— tipo de aplicação —</option>' +
+    TIPOS_APLIC.map(function(t){ return '<option'+(preset.servico===t?' selected':'')+'>'+t+'</option>'; }).join('');
   card.innerHTML =
     '<div class="prop-item-top">' +
-      '<input class="pi-servico" type="text" placeholder="Serviço (ex: Pulverização)">' +
+      '<select class="pi-servico">'+opts+'</select>' +
       '<button type="button" class="prop-rm" title="Remover">✕</button>' +
     '</div>' +
-    '<input class="pi-detalhe" type="text" placeholder="Detalhe (opcional — senão vem descrição pronta)">' +
-    '<input class="pi-vazao" type="text" placeholder="Vazão / volume (ex: 12 L/ha) — opcional">' +
     '<div class="prop-item-price">' +
-      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Preço por ha (R$)">' +
+      '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Valor (R$)" value="'+(preset.preco!=null?preset.preco:'')+'">' +
       '<select class="pi-unidade"><option value="ha">por hectare</option><option value="fixo">valor fechado</option></select>' +
-      '<input class="pi-aplic" type="number" min="1" step="1" value="1" title="Nº de aplicações">' +
-    '</div>';
+      '<input class="pi-aplic" type="number" min="1" step="1" value="'+(preset.aplicacoes||1)+'" title="Nº de aplicações">' +
+    '</div>' +
+    '<input class="pi-vazao" type="text" placeholder="Vazão (ex: 12 L/ha) — opcional" value="'+(preset.vazao||'')+'">';
   card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); });
   container.appendChild(card);
 }
@@ -1121,8 +1141,8 @@ function addItem(container){
 /* Monta os 3 construtores de plano */
 var PLANOS_DEF = [
   { nome:"Econômica", tag:"O essencial pra sua safra", rec:false },
-  { nome:"Ideal", tag:"O melhor custo-benefício", rec:true },
-  { nome:"TOP 1", tag:"O máximo da Jusarah", rec:false }
+  { nome:"Ideal", tag:"O melhor custo-benefício", rec:false },
+  { nome:"TOP 1", tag:"O máximo da Jusarah", rec:true }
 ];
 PLANOS_DEF.forEach(function(pl, i){
   var card = document.createElement('div');
@@ -1145,29 +1165,67 @@ PLANOS_DEF.forEach(function(pl, i){
   $('planos-wrap').appendChild(card);
 });
 
-/* Catálogo de aviões */
+/* Catálogo de aviões — múltipla escolha */
 var AVIOES = [];
 fetch('../data/avioes.json', { cache:'no-store' })
   .then(function(r){ return r.ok ? r.json() : []; })
   .then(function(list){
     AVIOES = list || [];
-    var sel = $('pr-aviao');
-    AVIOES.forEach(function(a){ var o=document.createElement('option'); o.value=a.id; o.textContent=a.nome+" — "+a.modelo; sel.appendChild(o); });
+    var box = $('pr-avioes');
+    if(!AVIOES.length){ box.innerHTML = '<span class="hint">Nenhum avião cadastrado ainda.</span>'; return; }
+    box.innerHTML = AVIOES.map(function(a){
+      var foto = (a.fotos && a.fotos[0]) || '';
+      return '<label class="av-check"><input type="checkbox" value="'+a.id+'"'+(AVIOES.length===1?' checked':'')+'>'+
+        (foto?'<img src="../'+esc(foto)+'" alt="">':'')+
+        '<span><b>'+esc(a.nome)+'</b><small>'+esc(a.modelo||'')+'</small></span></label>';
+    }).join('');
   }).catch(function(){});
-$('pr-aviao').addEventListener('change', function(){
-  var a = AVIOES.filter(function(x){ return x.id === $('pr-aviao').value; })[0];
-  var prev = $('pr-aviao-prev');
-  if(!a){ prev.classList.add('hidden'); prev.innerHTML=''; return; }
-  prev.classList.remove('hidden');
-  prev.innerHTML = '<img src="../'+((a.fotos&&a.fotos[0])||'')+'" alt=""><div class="aviao-prev__txt"><b>'+a.nome+'</b> · '+a.modelo+'<br>'+(a.caracteristicas||[]).slice(0,3).join(' · ')+'</div>';
+
+function avioesSelecionados(){
+  return Array.prototype.slice.call(document.querySelectorAll('#pr-avioes input:checked')).map(function(c){ return c.value; });
+}
+
+/* Puxar dados de uma solicitação (lead do site) */
+var SOLIC = [];
+async function loadSolicSelect(){
+  try{
+    var r = await sb.from('solicitacoes').select('*').order('criado_em', { ascending:false }).limit(60);
+    SOLIC = r.data || [];
+    var sel = $('pr-solic'); if(!sel) return;
+    sel.innerHTML = '<option value="">— começar do zero —</option>' + SOLIC.map(function(s,i){
+      var t = (s.nome||'(sem nome)') + (s.propriedade?(' · '+s.propriedade):'') + (s.hectares?(' · '+s.hectares+' ha'):'');
+      return '<option value="'+i+'">'+esc(t)+'</option>';
+    }).join('');
+  }catch(e){}
+}
+function preencheDaSolicitacao(s){
+  if(!s) return;
+  $('pr-nome').value = s.nome || '';
+  $('pr-whats').value = s.telefone || '';
+  $('pr-fazenda').value = s.propriedade || '';
+  if(s.hectares) $('pr-area').value = s.hectares;
+  var tipos = (Array.isArray(s.tipos_tratamento) && s.tipos_tratamento.length) ? s.tipos_tratamento : ['Pulverização'];
+  var apl = Math.max(1, parseInt(s.qtd_aplicacoes) || 1);
+  document.querySelectorAll('#planos-wrap .plano-card .pl-itens').forEach(function(box){
+    box.innerHTML = '';
+    tipos.forEach(function(t){ addItem(box, { servico:t, aplicacoes:apl }); });
+  });
+  toast('Cliente carregado! Agora é só pôr os valores e marcar o avião. ✓', 'ok');
+}
+$('pr-solic').addEventListener('change', function(){
+  var v = this.value;
+  if(v === '') return;
+  preencheDaSolicitacao(SOLIC[parseInt(v)]);
 });
+var _tabProp = document.querySelector('.tab[data-tab="propostas"]');
+if(_tabProp) _tabProp.addEventListener('click', loadSolicSelect);
 
 function coletaItens(box){
   var itens = [];
   box.querySelectorAll('.prop-item-card').forEach(function(c){
     var s = c.querySelector('.pi-servico').value.trim();
     if(!s) return;
-    itens.push({ servico:s, detalhe:c.querySelector('.pi-detalhe').value.trim(), vazao:c.querySelector('.pi-vazao').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value, aplicacoes:Math.max(1,parseInt(c.querySelector('.pi-aplic').value)||1) });
+    itens.push({ servico:s, vazao:c.querySelector('.pi-vazao').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value, aplicacoes:Math.max(1,parseInt(c.querySelector('.pi-aplic').value)||1) });
   });
   return itens;
 }
@@ -1197,10 +1255,11 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   var valorTotal = (rec.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return s + (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }, 0);
   var btnG = $('btn-gerar-prop'); btnG.disabled = true; btnG.textContent = "Gerando…";
   var codigo = geraCodigo();
+  var avSel = avioesSelecionados();
   var ins = await sb.from('propostas').insert({
     apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
     area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
-    aviao_id: $('pr-aviao').value || null, aviao_nome: pv('pr-aviao-nome') || null,
+    aviao_id: avSel[0] || null, aviao_ids: avSel.length ? avSel : null, aviao_nome: pv('pr-aviao-nome') || null,
     codigo: codigo, planos: planos, valor_total: valorTotal
   }).select('id,codigo').single();
   btnG.disabled = false; btnG.textContent = "Gerar proposta";
