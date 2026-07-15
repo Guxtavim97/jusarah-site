@@ -858,11 +858,19 @@ var VERSICULOS = [
 ];
 function mostraVersiculo(){
   try{
-    var key = 'jusarah_verse_' + (usuario ? usuario.id : 'anon');
+    // Mostra SEMPRE que entrar, mas o versículo é o mesmo o dia todo (a "palavra do dia").
+    var key = 'jusarah_verse_dia_' + (usuario ? usuario.id : 'anon');
     var hoje = new Date().toISOString().slice(0,10);
-    if(localStorage.getItem(key) === hoje) return;
-    localStorage.setItem(key, hoje);
-    var v = VERSICULOS[Math.floor(Math.random()*VERSICULOS.length)];
+    var salvo = null;
+    try{ salvo = JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){}
+    var idx;
+    if(salvo && salvo.d === hoje && typeof salvo.i === 'number'){
+      idx = salvo.i;                                  // mesmo dia → mesmo versículo
+    } else {
+      idx = Math.floor(Math.random() * VERSICULOS.length);   // novo dia → sorteia um
+      localStorage.setItem(key, JSON.stringify({ d: hoje, i: idx }));
+    }
+    var v = VERSICULOS[idx];
     $("versic-text").textContent = '“' + v.t + '”';
     $("versic-ref").textContent = '— ' + v.r;
     $("versic").classList.add('show');
