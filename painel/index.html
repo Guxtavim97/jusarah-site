@@ -160,6 +160,16 @@
   .plano-head .pl-nome:focus,.pl-tag:focus{outline:none;border-color:var(--green)}
   .pl-add{margin-top:6px}
 
+  /* Usuários */
+  .userrow{display:flex;gap:12px;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .userrow:last-child{border-bottom:none}
+  .userrow.pend{background:#fff8e6}
+  .userrow__info{flex:1;min-width:170px}
+  .userrow__info b{font-family:var(--font-head);display:block;color:var(--ink)}
+  .userrow__info span{font-size:.84rem;color:var(--muted)}
+  .userrow select{padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-family:inherit;font-size:.92rem;background:#fff}
+  .userrow select:disabled{opacity:.55}
+
   .hidden{display:none!important}
 </style>
 </head>
@@ -223,6 +233,7 @@
       <button class="tab" data-tab="projeto" data-min="1">Semeando Esperança</button>
       <button class="tab" data-tab="rotina" data-min="1">Nossa Rotina</button>
       <button class="tab" data-tab="propostas" data-min="2">Propostas 💰</button>
+      <button class="tab" data-tab="usuarios" data-min="3">Usuários 🔐</button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -417,6 +428,16 @@
             <button class="btn btn--ghost" id="prop-copiar">Copiar link</button>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- PAINEL: USUÁRIOS (só N3) -->
+    <section class="panel" id="panel-usuarios">
+      <div class="head-row"><h2>Usuários e acessos</h2></div>
+      <div class="form">
+        <p class="opt" style="margin:-4px 0 16px"><b>Nova pessoa:</b> ela cria a conta em "Criar conta" (login) e confirma o e-mail. Depois você <b>libera o nível dela aqui</b>. Você não muda o seu próprio nível.</p>
+        <div id="users-list"><div class="empty">Carregando…</div></div>
+        <button class="btn btn--ghost btn--sm" id="btn-users-reload" style="margin-top:12px">↻ Atualizar lista</button>
       </div>
     </section>
   </main>
@@ -1063,6 +1084,44 @@ $('prop-copiar').addEventListener('click', function(){
   if(navigator.clipboard){ navigator.clipboard.writeText(inp.value).then(function(){ toast('Link copiado! ✓', 'ok'); }).catch(function(){ toast('Selecionado — copie com Ctrl+C', 'ok'); }); }
   else { try { document.execCommand('copy'); toast('Link copiado!', 'ok'); } catch(e){ toast('Selecione e copie (Ctrl+C)'); } }
 });
+
+/* ============================================================
+   USUÁRIOS (N3) — aprova cadastros e define níveis
+   ============================================================ */
+async function loadUsuarios(){
+  var list = $("users-list");
+  list.innerHTML = '<div class="empty">Carregando…</div>';
+  const r = await sb.from('perfis').select('id,nome,email,nivel').order('nivel', { ascending: true });
+  if(r.error){ list.innerHTML = '<div class="empty">Erro ao carregar: ' + r.error.message + '</div>'; return; }
+  var users = r.data || [];
+  if(!users.length){ list.innerHTML = '<div class="empty">Nenhum usuário ainda.</div>'; return; }
+  list.innerHTML = '';
+  var card = document.createElement('div'); card.className = 'card';
+  users.forEach(function(u){
+    var row = document.createElement('div'); row.className = 'userrow' + (u.nivel === 0 ? ' pend' : '');
+    var info = document.createElement('div'); info.className = 'userrow__info';
+    info.innerHTML = '<b></b><span></span>';
+    info.querySelector('b').textContent = u.nome || '(sem nome)';
+    info.querySelector('span').textContent = u.email + (u.id === usuario.id ? '  · você' : '');
+    var sel = document.createElement('select');
+    [[0,'⏳ Pendente (sem acesso)'],[1,'N1 · Matérias'],[2,'N2 · Geral + propostas'],[3,'N3 · Admin']].forEach(function(o){
+      var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; if(u.nivel === o[0]) op.selected = true; sel.appendChild(op);
+    });
+    sel.disabled = (u.id === usuario.id);
+    sel.addEventListener('change', async function(){
+      var novo = parseInt(sel.value);
+      const up = await sb.from('perfis').update({ nivel: novo }).eq('id', u.id);
+      if(up.error){ toast(up.error.message, 'err'); sel.value = u.nivel; }
+      else { u.nivel = novo; row.className = 'userrow' + (novo === 0 ? ' pend' : ''); toast('Nível atualizado ✓', 'ok'); }
+    });
+    row.appendChild(info); row.appendChild(sel);
+    card.appendChild(row);
+  });
+  list.appendChild(card);
+}
+$("btn-users-reload").addEventListener("click", loadUsuarios);
+var _tabUsers = document.querySelector('.tab[data-tab="usuarios"]');
+if(_tabUsers) _tabUsers.addEventListener('click', loadUsuarios);
 
 /* ---- Início: já logado? ---- */
 (async function(){
