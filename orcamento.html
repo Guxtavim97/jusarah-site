@@ -11,7 +11,19 @@
   <link rel="stylesheet" href="assets/css/style.css">
   <!-- Microsoft Clarity -->
   <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","xmviaqu77f");</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
+    .q-sec-title { font-family:var(--font-head); font-weight:700; font-size:1.05rem; color:var(--green-700); margin:26px 0 4px; display:flex; align-items:center; gap:8px; }
+    .q-sec-title:first-of-type { margin-top:4px; }
+    .drop { display:block; border:2px dashed var(--line); border-radius:14px; padding:16px; text-align:center; color:var(--muted); background:var(--paper); cursor:pointer; font-weight:600; transition:border-color .15s,background .15s; }
+    .drop:hover { border-color:var(--green-600); background:#fff; }
+    .drop input { display:none; }
+    .trat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:520px){ .trat-grid { grid-template-columns:1fr; } }
+    .trat { display:flex; align-items:center; gap:10px; padding:13px 15px; border:2px solid var(--line); border-radius:12px; cursor:pointer; font-weight:500; background:var(--paper); transition:border-color .15s,background .15s; }
+    .trat:hover { border-color:var(--green-200); }
+    .trat input { width:20px; height:20px; accent-color:var(--green-600); }
+    .trat:has(input:checked) { border-color:var(--green-600); background:var(--green-50); }
     .quote-hero { background: linear-gradient(135deg,#0B2942 0%,#123f6b 55%,#1B6E3B 100%); color:#fff; padding: clamp(48px,7vw,84px) 0 clamp(120px,16vw,160px); text-align:center; position:relative; }
     .quote-hero .eyebrow { color:#9be3b6; justify-content:center; }
     .quote-hero .eyebrow::before { background:#9be3b6; }
@@ -26,7 +38,7 @@
     .quote-card .sub { color:var(--muted); margin:2px 0 26px; }
     .q-field { margin-bottom:22px; }
     .q-field > label { display:block; font-family:var(--font-head); font-weight:600; font-size:1.02rem; color:var(--ink); margin-bottom:9px; }
-    .q-field input[type=text], .q-field input[type=tel], .q-field input[type=email], .q-field select {
+    .q-field input[type=text], .q-field input[type=tel], .q-field input[type=email], .q-field input[type=number], .q-field input[type=date], .q-field select {
       width:100%; font-family:var(--font-body); font-size:1.05rem; color:var(--ink);
       padding:15px 16px; border:2px solid var(--line); border-radius:14px; background:var(--paper); transition:border-color .15s, box-shadow .15s;
     }
@@ -145,14 +157,20 @@
         <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15l4-4 4 4 5-6 5 6"/><circle cx="8" cy="7" r="2"/></svg></span>
         <div>
           <h2>Me conta sobre a sua área</h2>
-          <p class="sub">Leva menos de 1 minuto.</p>
+          <p class="sub">Quanto mais você contar, mais certeiro fica o seu orçamento. 😉</p>
         </div>
       </div>
 
       <form id="form-orc" novalidate>
+        <div class="q-sec-title">👤 Sobre você</div>
         <div class="q-field">
           <label for="nome">Como é o seu nome?</label>
-          <input type="text" id="nome" name="nome" placeholder="Pode ser o primeiro nome">
+          <input type="text" id="nome" name="nome" placeholder="Seu nome completo">
+        </div>
+
+        <div class="q-field">
+          <label for="cpf">Seu CPF <span style="font-weight:400;color:var(--muted)">(opcional — pra já adiantar o contrato)</span></label>
+          <input type="text" id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00">
         </div>
 
         <div class="q-field">
@@ -163,6 +181,12 @@
         <div class="q-field">
           <label for="email">Seu e-mail <span style="font-weight:400;color:var(--muted)">(opcional — pra receber a confirmação)</span></label>
           <input type="email" id="email" name="email" placeholder="voce@email.com">
+        </div>
+
+        <div class="q-sec-title">🌾 Sua área</div>
+        <div class="q-field">
+          <label for="propriedade">Nome da fazenda / propriedade</label>
+          <input type="text" id="propriedade" name="propriedade" placeholder="Ex: Fazenda Santa Maria">
         </div>
 
         <div class="q-field">
@@ -215,14 +239,46 @@
         </div>
 
         <div class="q-field">
-          <label for="servico">O que você precisa?</label>
-          <select id="servico" name="servico">
-            <option>Pulverização</option>
-            <option>Adubação / fertilização</option>
-            <option>Semeadura aérea</option>
-            <option>Combate a incêndio</option>
-            <option>Não sei ainda, me ajuda</option>
+          <label>Croqui da área <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
+          <label class="drop" for="croqui" id="croqui-drop">
+            <input type="file" id="croqui" accept="image/*,application/pdf">
+            <span id="croqui-txt">📎 Anexar o croqui (imagem ou PDF)</span>
+          </label>
+          <p class="q-help" style="margin-top:8px">Se você não tiver o croqui à mão agora, <strong>sem problema!</strong> Pode nos enviar depois pelo WhatsApp — isso não atrasa nem atrapalha o seu atendimento. 😉</p>
+        </div>
+
+        <div class="q-sec-title">🛬 A pista</div>
+        <div class="q-field">
+          <label for="sabe-pista">Você sabe as coordenadas da pista mais próxima?</label>
+          <select id="sabe-pista" name="sabe-pista">
+            <option value="">Selecione</option>
+            <option value="sim">Sim, eu sei</option>
+            <option value="nao">Não sei / não tenho</option>
           </select>
+          <div id="pista-wrap" class="hidden" style="margin-top:10px">
+            <input type="text" id="pista-coords" placeholder="Cole as coordenadas da pista (ex: -12.34, -60.12)">
+          </div>
+        </div>
+
+        <div class="q-sec-title">✈️ A aplicação</div>
+        <div class="q-field">
+          <label>Que tipo de tratamento você precisa? <span style="font-weight:400;color:var(--muted)">(pode marcar mais de um)</span></label>
+          <div class="trat-grid">
+            <label class="trat"><input type="checkbox" name="trat" value="Inseticida"> Inseticida</label>
+            <label class="trat"><input type="checkbox" name="trat" value="Fungicida"> Fungicida</label>
+            <label class="trat"><input type="checkbox" name="trat" value="Pós-emergente"> Pós-emergente</label>
+            <label class="trat"><input type="checkbox" name="trat" value="Semeadura"> Semeadura</label>
+          </div>
+        </div>
+
+        <div class="q-field">
+          <label for="qtd-aplic">Quantas aplicações previstas?</label>
+          <input type="number" id="qtd-aplic" name="qtd-aplic" min="1" value="1">
+        </div>
+
+        <div class="q-field">
+          <label for="data-prev">Quando pretende aplicar? <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
+          <input type="date" id="data-prev" name="data-prev">
         </div>
 
         <div class="q-actions">
@@ -271,6 +327,18 @@
   <script>
     var WPP = "5569993257000";
     var geoCoords = "";
+    var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+    var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+    var sb = window.supabase.createClient(SB_URL, SB_KEY);
+    var croquiFile = null;
+    document.getElementById('sabe-pista').addEventListener('change', function(){
+      document.getElementById('pista-wrap').classList.toggle('hidden', this.value !== 'sim');
+    });
+    document.getElementById('croqui').addEventListener('change', function(e){
+      croquiFile = e.target.files[0] || null;
+      document.getElementById('croqui-txt').textContent = croquiFile ? ('📎 ' + croquiFile.name) : '📎 Anexar o croqui (imagem ou PDF)';
+    });
+    function tratsSel(){ return Array.prototype.slice.call(document.querySelectorAll('input[name="trat"]:checked')).map(function(c){ return c.value; }); }
     var cidades = {
       RO:["Cerejeiras","Vilhena","Colorado do Oeste","Cabixi","Corumbiara","Pimenteiras do Oeste","Chupinguaia","Porto Velho","Ji-Paraná","Ariquemes","Cacoal","Rolim de Moura"],
       MT:["Cuiabá","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Primavera do Leste","Campo Novo do Parecis","Sapezal","Nova Mutum","Tangará da Serra","Campo Verde","Diamantino"],
@@ -350,14 +418,27 @@
       if(geoCoords){ out += (out ? " — " : "") + "https://maps.google.com/?q=" + geoCoords; }
       return out || "(não informado)";
     }
+    function pistaStr(){
+      var s = val('sabe-pista');
+      if(s === 'sim') return val('pista-coords') || 'sim (vou passar as coordenadas)';
+      if(s === 'nao') return 'não sabe/não tem';
+      return '';
+    }
     function montaMsg(){
-      var email = val('email');
-      return "*Pedido de orçamento — Jusarah*%0A%0A" +
-        "*Nome:* "+val('nome')+"%0A*Zap:* "+val('zap') +
+      var email = val('email'), cpf = val('cpf'), prop = val('propriedade'), trats = tratsSel().join(', '), pista = pistaStr();
+      return "*Solicitação de orçamento — Jusarah*%0A%0A" +
+        "*Nome:* "+val('nome') +
+        (cpf ? "%0A*CPF:* "+cpf : "") +
+        "%0A*Zap:* "+val('zap') +
         (email ? "%0A*E-mail:* "+email : "") +
+        (prop ? "%0A*Propriedade:* "+prop : "") +
         "%0A*Planta:* "+val('cultura') +
         "%0A*Área:* "+fmtHa(+ha.value)+"%0A*Local:* "+localStr()+
-        "%0A*Serviço:* "+val('servico');
+        (pista ? "%0A*Pista:* "+pista : "") +
+        (trats ? "%0A*Tratamento:* "+trats : "") +
+        "%0A*Aplicações:* "+val('qtd-aplic') +
+        (val('data-prev') ? "%0A*Data prevista:* "+val('data-prev') : "") +
+        (croquiFile ? "%0A%0A📎 Croqui anexado no site." : "%0A%0A📎 Croqui: envio depois pelo WhatsApp.");
     }
     document.getElementById('zap-btn').setAttribute('href', "https://wa.me/"+WPP+"?text="+encodeURIComponent("Olá! Quero um orçamento com a Jusarah."));
 
@@ -392,7 +473,7 @@
           cultura: val('cultura'),
           area: fmtHa(+ha.value),
           local: localStr(),
-          servico: val('servico')
+          servico: tratsSel().join(', ') || val('cultura')
         }, { publicKey: EMAILJS.publicKey }).then(function(){ return true; });
       });
     }
@@ -416,10 +497,31 @@
       ok.scrollIntoView({ behavior:'smooth', block:'center' });
       if(waUrl){ try { window.open(waUrl, "_blank"); } catch(e){} }
     }
+    async function salvaSolicitacao(){
+      try{
+        var croqui_url = null;
+        if(croquiFile){
+          var ext = (croquiFile.name.split('.').pop() || 'dat').toLowerCase();
+          var path = 'croqui-' + Date.now() + '-' + Math.random().toString(36).slice(2,7) + '.' + ext;
+          var up = await sb.storage.from('croquis').upload(path, croquiFile);
+          if(!up.error){ croqui_url = sb.storage.from('croquis').getPublicUrl(path).data.publicUrl; }
+        }
+        var sabe = val('sabe-pista');
+        await sb.from('solicitacoes').insert({
+          nome: val('nome'), cpf: val('cpf'), email: val('email'), telefone: val('zap'),
+          propriedade: val('propriedade'), coordenadas_area: geoCoords || null, hectares: (+ha.value) || null, croqui_url: croqui_url,
+          sabe_pista: sabe === 'sim' ? true : (sabe === 'nao' ? false : null),
+          coordenadas_pista: sabe === 'sim' ? (val('pista-coords') || null) : null,
+          cultura: val('cultura'), tipos_tratamento: tratsSel(),
+          qtd_aplicacoes: parseInt(val('qtd-aplic')) || 1, data_prevista: val('data-prev') || null
+        });
+      }catch(e){ console.error('salvaSolicitacao', e); }
+    }
     document.getElementById('form-orc').addEventListener('submit', function(e){
       e.preventDefault();
       var form = document.getElementById('form-orc');
       if(!form.checkValidity()){ form.reportValidity(); return; }
+      salvaSolicitacao();
       var email = val('email');
       var waUrl = "https://wa.me/"+WPP+"?text="+montaMsg();
       var btn = document.querySelector('.btn-send');
