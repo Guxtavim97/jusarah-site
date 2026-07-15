@@ -29,15 +29,16 @@ document.addEventListener("DOMContentLoaded", function () {
   var counters = document.querySelectorAll("[data-count]");
   var animateCount = function (el) {
     var target = parseFloat(el.getAttribute("data-count"));
+    var suffix = el.getAttribute("data-suffix") || "";
     var dur = 1600, start = null;
     var step = function (ts) {
       if (!start) start = ts;
       var p = Math.min((ts - start) / dur, 1);
       var eased = 1 - Math.pow(1 - p, 3);
       var val = Math.floor(eased * target);
-      el.textContent = val.toLocaleString("pt-BR");
+      el.textContent = val.toLocaleString("pt-BR") + suffix;
       if (p < 1) requestAnimationFrame(step);
-      else el.textContent = target.toLocaleString("pt-BR");
+      else el.textContent = target.toLocaleString("pt-BR") + suffix;
     };
     requestAnimationFrame(step);
   };
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
     counters.forEach(function (c) { io.observe(c); });
     document.querySelectorAll(".reveal").forEach(function (r) { io.observe(r); });
   } else {
-    counters.forEach(function (c) { c.textContent = parseFloat(c.getAttribute("data-count")).toLocaleString("pt-BR"); });
+    counters.forEach(function (c) { c.textContent = parseFloat(c.getAttribute("data-count")).toLocaleString("pt-BR") + (c.getAttribute("data-suffix") || ""); });
     document.querySelectorAll(".reveal").forEach(function (r) { r.classList.add("is-visible"); });
   }
 
