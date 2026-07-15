@@ -5,193 +5,396 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Sua Proposta · Jusarah Agro Aérea</title>
+  <meta property="og:title" content="Sua proposta exclusiva — Jusarah Agro Aérea">
+  <meta property="og:description" content="Uma proposta feita sob medida pra sua lavoura. Precisão, segurança e frota moderna.">
+  <meta property="og:image" content="https://www.jusarah.com.br/assets/img/hero-aviao-decolagem.jpg">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
   <style>
-    body { background:#eef2f5; }
-    .prop-wrap { max-width:720px; margin:0 auto; padding:26px 16px 60px; }
-    .prop-doc { background:#fff; border-radius:22px; overflow:hidden; box-shadow:0 24px 60px rgba(11,59,92,.16); opacity:0; transform:translateY(20px); animation:pRise .7s cubic-bezier(.16,.84,.44,1) forwards; }
-    @keyframes pRise { to { opacity:1; transform:translateY(0); } }
-    .prop-hero { background:linear-gradient(135deg,#0B2942 0%,#123f6b 52%,#1B6E3B 100%); color:#fff; padding:38px 30px 34px; position:relative; overflow:hidden; }
-    .prop-hero::after { content:""; position:absolute; right:-40px; top:-40px; width:180px; height:180px; background:radial-gradient(circle,rgba(95,177,48,.35),transparent 70%); }
-    .prop-hero__logo { height:38px; margin-bottom:22px; filter:brightness(0) invert(1); opacity:.95; }
-    .prop-eyebrow { display:inline-block; font-family:var(--font-head); font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9be3b6; margin-bottom:10px; }
-    .prop-hero h1 { font-size:clamp(1.8rem,5vw,2.5rem); margin:0 0 8px; line-height:1.12; text-wrap:balance; }
-    .prop-sub { color:rgba(255,255,255,.9); font-size:1.08rem; margin:0; font-family:var(--font-head); font-weight:500; }
-    .prop-msg { color:rgba(255,255,255,.92); font-size:1.02rem; line-height:1.6; margin:18px 0 0; max-width:52ch; }
-    .prop-area { display:inline-flex; align-items:center; gap:8px; margin-top:20px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:8px 16px; font-family:var(--font-head); font-weight:600; font-size:.95rem; }
-
-    .prop-body { padding:30px; }
-    .prop-body h2 { font-size:1.15rem; margin:0 0 18px; color:var(--ink); }
-    .prop-item { display:flex; gap:14px; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--line); }
-    .prop-item:first-of-type { border-top:1px solid var(--line); }
-    .prop-item__ico { width:42px; height:42px; border-radius:12px; background:var(--green-50); color:var(--green-700); display:grid; place-items:center; flex:none; font-size:1.2rem; }
-    .prop-item__main { flex:1; min-width:0; }
-    .prop-item__nome { font-family:var(--font-head); font-weight:600; color:var(--ink); font-size:1.05rem; }
-    .prop-item__det { color:var(--muted); font-size:.9rem; margin-top:2px; }
-    .prop-item__calc { color:var(--muted); font-size:.82rem; margin-top:4px; }
-    .prop-item__val { font-family:var(--font-head); font-weight:700; color:var(--green-700); font-size:1.05rem; white-space:nowrap; text-align:right; }
-
-    .prop-total { display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding:20px 22px; background:linear-gradient(135deg,var(--green-50),#f0f8f2); border:2px solid var(--green-100); border-radius:16px; }
-    .prop-total span { font-family:var(--font-head); font-weight:600; color:var(--green-900); }
-    .prop-total strong { font-family:var(--font-head); font-weight:800; font-size:1.9rem; color:var(--green-700); line-height:1; }
-    .prop-validade { text-align:center; color:var(--muted); font-size:.9rem; margin:16px 0 0; }
-
-    .prop-cta { display:flex; flex-direction:column; gap:12px; margin-top:26px; }
-    .prop-accept { background:var(--green-700); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--font-head); font-weight:700; font-size:1.18rem; cursor:pointer; box-shadow:0 10px 26px rgba(21,110,59,.32); transition:transform .15s, filter .2s; display:flex; align-items:center; justify-content:center; gap:10px; }
-    .prop-accept:hover { transform:translateY(-2px); filter:brightness(1.05); }
-    .prop-accept:active { transform:translateY(0); }
-    .prop-falar { display:flex; align-items:center; justify-content:center; gap:9px; background:#fff; color:var(--blue-700); border:2px solid var(--line); border-radius:14px; padding:14px; font-family:var(--font-head); font-weight:600; text-decoration:none; }
-    .prop-falar:hover { background:var(--paper); }
-    .prop-falar svg, .prop-accept svg { width:22px; height:22px; }
-
-    .prop-trust { text-align:center; color:var(--muted); font-size:.82rem; margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
-    .prop-foot { text-align:center; color:var(--muted); font-size:.82rem; margin-top:22px; line-height:1.6; }
-
-    .prop-nf { max-width:520px; margin:12vh auto; background:#fff; border-radius:20px; box-shadow:0 24px 60px rgba(11,59,92,.16); padding:40px 30px; text-align:center; }
-    .prop-nf h1 { font-size:1.6rem; margin:0 0 10px; }
-    .prop-nf p { color:var(--muted); margin:0 0 20px; }
-
-    @media(max-width:520px){
-      .prop-hero, .prop-body { padding-left:20px; padding-right:20px; }
-      .prop-total strong { font-size:1.6rem; }
+    :root{
+      --blue-900:#081c2e; --blue-800:#0B2942; --blue:#1B3F8F; --sky:#2E86C1;
+      --green-900:#0F3D24; --green-700:#15803D; --green-600:#1B9E4B; --green-vivo:#5FB130;
+      --green-50:#EAF5EE; --green-100:#d6ecdd;
+      --ink:#12212e; --ink-soft:#3a4a55; --muted:#66747e; --line:#e6ebef;
+      --paper:#f5f8fa; --bg:#eef2f5;
+      --font-head:'Sora',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
+      --shadow:0 18px 50px rgba(11,41,66,.12); --shadow-sm:0 4px 16px rgba(11,41,66,.08);
     }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;}
+    img{max-width:100%;display:block}
+    h1,h2,h3{font-family:var(--font-head);line-height:1.14;margin:0;text-wrap:balance}
+    .wrap{max-width:720px;margin:0 auto;padding:0 20px}
+
+    /* Reveal */
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,.84,.44,1)}
+    .reveal.vis{opacity:1;transform:none}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+    /* Topo fixo */
+    .bar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    .bar__in{max-width:720px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
+    .bar__logo{height:26px}
+    .bar__tag{font-family:var(--font-head);font-weight:600;font-size:.82rem;color:var(--muted);margin-left:2px}
+    .bar__cta{margin-left:auto;background:var(--green-700);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-family:var(--font-head);font-weight:700;font-size:.86rem;cursor:pointer;text-decoration:none}
+    @media(max-width:560px){.bar__tag{display:none}}
+
+    /* Hero */
+    .hero{background:linear-gradient(150deg,var(--blue-900) 0%,#123f6b 50%,var(--green-900) 130%);color:#fff;padding:52px 0 60px;position:relative;overflow:hidden}
+    .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(95,177,48,.28),transparent 68%)}
+    .hero__eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9be3b6;margin-bottom:16px}
+    .hero h1{font-size:clamp(2rem,6vw,3rem);margin-bottom:12px}
+    .hero__sub{font-family:var(--font-head);font-weight:500;font-size:1.12rem;color:rgba(255,255,255,.92)}
+    .hero__meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+    .hero__chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 15px;font-size:.9rem;font-family:var(--font-head);font-weight:500}
+    .hero__by{margin-top:24px;color:rgba(255,255,255,.7);font-size:.92rem}
+
+    /* Seções */
+    section.sec{padding:52px 0}
+    .sec--tint{background:var(--paper)}
+    .sec--dark{background:linear-gradient(140deg,var(--blue-800),var(--green-900));color:#fff}
+    .sec__num{font-family:var(--font-head);font-weight:800;font-size:.82rem;letter-spacing:.14em;color:var(--green-600);margin-bottom:8px}
+    .sec--dark .sec__num{color:var(--green-vivo)}
+    .sec h2{font-size:clamp(1.5rem,4.4vw,2.1rem);margin-bottom:14px}
+    .sec__lead{font-size:1.08rem;color:var(--ink-soft);max-width:56ch}
+    .sec--dark .sec__lead{color:rgba(255,255,255,.9)}
+
+    /* Mensagem personalizada */
+    .msg-card{background:#fff;border:1px solid var(--line);border-left:5px solid var(--green-600);border-radius:16px;box-shadow:var(--shadow-sm);padding:26px 28px;font-size:1.12rem;line-height:1.7;color:var(--ink-soft);font-style:italic}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+    .stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:18px}
+    .stat b{font-family:var(--font-head);font-weight:800;font-size:1.7rem;display:block}
+    .stat span{font-size:.86rem;color:rgba(255,255,255,.75)}
+
+    /* Serviços (a oferta) */
+    .serv{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:22px 24px;margin-top:16px;position:relative;overflow:hidden}
+    .serv__top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+    .serv__ico{width:48px;height:48px;border-radius:14px;background:var(--green-50);color:var(--green-700);display:grid;place-items:center;flex:none;font-size:1.4rem}
+    .serv__n{font-family:var(--font-head);font-weight:800;color:var(--line);font-size:1.6rem;margin-left:auto}
+    .serv h3{font-size:1.22rem}
+    .serv__desc{color:var(--ink-soft);margin:6px 0 0}
+    .serv__foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);flex-wrap:wrap}
+    .serv__calc{font-size:.9rem;color:var(--muted)}
+    .serv__val{font-family:var(--font-head);font-weight:800;font-size:1.4rem;color:var(--green-700)}
+
+    /* Diferenciais */
+    .difs{display:grid;gap:14px;margin-top:24px}
+    @media(min-width:600px){.difs{grid-template-columns:1fr 1fr}}
+    .dif{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+    .dif__ico{font-size:1.5rem;margin-bottom:8px}
+    .dif h3{font-size:1.05rem;margin-bottom:4px}
+    .dif p{color:var(--ink-soft);font-size:.95rem;margin:0}
+
+    /* Processo */
+    .steps{margin-top:26px;display:grid;gap:2px}
+    .step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.14)}
+    .step:last-child{border-bottom:none}
+    .step__n{width:38px;height:38px;border-radius:50%;background:var(--green-vivo);color:#08240f;font-family:var(--font-head);font-weight:800;display:grid;place-items:center;flex:none}
+    .step h3{font-size:1.08rem;margin-bottom:2px}
+    .step p{margin:0;color:rgba(255,255,255,.82);font-size:.95rem}
+
+    /* Investimento */
+    .inv{background:#fff;border:2px solid var(--green-100);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-top:24px}
+    .inv__list{padding:8px 24px}
+    .inv__row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:.98rem}
+    .inv__row:last-child{border-bottom:none}
+    .inv__row span{color:var(--ink-soft)}
+    .inv__row b{font-family:var(--font-head);color:var(--ink)}
+    .inv__total{background:linear-gradient(135deg,var(--green-50),#f0f8f2);padding:22px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    .inv__total span{font-family:var(--font-head);font-weight:600;color:var(--green-900)}
+    .inv__total strong{font-family:var(--font-head);font-weight:800;font-size:2rem;color:var(--green-700);line-height:1}
+    .inv__note{text-align:center;color:var(--muted);font-size:.88rem;margin-top:14px}
+
+    /* FAQ */
+    .faq{margin-top:24px;border-top:1px solid var(--line)}
+    .faq__item{border-bottom:1px solid var(--line)}
+    .faq__q{width:100%;text-align:left;background:none;border:none;padding:18px 4px;font-family:var(--font-head);font-weight:600;font-size:1.05rem;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .faq__q::after{content:"+";font-size:1.4rem;color:var(--green-600);flex:none}
+    .faq__item.open .faq__q::after{content:"–"}
+    .faq__a{max-height:0;overflow:hidden;transition:max-height .3s ease;color:var(--ink-soft)}
+    .faq__a p{margin:0 4px 18px}
+
+    /* CTA final */
+    .final{text-align:center}
+    .final h2{font-size:clamp(1.7rem,5vw,2.4rem);margin-bottom:12px}
+    .btn-accept{background:var(--green-700);color:#fff;border:none;border-radius:15px;padding:19px 34px;font-family:var(--font-head);font-weight:700;font-size:1.2rem;cursor:pointer;box-shadow:0 12px 30px rgba(21,110,59,.34);transition:transform .15s,filter .2s;display:inline-flex;align-items:center;gap:11px}
+    .btn-accept:hover{transform:translateY(-2px);filter:brightness(1.06)}
+    .btn-accept svg{width:24px;height:24px}
+    .btn-ask{display:inline-flex;align-items:center;gap:8px;margin-top:16px;color:var(--sky);font-family:var(--font-head);font-weight:600;text-decoration:none;font-size:.98rem}
+
+    .foot{background:var(--blue-900);color:rgba(255,255,255,.75);text-align:center;padding:30px 20px;font-size:.86rem;line-height:1.7}
+    .foot img{height:30px;margin:0 auto 12px;filter:brightness(0) invert(1);opacity:.9}
+
+    /* Barra fixa mobile */
+    .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:45;background:#fff;border-top:1px solid var(--line);padding:11px 16px;box-shadow:0 -6px 20px rgba(0,0,0,.08);display:none}
+    .sticky-cta button{width:100%;background:var(--green-700);color:#fff;border:none;border-radius:12px;padding:15px;font-family:var(--font-head);font-weight:700;font-size:1.05rem}
+    @media(max-width:600px){.sticky-cta{display:block} body{padding-bottom:74px} .bar__cta{display:none}}
+
+    .nf{max-width:520px;margin:12vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:40px 30px;text-align:center}
+    .nf h1{font-size:1.6rem;margin-bottom:10px}
+    .nf p{color:var(--muted);margin-bottom:20px}
+    .nf a{background:var(--green-700);color:#fff;padding:13px 24px;border-radius:12px;text-decoration:none;font-family:var(--font-head);font-weight:700;display:inline-block}
+    .hidden{display:none!important}
   </style>
 </head>
 <body>
-  <div class="prop-wrap">
-    <article class="prop-doc" id="prop" hidden>
-      <div class="prop-hero">
-        <img class="prop-hero__logo" src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
-        <span class="prop-eyebrow">Proposta exclusiva</span>
-        <h1 id="p-saudacao"></h1>
-        <p class="prop-sub" id="p-sub"></p>
-        <p class="prop-msg" id="p-msg" hidden></p>
-        <div class="prop-area" id="p-area" hidden></div>
-      </div>
-      <div class="prop-body">
-        <h2>O que preparamos pra sua lavoura</h2>
-        <div id="p-itens"></div>
-        <div class="prop-total">
-          <span>Investimento total</span>
-          <strong id="p-total"></strong>
-        </div>
-        <p class="prop-validade" id="p-validade" hidden></p>
-        <div class="prop-cta">
-          <button class="prop-accept" id="p-accept">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-            Aceitar esta proposta
-          </button>
-          <a class="prop-falar" id="p-falar" href="#" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
-            Tenho uma dúvida
-          </a>
-        </div>
-        <div class="prop-trust">Jusarah Agro Aérea · Registro ANAC · Registro MAPA · Frota moderna</div>
-        <p class="prop-foot">Cerejeiras–RO · Atendemos Rondônia, Mato Grosso e Acre<br>Valores sujeitos a confirmação após vistoria da área.</p>
-      </div>
-    </article>
 
-    <div class="prop-nf" id="prop-nf" hidden>
-      <h1>Proposta não encontrada 🌱</h1>
-      <p>Esse link pode estar incompleto ou expirado. Peça o link atualizado à equipe da Jusarah.</p>
-      <a href="index.html" class="btn btn--primary">Ir para o site</a>
+<div id="app" class="hidden">
+  <div class="bar">
+    <div class="bar__in">
+      <img class="bar__logo" src="assets/img/logo.png" alt="Jusarah">
+      <span class="bar__tag" id="bar-tag"></span>
+      <button class="bar__cta" data-accept>Aceitar proposta</button>
     </div>
   </div>
 
-  <script>
-    var JUSARAH_WPP = "5569993257000";
-    function brl(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-    function fmtData(iso){
-      if(!iso) return "";
-      var m=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-      var p=String(iso).split("-"); if(p.length<3) return "";
-      return parseInt(p[2],10)+" de "+m[parseInt(p[1],10)-1]+" de "+p[0];
+  <!-- HERO -->
+  <header class="hero">
+    <div class="wrap">
+      <span class="hero__eyebrow">✈️ Proposta exclusiva</span>
+      <h1 id="h-nome">Olá!</h1>
+      <p class="hero__sub" id="h-sub"></p>
+      <div class="hero__meta" id="h-meta"></div>
+      <p class="hero__by">Preparada com cuidado pela equipe <strong>Jusarah Agro Aérea</strong>.</p>
+    </div>
+  </header>
+
+  <!-- MENSAGEM -->
+  <section class="sec" id="sec-msg" hidden>
+    <div class="wrap reveal">
+      <div class="msg-card" id="h-msg"></div>
+    </div>
+  </section>
+
+  <!-- 01 MOMENTO -->
+  <section class="sec sec--tint">
+    <div class="wrap reveal">
+      <div class="sec__num">01 — O SEU MOMENTO</div>
+      <h2>Na lavoura, o tempo não espera.</h2>
+      <p class="sec__lead">A janela certa de aplicação, o clima que vira, a praga que avança — cada decisão pesa na sua safra. A gente sabe, porque vive isso lado a lado com o produtor todos os dias. Por isso esta proposta não é só sobre voar sobre a sua área: é sobre <strong>chegar na hora certa, com precisão</strong>, pra você colher tranquilo.</p>
+    </div>
+  </section>
+
+  <!-- 02 JUSARAH -->
+  <section class="sec sec--dark">
+    <div class="wrap reveal">
+      <div class="sec__num">02 — QUEM VOA COM VOCÊ</div>
+      <h2>Seriedade e proximidade em cada voo.</h2>
+      <p class="sec__lead">Desde 2020, a Jusarah leva tecnologia de aplicação aérea ao produtor do Norte do país. Somos de Cerejeiras–RO e conhecemos de perto quem planta em Rondônia, Mato Grosso e Acre. Investimos em segurança, capacitação e responsabilidade — porque voar sobre a sua lavoura é um compromisso com o futuro dela.</p>
+      <div class="stats">
+        <div class="stat"><b>+50 mil</b><span>hectares aplicados</span></div>
+        <div class="stat"><b>30</b><span>municípios atendidos</span></div>
+        <div class="stat"><b>ANAC + MAPA</b><span>registros em dia</span></div>
+        <div class="stat"><b>Frota</b><span>moderna e revisada</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 SERVIÇOS -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="sec__num">03 — O QUE PREPARAMOS PRA VOCÊ</div>
+        <h2>Sob medida pra sua lavoura.</h2>
+        <p class="sec__lead">Cada serviço abaixo foi pensado pra sua área e o seu momento.</p>
+      </div>
+      <div id="h-servs"></div>
+    </div>
+  </section>
+
+  <!-- 04 DIFERENCIAIS -->
+  <section class="sec sec--tint">
+    <div class="wrap reveal">
+      <div class="sec__num">04 — POR QUE VOAR COM A JUSARAH</div>
+      <h2>Não é só um avião. É quem está no comando.</h2>
+      <div class="difs">
+        <div class="dif"><div class="dif__ico">🎯</div><h3>Precisão de verdade</h3><p>Gotas calibradas, altura de voo controlada e monitoramento do clima — mais cobertura, menos deriva, melhor aproveitamento do produto.</p></div>
+        <div class="dif"><div class="dif__ico">⏱️</div><h3>Agilidade na janela certa</h3><p>Grandes áreas cobertas em pouco tempo, aproveitando o melhor momento de aplicação da sua safra.</p></div>
+        <div class="dif"><div class="dif__ico">🌱</div><h3>Sem amassar a lavoura</h3><p>A aplicação aérea não pisa na sua plantação — nada de rodado marcando o talhão.</p></div>
+        <div class="dif"><div class="dif__ico">🤝</div><h3>Gente de verdade, perto de você</h3><p>Você fala direto com quem voa. Sem call center, sem enrolação — do jeito que o produtor gosta.</p></div>
+        <div class="dif"><div class="dif__ico">🛡️</div><h3>Segurança e regularização</h3><p>Registro na ANAC e no MAPA, piloto e equipe capacitados. Cada voo dentro das normas.</p></div>
+        <div class="dif"><div class="dif__ico">🔥</div><h3>Prontos pra emergência</h3><p>Combate aéreo a incêndios quando a sua propriedade precisar.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 PROCESSO -->
+  <section class="sec sec--dark">
+    <div class="wrap reveal">
+      <div class="sec__num">05 — COMO FUNCIONA</div>
+      <h2>Simples, do começo ao fim.</h2>
+      <div class="steps">
+        <div class="step"><div class="step__n">1</div><div><h3>A gente conversa</h3><p>Você aceita a proposta e a gente alinha tudo pelo WhatsApp: cultura, área e o melhor momento.</p></div></div>
+        <div class="step"><div class="step__n">2</div><div><h3>Planejamento</h3><p>Definimos a rota, checamos as condições e preparamos a operação com segurança.</p></div></div>
+        <div class="step"><div class="step__n">3</div><div><h3>Aplicação no ponto certo</h3><p>Voamos na janela ideal, com precisão e acompanhando o clima em tempo real.</p></div></div>
+        <div class="step"><div class="step__n">4</div><div><h3>A gente continua junto</h3><p>Você acompanha o resultado e conta com a gente pra próxima. Relação de safra em safra.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 INVESTIMENTO -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="sec__num">06 — O INVESTIMENTO</div>
+        <h2>Mais que um custo: um investimento na sua safra.</h2>
+        <p class="sec__lead">Transparente, sem letras miúdas. Você sabe exatamente o que está contratando.</p>
+      </div>
+      <div class="inv reveal">
+        <div class="inv__list" id="inv-list"></div>
+        <div class="inv__total"><span>Investimento total</span><strong id="inv-total"></strong></div>
+      </div>
+      <p class="inv__note" id="inv-validade"></p>
+      <p class="inv__note">Valores sujeitos a confirmação após vistoria da área.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="sec sec--tint">
+    <div class="wrap reveal">
+      <div class="sec__num">DÚVIDAS COMUNS</div>
+      <h2>Perguntas que todo produtor faz.</h2>
+      <div class="faq" id="faq">
+        <div class="faq__item"><button class="faq__q">Avião agrícola desperdiça produto?</button><div class="faq__a"><p>Não. Com a regulagem correta e boas condições de aplicação, a pulverização aérea é altamente eficiente e reduz perdas. A eficiência vem do planejamento e da tecnologia, não do tipo de aeronave.</p></div></div>
+        <div class="faq__item"><button class="faq__q">E se o tempo não ajudar no dia?</button><div class="faq__a"><p>A gente só aplica em condições seguras. Se o vento, a temperatura ou a umidade não estiverem ideais, remarcamos — interromper também faz parte do trabalho responsável.</p></div></div>
+        <div class="faq__item"><button class="faq__q">Vocês atendem a minha região?</button><div class="faq__a"><p>Atendemos produtores em Rondônia, Mato Grosso e Acre. Aceitando a proposta, a gente confirma tudo certinho pra sua área no WhatsApp.</p></div></div>
+        <div class="faq__item"><button class="faq__q">Como faço pra fechar?</button><div class="faq__a"><p>É só tocar em <strong>“Aceitar esta proposta”</strong> aqui embaixo. A gente recebe o seu aceite e dá sequência direto com você no WhatsApp.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="sec final">
+    <div class="wrap reveal">
+      <h2 id="final-h">Pronto pra decolar com a Jusarah?</h2>
+      <p class="sec__lead" style="margin:0 auto 26px">Sua lavoura merece precisão, segurança e gente que se importa. Bora fazer essa safra voar. 🌱✈️</p>
+      <button class="btn-accept" data-accept>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+        Aceitar esta proposta
+      </button>
+      <br>
+      <a class="btn-ask" id="h-ask" href="#" target="_blank" rel="noopener">Tenho uma dúvida antes →</a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <img src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
+    Jusarah Agro Aérea · Cerejeiras–RO · Atendemos RO, MT e AC<br>
+    Proposta pessoal e confidencial. Registro ANAC · Registro MAPA.
+  </footer>
+</div>
+
+<div class="sticky-cta" id="sticky"><button data-accept>✅ Aceitar esta proposta</button></div>
+
+<div class="nf hidden" id="nf">
+  <h1>Proposta não encontrada 🌱</h1>
+  <p>Esse link pode estar incompleto. Peça o link atualizado à equipe da Jusarah.</p>
+  <a href="index.html">Ir para o site</a>
+</div>
+
+<script>
+  var JUSARAH_WPP = "5569993257000";
+  function brl(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+  function fmtData(iso){
+    if(!iso) return "";
+    var m=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+    var p=String(iso).split("-"); if(p.length<3) return "";
+    return parseInt(p[2],10)+" de "+m[parseInt(p[1],10)-1]+" de "+p[0];
+  }
+  var DESC = [
+    { k:["pulveriz"], d:"Aplicação aérea de defensivos com tecnologia de precisão. Gotas calibradas, altura de voo controlada e monitoramento do clima garantem cobertura uniforme, menos deriva e o melhor aproveitamento do produto." },
+    { k:["adub","fertiliz"], d:"Distribuição uniforme de fertilizantes por via aérea, cobrindo grandes áreas em pouco tempo, sem amassar a lavoura e aproveitando as melhores janelas de aplicação." },
+    { k:["semead","semente"], d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio de cobertura e forrageiras." },
+    { k:["incend","fogo"], d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e seu patrimônio com rapidez." }
+  ];
+  function descPadrao(nome){
+    var n=(nome||"").toLowerCase();
+    for(var i=0;i<DESC.length;i++){ for(var j=0;j<DESC[i].k.length;j++){ if(n.indexOf(DESC[i].k[j])>=0) return DESC[i].d; } }
+    return "Serviço de aviação agrícola executado com precisão, segurança e frota moderna.";
+  }
+  function decodifica(){
+    var h=location.hash.slice(1); if(!h) return null;
+    try{ h=h.replace(/-/g,'+').replace(/_/g,'/'); while(h.length%4)h+='='; return JSON.parse(decodeURIComponent(escape(atob(h)))); }catch(e){ return null; }
+  }
+
+  var p=decodifica();
+  if(!p||!p.produtor){ document.getElementById('nf').classList.remove('hidden'); }
+  else { render(p); }
+
+  function render(p){
+    var area=Number(p.area)||0, itens=Array.isArray(p.itens)?p.itens:[];
+    document.title="Proposta · "+p.produtor+" · Jusarah";
+    document.getElementById('app').classList.remove('hidden');
+
+    document.getElementById('h-nome').textContent="Olá, "+p.produtor+"! 👋";
+    var sub=[]; if(p.fazenda)sub.push(p.fazenda); if(p.local)sub.push(p.local);
+    document.getElementById('h-sub').textContent=sub.join(" · ")||"Sua proposta exclusiva";
+    document.getElementById('bar-tag').textContent="Proposta · "+(p.fazenda||p.produtor);
+
+    var meta=document.getElementById('h-meta');
+    if(area) meta.innerHTML+='<span class="hero__chip">📐 '+area.toLocaleString('pt-BR')+' hectares</span>';
+    if(itens.length) meta.innerHTML+='<span class="hero__chip">✈️ '+itens.length+' serviço'+(itens.length>1?'s':'')+'</span>';
+    if(p.validade) meta.innerHTML+='<span class="hero__chip">⏳ válida até '+fmtData(p.validade)+'</span>';
+
+    if(p.mensagem){ document.getElementById('h-msg').textContent='“'+p.mensagem+'”'; document.getElementById('sec-msg').hidden=false; }
+
+    var wrap=document.getElementById('h-servs'), invList=document.getElementById('inv-list'), total=0;
+    itens.forEach(function(it,i){
+      var porHa=(it.unidade==='ha');
+      var val=porHa?(Number(it.preco)||0)*area:(Number(it.preco)||0);
+      total+=val;
+      var desc=it.detalhe && it.detalhe.trim() ? it.detalhe : descPadrao(it.servico);
+      var calc=porHa?(area.toLocaleString('pt-BR')+" ha × "+brl(it.preco)):"Valor fechado";
+      var card=document.createElement('div'); card.className='serv reveal';
+      card.innerHTML='<div class="serv__top"><div class="serv__ico">✈️</div><h3></h3><div class="serv__n">0'+(i+1)+'</div></div>'+
+        '<p class="serv__desc"></p>'+
+        '<div class="serv__foot"><span class="serv__calc">'+calc+'</span><span class="serv__val">'+brl(val)+'</span></div>';
+      card.querySelector('h3').textContent=it.servico||"Serviço";
+      card.querySelector('.serv__desc').textContent=desc;
+      wrap.appendChild(card);
+
+      var row=document.createElement('div'); row.className='inv__row';
+      row.innerHTML='<span></span><b>'+brl(val)+'</b>';
+      row.querySelector('span').textContent=(it.servico||"Serviço")+(porHa?(" ("+area.toLocaleString('pt-BR')+" ha)"):"");
+      invList.appendChild(row);
+    });
+    document.getElementById('inv-total').textContent=brl(total);
+    if(p.validade) document.getElementById('inv-validade').textContent="Proposta válida até "+fmtData(p.validade)+".";
+    document.getElementById('final-h').textContent="Bora fazer a safra da "+(p.fazenda||"sua fazenda")+" voar?";
+
+    // Falar / dúvida
+    document.getElementById('h-ask').href="https://wa.me/"+JUSARAH_WPP+"?text="+encodeURIComponent("Olá! Estou vendo a proposta da Jusarah"+(p.fazenda?(" para a "+p.fazenda):"")+" e tenho uma dúvida.");
+
+    // Aceitar
+    function aceitar(){
+      var linhas=itens.map(function(it){ var porHa=(it.unidade==='ha'); var val=porHa?(Number(it.preco)||0)*area:(Number(it.preco)||0); return "• "+(it.servico||"Serviço")+": "+brl(val); }).join("%0A");
+      var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A*Produtor:* "+p.produtor+"%0A"+
+        (p.fazenda?("*Fazenda:* "+p.fazenda+"%0A"):"")+(p.local?("*Local:* "+p.local+"%0A"):"")+
+        (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+"%0A"+linhas+"%0A%0A*Total:* "+brl(total)+"%0A%0APodemos seguir? 🌱";
+      window.location.href="https://wa.me/"+JUSARAH_WPP+"?text="+msg;
     }
-    function decodifica(){
-      var h = location.hash.slice(1);
-      if(!h) return null;
-      try {
-        h = h.replace(/-/g, '+').replace(/_/g, '/');
-        while(h.length % 4) h += '=';
-        return JSON.parse(decodeURIComponent(escape(atob(h))));
-      } catch(e){ return null; }
-    }
+    document.querySelectorAll('[data-accept]').forEach(function(b){ b.addEventListener('click',aceitar); });
 
-    var p = decodifica();
-    if(!p || !p.produtor){
-      document.getElementById('prop-nf').hidden = false;
-    } else {
-      render(p);
-    }
-
-    function render(p){
-      var area = Number(p.area)||0;
-      var itens = Array.isArray(p.itens) ? p.itens : [];
-      document.title = "Proposta · " + (p.produtor||"") + " · Jusarah";
-
-      document.getElementById('p-saudacao').textContent = "Olá, " + p.produtor + "! 👋";
-      var sub = [];
-      if(p.fazenda) sub.push(p.fazenda);
-      if(p.local) sub.push(p.local);
-      document.getElementById('p-sub').textContent = sub.join(" · ") || "Proposta comercial";
-
-      if(p.mensagem){ var em=document.getElementById('p-msg'); em.textContent=p.mensagem; em.hidden=false; }
-      if(area){ var ea=document.getElementById('p-area'); ea.innerHTML="📐 Área considerada: <strong style='margin-left:4px'>"+area.toLocaleString('pt-BR')+" hectares</strong>"; ea.hidden=false; }
-
-      var wrap = document.getElementById('p-itens');
-      var total = 0;
-      itens.forEach(function(it){
-        var porHa = (it.unidade === 'ha');
-        var val = porHa ? (Number(it.preco)||0)*area : (Number(it.preco)||0);
-        total += val;
-        var row = document.createElement('div');
-        row.className = 'prop-item';
-        var calc = porHa ? (area.toLocaleString('pt-BR')+" ha × "+brl(it.preco)) : "Valor fechado";
-        row.innerHTML =
-          '<div class="prop-item__ico">✈️</div>'+
-          '<div class="prop-item__main">'+
-            '<div class="prop-item__nome"></div>'+
-            '<div class="prop-item__det"></div>'+
-            '<div class="prop-item__calc">'+calc+'</div>'+
-          '</div>'+
-          '<div class="prop-item__val">'+brl(val)+'</div>';
-        row.querySelector('.prop-item__nome').textContent = it.servico || "Serviço";
-        var det = row.querySelector('.prop-item__det');
-        if(it.detalhe){ det.textContent = it.detalhe; } else { det.remove(); }
-        wrap.appendChild(row);
+    // FAQ
+    document.querySelectorAll('.faq__item').forEach(function(item){
+      var q=item.querySelector('.faq__q'), a=item.querySelector('.faq__a');
+      q.addEventListener('click',function(){
+        var open=item.classList.contains('open');
+        item.classList.toggle('open');
+        a.style.maxHeight=open?null:(a.scrollHeight+"px");
       });
+    });
 
-      document.getElementById('p-total').textContent = brl(total);
-
-      if(p.validade){ var ev=document.getElementById('p-validade'); ev.textContent="Proposta válida até "+fmtData(p.validade)+"."; ev.hidden=false; }
-
-      // Falar / dúvida
-      var falarMsg = "Olá! Estou vendo a proposta da Jusarah"+(p.fazenda?(" para a "+p.fazenda):"")+" e tenho uma dúvida.";
-      document.getElementById('p-falar').href = "https://wa.me/"+JUSARAH_WPP+"?text="+encodeURIComponent(falarMsg);
-
-      // Aceitar
-      document.getElementById('p-accept').addEventListener('click', function(){
-        var linhas = itens.map(function(it){
-          var porHa = (it.unidade === 'ha');
-          var val = porHa ? (Number(it.preco)||0)*area : (Number(it.preco)||0);
-          return "• "+(it.servico||"Serviço")+": "+brl(val);
-        }).join("%0A");
-        var msg = "✅ *Aceito a proposta da Jusarah!*%0A%0A"+
-          "*Produtor:* "+p.produtor+"%0A"+
-          (p.fazenda?("*Fazenda:* "+p.fazenda+"%0A"):"")+
-          (p.local?("*Local:* "+p.local+"%0A"):"")+
-          (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+
-          "%0A"+linhas+"%0A%0A"+
-          "*Total:* "+brl(total)+"%0A%0A"+
-          "Podemos seguir? 🌱";
-        window.location.href = "https://wa.me/"+JUSARAH_WPP+"?text="+msg;
-      });
-
-      document.getElementById('prop').hidden = false;
-    }
-  </script>
+    // Reveal
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(en){ en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } }); },{threshold:.15});
+      document.querySelectorAll('.reveal').forEach(function(r){ io.observe(r); });
+    } else { document.querySelectorAll('.reveal').forEach(function(r){ r.classList.add('vis'); }); }
+  }
+</script>
 </body>
 </html>
