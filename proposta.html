@@ -14,34 +14,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root{
-      --blue-900:#081c2e; --blue-800:#0B2942; --blue:#1B3F8F; --sky:#2E86C1;
-      --green-900:#0F3D24; --green-700:#15803D; --green-600:#1B9E4B; --green-vivo:#5FB130;
-      --green-50:#EAF5EE; --green-100:#d6ecdd;
-      --ink:#12212e; --ink-soft:#3a4a55; --muted:#66747e; --line:#e6ebef;
-      --paper:#f5f8fa; --bg:#eef2f5;
-      --font-head:'Sora',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
-      --shadow:0 18px 50px rgba(11,41,66,.12); --shadow-sm:0 4px 16px rgba(11,41,66,.08);
+      --blue-900:#081c2e;--blue-800:#0B2942;--blue:#1B3F8F;--sky:#2E86C1;
+      --green-900:#0F3D24;--green-700:#15803D;--green-600:#1B9E4B;--green-vivo:#5FB130;--green-50:#EAF5EE;--green-100:#d6ecdd;
+      --ink:#12212e;--ink-soft:#3a4a55;--muted:#66747e;--line:#e6ebef;--paper:#f5f8fa;--bg:#eef2f5;
+      --font-head:'Sora',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
+      --shadow:0 18px 50px rgba(11,41,66,.12);--shadow-sm:0 4px 16px rgba(11,41,66,.08);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:var(--font-body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;}
+    body{margin:0;font-family:var(--font-body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
     img{max-width:100%;display:block}
     h1,h2,h3{font-family:var(--font-head);line-height:1.14;margin:0;text-wrap:balance}
-    .wrap{max-width:720px;margin:0 auto;padding:0 20px}
-
-    /* Reveal */
+    .wrap{max-width:840px;margin:0 auto;padding:0 20px}
     .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,.84,.44,1)}
     .reveal.vis{opacity:1;transform:none}
     @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 
-    /* Topo fixo */
     .bar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-    .bar__in{max-width:720px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
+    .bar__in{max-width:840px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
     .bar__logo{height:26px}
-    .bar__tag{font-family:var(--font-head);font-weight:600;font-size:.82rem;color:var(--muted);margin-left:2px}
-    .bar__cta{margin-left:auto;background:var(--green-700);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-family:var(--font-head);font-weight:700;font-size:.86rem;cursor:pointer;text-decoration:none}
+    .bar__tag{font-family:var(--font-head);font-weight:600;font-size:.82rem;color:var(--muted)}
+    .bar__cta{margin-left:auto;background:var(--green-700);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-family:var(--font-head);font-weight:700;font-size:.86rem;cursor:pointer}
     @media(max-width:560px){.bar__tag{display:none}}
 
-    /* Hero */
     .hero{background:linear-gradient(150deg,var(--blue-900) 0%,#123f6b 50%,var(--green-900) 130%);color:#fff;padding:52px 0 60px;position:relative;overflow:hidden}
     .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(95,177,48,.28),transparent 68%)}
     .hero__eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9be3b6;margin-bottom:16px}
@@ -51,37 +45,32 @@
     .hero__chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 15px;font-size:.9rem;font-family:var(--font-head);font-weight:500}
     .hero__by{margin-top:24px;color:rgba(255,255,255,.7);font-size:.92rem}
 
-    /* Seções */
     section.sec{padding:52px 0}
     .sec--tint{background:var(--paper)}
     .sec--dark{background:linear-gradient(140deg,var(--blue-800),var(--green-900));color:#fff}
     .sec__num{font-family:var(--font-head);font-weight:800;font-size:.82rem;letter-spacing:.14em;color:var(--green-600);margin-bottom:8px}
     .sec--dark .sec__num{color:var(--green-vivo)}
     .sec h2{font-size:clamp(1.5rem,4.4vw,2.1rem);margin-bottom:14px}
-    .sec__lead{font-size:1.08rem;color:var(--ink-soft);max-width:56ch}
+    .sec__lead{font-size:1.08rem;color:var(--ink-soft);max-width:60ch}
     .sec--dark .sec__lead{color:rgba(255,255,255,.9)}
 
-    /* Mensagem personalizada */
     .msg-card{background:#fff;border:1px solid var(--line);border-left:5px solid var(--green-600);border-radius:16px;box-shadow:var(--shadow-sm);padding:26px 28px;font-size:1.12rem;line-height:1.7;color:var(--ink-soft);font-style:italic}
 
-    /* Stats */
     .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
     .stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:18px}
     .stat b{font-family:var(--font-head);font-weight:800;font-size:1.7rem;display:block}
     .stat span{font-size:.86rem;color:rgba(255,255,255,.75)}
 
-    /* Serviços (a oferta) */
-    .serv{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:22px 24px;margin-top:16px;position:relative;overflow:hidden}
-    .serv__top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
-    .serv__ico{width:48px;height:48px;border-radius:14px;background:var(--green-50);color:var(--green-700);display:grid;place-items:center;flex:none;font-size:1.4rem}
-    .serv__n{font-family:var(--font-head);font-weight:800;color:var(--line);font-size:1.6rem;margin-left:auto}
-    .serv h3{font-size:1.22rem}
-    .serv__desc{color:var(--ink-soft);margin:6px 0 0}
-    .serv__foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);flex-wrap:wrap}
-    .serv__calc{font-size:.9rem;color:var(--muted)}
-    .serv__val{font-family:var(--font-head);font-weight:800;font-size:1.4rem;color:var(--green-700)}
+    /* Avião */
+    .av-main{border-radius:16px;overflow:hidden;box-shadow:var(--shadow);margin:22px 0 16px}
+    .av-main img{width:100%;aspect-ratio:16/9;object-fit:cover}
+    .av-specs{list-style:none;padding:0;margin:0;display:grid;gap:11px}
+    @media(min-width:560px){.av-specs{grid-template-columns:1fr 1fr}}
+    .av-specs li{display:flex;gap:10px;align-items:flex-start;font-size:1rem;color:var(--ink-soft)}
+    .av-specs li::before{content:"✓";color:var(--green-600);font-weight:800;flex:none}
+    .av-thumbs{display:flex;gap:10px;margin-top:16px;overflow-x:auto;padding-bottom:4px}
+    .av-thumbs img{height:88px;border-radius:10px;flex:none}
 
-    /* Diferenciais */
     .difs{display:grid;gap:14px;margin-top:24px}
     @media(min-width:600px){.difs{grid-template-columns:1fr 1fr}}
     .dif{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
@@ -89,7 +78,6 @@
     .dif h3{font-size:1.05rem;margin-bottom:4px}
     .dif p{color:var(--ink-soft);font-size:.95rem;margin:0}
 
-    /* Processo */
     .steps{margin-top:26px;display:grid;gap:2px}
     .step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.14)}
     .step:last-child{border-bottom:none}
@@ -97,19 +85,26 @@
     .step h3{font-size:1.08rem;margin-bottom:2px}
     .step p{margin:0;color:rgba(255,255,255,.82);font-size:.95rem}
 
-    /* Investimento */
-    .inv{background:#fff;border:2px solid var(--green-100);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-top:24px}
-    .inv__list{padding:8px 24px}
-    .inv__row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:.98rem}
-    .inv__row:last-child{border-bottom:none}
-    .inv__row span{color:var(--ink-soft)}
-    .inv__row b{font-family:var(--font-head);color:var(--ink)}
-    .inv__total{background:linear-gradient(135deg,var(--green-50),#f0f8f2);padding:22px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-    .inv__total span{font-family:var(--font-head);font-weight:600;color:var(--green-900)}
-    .inv__total strong{font-family:var(--font-head);font-weight:800;font-size:2rem;color:var(--green-700);line-height:1}
-    .inv__note{text-align:center;color:var(--muted);font-size:.88rem;margin-top:14px}
+    /* Planos */
+    .plans{display:grid;gap:18px;margin-top:30px}
+    .plans--2{grid-template-columns:1fr 1fr}
+    .plans--3{grid-template-columns:1fr 1fr 1fr}
+    @media(max-width:700px){.plans--2,.plans--3{grid-template-columns:1fr}}
+    .plan{background:#fff;border:2px solid var(--line);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;position:relative;box-shadow:var(--shadow-sm)}
+    .plan.rec{border-color:var(--green-600);box-shadow:0 18px 44px rgba(21,110,59,.20)}
+    .plan__badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green-600);color:#fff;font-family:var(--font-head);font-weight:700;font-size:.74rem;letter-spacing:.03em;padding:5px 15px;border-radius:999px;white-space:nowrap}
+    .plan__name{font-family:var(--font-head);font-weight:800;font-size:1.35rem;color:var(--ink)}
+    .plan__tag{color:var(--muted);font-size:.9rem;margin-bottom:16px;min-height:1.1em}
+    .plan__total{font-family:var(--font-head);font-weight:800;font-size:2rem;color:var(--green-700);line-height:1}
+    .plan__perha{color:var(--muted);font-size:.86rem;margin-top:3px}
+    .plan__items{list-style:none;padding:16px 0;margin:16px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px;flex:1}
+    .plan__items li{display:flex;justify-content:space-between;gap:10px;font-size:.93rem}
+    .plan__items li span{color:var(--ink-soft)}
+    .plan__items li b{font-family:var(--font-head);color:var(--ink);white-space:nowrap}
+    .plan__btn{margin-top:18px;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:15px;font-family:var(--font-head);font-weight:700;font-size:1.02rem;cursor:pointer;transition:filter .2s,transform .15s}
+    .plan.rec .plan__btn{background:var(--green-700)}
+    .plan__btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
 
-    /* FAQ */
     .faq{margin-top:24px;border-top:1px solid var(--line)}
     .faq__item{border-bottom:1px solid var(--line)}
     .faq__q{width:100%;text-align:left;background:none;border:none;padding:18px 4px;font-family:var(--font-head);font-weight:600;font-size:1.05rem;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -118,21 +113,17 @@
     .faq__a{max-height:0;overflow:hidden;transition:max-height .3s ease;color:var(--ink-soft)}
     .faq__a p{margin:0 4px 18px}
 
-    /* CTA final */
     .final{text-align:center}
     .final h2{font-size:clamp(1.7rem,5vw,2.4rem);margin-bottom:12px}
-    .btn-accept{background:var(--green-700);color:#fff;border:none;border-radius:15px;padding:19px 34px;font-family:var(--font-head);font-weight:700;font-size:1.2rem;cursor:pointer;box-shadow:0 12px 30px rgba(21,110,59,.34);transition:transform .15s,filter .2s;display:inline-flex;align-items:center;gap:11px}
-    .btn-accept:hover{transform:translateY(-2px);filter:brightness(1.06)}
-    .btn-accept svg{width:24px;height:24px}
-    .btn-ask{display:inline-flex;align-items:center;gap:8px;margin-top:16px;color:var(--sky);font-family:var(--font-head);font-weight:600;text-decoration:none;font-size:.98rem}
+    .btn-ask{display:inline-flex;align-items:center;gap:8px;margin-top:6px;color:var(--sky);font-family:var(--font-head);font-weight:600;text-decoration:none;font-size:.98rem}
+    .btn-go{background:var(--green-700);color:#fff;border:none;border-radius:15px;padding:18px 34px;font-family:var(--font-head);font-weight:700;font-size:1.15rem;cursor:pointer;box-shadow:0 12px 30px rgba(21,110,59,.34)}
 
     .foot{background:var(--blue-900);color:rgba(255,255,255,.75);text-align:center;padding:30px 20px;font-size:.86rem;line-height:1.7}
     .foot img{height:30px;margin:0 auto 12px;filter:brightness(0) invert(1);opacity:.9}
 
-    /* Barra fixa mobile */
     .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:45;background:#fff;border-top:1px solid var(--line);padding:11px 16px;box-shadow:0 -6px 20px rgba(0,0,0,.08);display:none}
     .sticky-cta button{width:100%;background:var(--green-700);color:#fff;border:none;border-radius:12px;padding:15px;font-family:var(--font-head);font-weight:700;font-size:1.05rem}
-    @media(max-width:600px){.sticky-cta{display:block} body{padding-bottom:74px} .bar__cta{display:none}}
+    @media(max-width:600px){.sticky-cta{display:block}body{padding-bottom:74px}.bar__cta{display:none}}
 
     .nf{max-width:520px;margin:12vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:40px 30px;text-align:center}
     .nf h1{font-size:1.6rem;margin-bottom:10px}
@@ -144,142 +135,103 @@
 <body>
 
 <div id="app" class="hidden">
-  <div class="bar">
-    <div class="bar__in">
-      <img class="bar__logo" src="assets/img/logo.png" alt="Jusarah">
-      <span class="bar__tag" id="bar-tag"></span>
-      <button class="bar__cta" data-accept>Aceitar proposta</button>
-    </div>
-  </div>
+  <div class="bar"><div class="bar__in">
+    <img class="bar__logo" src="assets/img/logo.png" alt="Jusarah">
+    <span class="bar__tag" id="bar-tag"></span>
+    <button class="bar__cta" data-goplans>Ver planos</button>
+  </div></div>
 
-  <!-- HERO -->
-  <header class="hero">
-    <div class="wrap">
-      <span class="hero__eyebrow">✈️ Proposta exclusiva</span>
-      <h1 id="h-nome">Olá!</h1>
-      <p class="hero__sub" id="h-sub"></p>
-      <div class="hero__meta" id="h-meta"></div>
-      <p class="hero__by">Preparada com cuidado pela equipe <strong>Jusarah Agro Aérea</strong>.</p>
-    </div>
-  </header>
+  <header class="hero"><div class="wrap">
+    <span class="hero__eyebrow">✈️ Proposta exclusiva</span>
+    <h1 id="h-nome">Olá!</h1>
+    <p class="hero__sub" id="h-sub"></p>
+    <div class="hero__meta" id="h-meta"></div>
+    <p class="hero__by">Preparada com cuidado pela equipe <strong>Jusarah Agro Aérea</strong>.</p>
+  </div></header>
 
-  <!-- MENSAGEM -->
-  <section class="sec" id="sec-msg" hidden>
-    <div class="wrap reveal">
-      <div class="msg-card" id="h-msg"></div>
-    </div>
-  </section>
+  <section class="sec" id="sec-msg" hidden><div class="wrap reveal"><div class="msg-card" id="h-msg"></div></div></section>
 
-  <!-- 01 MOMENTO -->
-  <section class="sec sec--tint">
-    <div class="wrap reveal">
-      <div class="sec__num">01 — O SEU MOMENTO</div>
-      <h2>Na lavoura, o tempo não espera.</h2>
-      <p class="sec__lead">A janela certa de aplicação, o clima que vira, a praga que avança — cada decisão pesa na sua safra. A gente sabe, porque vive isso lado a lado com o produtor todos os dias. Por isso esta proposta não é só sobre voar sobre a sua área: é sobre <strong>chegar na hora certa, com precisão</strong>, pra você colher tranquilo.</p>
-    </div>
-  </section>
+  <section class="sec sec--tint"><div class="wrap reveal">
+    <div class="sec__num">01 — O SEU MOMENTO</div>
+    <h2>Na lavoura, o tempo não espera.</h2>
+    <p class="sec__lead">A janela certa de aplicação, o clima que vira, a praga que avança — cada decisão pesa na sua safra. A gente sabe, porque vive isso lado a lado com o produtor todos os dias. Por isso esta proposta não é só sobre voar sobre a sua área: é sobre <strong>chegar na hora certa, com precisão</strong>, pra você colher tranquilo.</p>
+  </div></section>
 
-  <!-- 02 JUSARAH -->
-  <section class="sec sec--dark">
-    <div class="wrap reveal">
-      <div class="sec__num">02 — QUEM VOA COM VOCÊ</div>
-      <h2>Seriedade e proximidade em cada voo.</h2>
-      <p class="sec__lead">Desde 2020, a Jusarah leva tecnologia de aplicação aérea ao produtor do Norte do país. Somos de Cerejeiras–RO e conhecemos de perto quem planta em Rondônia, Mato Grosso e Acre. Investimos em segurança, capacitação e responsabilidade — porque voar sobre a sua lavoura é um compromisso com o futuro dela.</p>
-      <div class="stats">
-        <div class="stat"><b>+50 mil</b><span>hectares aplicados</span></div>
-        <div class="stat"><b>30</b><span>municípios atendidos</span></div>
-        <div class="stat"><b>ANAC + MAPA</b><span>registros em dia</span></div>
-        <div class="stat"><b>Frota</b><span>moderna e revisada</span></div>
-      </div>
+  <section class="sec sec--dark"><div class="wrap reveal">
+    <div class="sec__num">02 — QUEM VOA COM VOCÊ</div>
+    <h2>Seriedade e proximidade em cada voo.</h2>
+    <p class="sec__lead">Desde 2020, a Jusarah leva tecnologia de aplicação aérea ao produtor do Norte do país. Somos de Cerejeiras–RO e conhecemos de perto quem planta em Rondônia, Mato Grosso e Acre. Segurança, capacitação e responsabilidade em cada voo.</p>
+    <div class="stats">
+      <div class="stat"><b>+50 mil</b><span>hectares aplicados</span></div>
+      <div class="stat"><b>30</b><span>municípios atendidos</span></div>
+      <div class="stat"><b>ANAC + MAPA</b><span>registros em dia</span></div>
+      <div class="stat"><b>Frota</b><span>moderna e revisada</span></div>
     </div>
-  </section>
+  </div></section>
 
-  <!-- 03 SERVIÇOS -->
-  <section class="sec">
-    <div class="wrap">
-      <div class="reveal">
-        <div class="sec__num">03 — O QUE PREPARAMOS PRA VOCÊ</div>
-        <h2>Sob medida pra sua lavoura.</h2>
-        <p class="sec__lead">Cada serviço abaixo foi pensado pra sua área e o seu momento.</p>
-      </div>
-      <div id="h-servs"></div>
-    </div>
-  </section>
+  <!-- AVIÃO -->
+  <section class="sec" id="sec-aviao" hidden><div class="wrap reveal">
+    <div class="sec__num">03 — O AVIÃO DA SUA OPERAÇÃO</div>
+    <h2 id="av-nome"></h2>
+    <p class="sec__lead" id="av-modelo"></p>
+    <div class="av-main"><img id="av-foto" alt=""></div>
+    <ul class="av-specs" id="av-specs"></ul>
+    <div class="av-thumbs" id="av-thumbs"></div>
+  </div></section>
 
-  <!-- 04 DIFERENCIAIS -->
-  <section class="sec sec--tint">
-    <div class="wrap reveal">
-      <div class="sec__num">04 — POR QUE VOAR COM A JUSARAH</div>
-      <h2>Não é só um avião. É quem está no comando.</h2>
-      <div class="difs">
-        <div class="dif"><div class="dif__ico">🎯</div><h3>Precisão de verdade</h3><p>Gotas calibradas, altura de voo controlada e monitoramento do clima — mais cobertura, menos deriva, melhor aproveitamento do produto.</p></div>
-        <div class="dif"><div class="dif__ico">⏱️</div><h3>Agilidade na janela certa</h3><p>Grandes áreas cobertas em pouco tempo, aproveitando o melhor momento de aplicação da sua safra.</p></div>
-        <div class="dif"><div class="dif__ico">🌱</div><h3>Sem amassar a lavoura</h3><p>A aplicação aérea não pisa na sua plantação — nada de rodado marcando o talhão.</p></div>
-        <div class="dif"><div class="dif__ico">🤝</div><h3>Gente de verdade, perto de você</h3><p>Você fala direto com quem voa. Sem call center, sem enrolação — do jeito que o produtor gosta.</p></div>
-        <div class="dif"><div class="dif__ico">🛡️</div><h3>Segurança e regularização</h3><p>Registro na ANAC e no MAPA, piloto e equipe capacitados. Cada voo dentro das normas.</p></div>
-        <div class="dif"><div class="dif__ico">🔥</div><h3>Prontos pra emergência</h3><p>Combate aéreo a incêndios quando a sua propriedade precisar.</p></div>
-      </div>
+  <section class="sec sec--tint"><div class="wrap reveal">
+    <div class="sec__num">04 — POR QUE VOAR COM A JUSARAH</div>
+    <h2>Não é só um avião. É quem está no comando.</h2>
+    <div class="difs">
+      <div class="dif"><div class="dif__ico">🎯</div><h3>Precisão de verdade</h3><p>Gotas calibradas, altura controlada e monitoramento do clima — mais cobertura, menos deriva.</p></div>
+      <div class="dif"><div class="dif__ico">⏱️</div><h3>Agilidade na janela certa</h3><p>Grandes áreas cobertas em pouco tempo, no melhor momento da sua safra.</p></div>
+      <div class="dif"><div class="dif__ico">🌱</div><h3>Sem amassar a lavoura</h3><p>A aplicação aérea não pisa na sua plantação — nada de rodado marcando o talhão.</p></div>
+      <div class="dif"><div class="dif__ico">🤝</div><h3>Gente perto de você</h3><p>Você fala direto com quem voa. Sem call center, sem enrolação.</p></div>
+      <div class="dif"><div class="dif__ico">🛡️</div><h3>Segurança e regularização</h3><p>Registro na ANAC e no MAPA, piloto e equipe capacitados.</p></div>
+      <div class="dif"><div class="dif__ico">🔥</div><h3>Prontos pra emergência</h3><p>Combate aéreo a incêndios quando a sua propriedade precisar.</p></div>
     </div>
-  </section>
+  </div></section>
 
-  <!-- 05 PROCESSO -->
-  <section class="sec sec--dark">
-    <div class="wrap reveal">
-      <div class="sec__num">05 — COMO FUNCIONA</div>
-      <h2>Simples, do começo ao fim.</h2>
-      <div class="steps">
-        <div class="step"><div class="step__n">1</div><div><h3>A gente conversa</h3><p>Você aceita a proposta e a gente alinha tudo pelo WhatsApp: cultura, área e o melhor momento.</p></div></div>
-        <div class="step"><div class="step__n">2</div><div><h3>Planejamento</h3><p>Definimos a rota, checamos as condições e preparamos a operação com segurança.</p></div></div>
-        <div class="step"><div class="step__n">3</div><div><h3>Aplicação no ponto certo</h3><p>Voamos na janela ideal, com precisão e acompanhando o clima em tempo real.</p></div></div>
-        <div class="step"><div class="step__n">4</div><div><h3>A gente continua junto</h3><p>Você acompanha o resultado e conta com a gente pra próxima. Relação de safra em safra.</p></div></div>
-      </div>
+  <section class="sec sec--dark"><div class="wrap reveal">
+    <div class="sec__num">05 — COMO FUNCIONA</div>
+    <h2>Simples, do começo ao fim.</h2>
+    <div class="steps">
+      <div class="step"><div class="step__n">1</div><div><h3>Você escolhe o plano</h3><p>Toca no plano que faz sentido e a gente alinha tudo pelo WhatsApp.</p></div></div>
+      <div class="step"><div class="step__n">2</div><div><h3>Planejamento</h3><p>Definimos a rota, checamos as condições e preparamos a operação com segurança.</p></div></div>
+      <div class="step"><div class="step__n">3</div><div><h3>Aplicação no ponto certo</h3><p>Voamos na janela ideal, com precisão e acompanhando o clima em tempo real.</p></div></div>
+      <div class="step"><div class="step__n">4</div><div><h3>A gente continua junto</h3><p>Você acompanha o resultado e conta com a gente pra próxima. Safra após safra.</p></div></div>
     </div>
-  </section>
+  </div></section>
 
-  <!-- 06 INVESTIMENTO -->
-  <section class="sec">
-    <div class="wrap">
-      <div class="reveal">
-        <div class="sec__num">06 — O INVESTIMENTO</div>
-        <h2>Mais que um custo: um investimento na sua safra.</h2>
-        <p class="sec__lead">Transparente, sem letras miúdas. Você sabe exatamente o que está contratando.</p>
-      </div>
-      <div class="inv reveal">
-        <div class="inv__list" id="inv-list"></div>
-        <div class="inv__total"><span>Investimento total</span><strong id="inv-total"></strong></div>
-      </div>
-      <p class="inv__note" id="inv-validade"></p>
-      <p class="inv__note">Valores sujeitos a confirmação após vistoria da área.</p>
+  <!-- PLANOS -->
+  <section class="sec" id="sec-planos"><div class="wrap">
+    <div class="reveal">
+      <div class="sec__num">06 — ESCOLHA O SEU PLANO</div>
+      <h2 id="planos-title">Você no controle da sua safra.</h2>
+      <p class="sec__lead">Comparamos tudo pra você decidir com clareza. Sem letra miúda — o preço aberto, serviço por serviço.</p>
     </div>
-  </section>
+    <div class="plans" id="plans"></div>
+    <p class="sec__lead" style="text-align:center;font-size:.9rem;color:var(--muted);margin:20px auto 0" id="planos-validade"></p>
+    <p class="sec__lead" style="text-align:center;font-size:.9rem;color:var(--muted);margin:6px auto 0">Valores sujeitos a confirmação após vistoria da área.</p>
+  </div></section>
 
-  <!-- FAQ -->
-  <section class="sec sec--tint">
-    <div class="wrap reveal">
-      <div class="sec__num">DÚVIDAS COMUNS</div>
-      <h2>Perguntas que todo produtor faz.</h2>
-      <div class="faq" id="faq">
-        <div class="faq__item"><button class="faq__q">Avião agrícola desperdiça produto?</button><div class="faq__a"><p>Não. Com a regulagem correta e boas condições de aplicação, a pulverização aérea é altamente eficiente e reduz perdas. A eficiência vem do planejamento e da tecnologia, não do tipo de aeronave.</p></div></div>
-        <div class="faq__item"><button class="faq__q">E se o tempo não ajudar no dia?</button><div class="faq__a"><p>A gente só aplica em condições seguras. Se o vento, a temperatura ou a umidade não estiverem ideais, remarcamos — interromper também faz parte do trabalho responsável.</p></div></div>
-        <div class="faq__item"><button class="faq__q">Vocês atendem a minha região?</button><div class="faq__a"><p>Atendemos produtores em Rondônia, Mato Grosso e Acre. Aceitando a proposta, a gente confirma tudo certinho pra sua área no WhatsApp.</p></div></div>
-        <div class="faq__item"><button class="faq__q">Como faço pra fechar?</button><div class="faq__a"><p>É só tocar em <strong>“Aceitar esta proposta”</strong> aqui embaixo. A gente recebe o seu aceite e dá sequência direto com você no WhatsApp.</p></div></div>
-      </div>
+  <section class="sec sec--tint"><div class="wrap reveal">
+    <div class="sec__num">DÚVIDAS COMUNS</div>
+    <h2>Perguntas que todo produtor faz.</h2>
+    <div class="faq" id="faq">
+      <div class="faq__item"><button class="faq__q">Avião agrícola desperdiça produto?</button><div class="faq__a"><p>Não. Com a regulagem correta e boas condições, a pulverização aérea é altamente eficiente e reduz perdas. A eficiência vem do planejamento e da tecnologia, não do tipo de aeronave.</p></div></div>
+      <div class="faq__item"><button class="faq__q">E se o tempo não ajudar no dia?</button><div class="faq__a"><p>A gente só aplica em condições seguras. Se vento, temperatura ou umidade não estiverem ideais, remarcamos — interromper também faz parte do trabalho responsável.</p></div></div>
+      <div class="faq__item"><button class="faq__q">Qual plano vale mais a pena?</button><div class="faq__a"><p>Marcamos o plano <strong>recomendado</strong> pra te ajudar, mas a escolha é sua. Se ficar na dúvida, é só falar com a gente no WhatsApp que a gente orienta sem compromisso.</p></div></div>
+      <div class="faq__item"><button class="faq__q">Como faço pra fechar?</button><div class="faq__a"><p>É só tocar em <strong>“Escolher este plano”</strong> no plano que você quer. A gente recebe o seu aceite e dá sequência direto com você no WhatsApp.</p></div></div>
     </div>
-  </section>
+  </div></section>
 
-  <!-- CTA FINAL -->
-  <section class="sec final">
-    <div class="wrap reveal">
-      <h2 id="final-h">Pronto pra decolar com a Jusarah?</h2>
-      <p class="sec__lead" style="margin:0 auto 26px">Sua lavoura merece precisão, segurança e gente que se importa. Bora fazer essa safra voar. 🌱✈️</p>
-      <button class="btn-accept" data-accept>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-        Aceitar esta proposta
-      </button>
-      <br>
-      <a class="btn-ask" id="h-ask" href="#" target="_blank" rel="noopener">Tenho uma dúvida antes →</a>
-    </div>
-  </section>
+  <section class="sec final"><div class="wrap reveal">
+    <h2 id="final-h">Pronto pra decolar com a Jusarah?</h2>
+    <p class="sec__lead" style="margin:0 auto 26px">Sua lavoura merece precisão, segurança e gente que se importa. Bora fazer essa safra voar. 🌱✈️</p>
+    <button class="btn-go" data-goplans>Ver os planos</button><br>
+    <a class="btn-ask" id="h-ask" href="#" target="_blank" rel="noopener">Tenho uma dúvida antes →</a>
+  </div></section>
 
   <footer class="foot">
     <img src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
@@ -288,7 +240,7 @@
   </footer>
 </div>
 
-<div class="sticky-cta" id="sticky"><button data-accept>✅ Aceitar esta proposta</button></div>
+<div class="sticky-cta" id="sticky"><button data-goplans>Ver os planos e escolher</button></div>
 
 <div class="nf hidden" id="nf">
   <h1>Proposta não encontrada 🌱</h1>
@@ -305,28 +257,24 @@
     var p=String(iso).split("-"); if(p.length<3) return "";
     return parseInt(p[2],10)+" de "+m[parseInt(p[1],10)-1]+" de "+p[0];
   }
-  var DESC = [
-    { k:["pulveriz"], d:"Aplicação aérea de defensivos com tecnologia de precisão. Gotas calibradas, altura de voo controlada e monitoramento do clima garantem cobertura uniforme, menos deriva e o melhor aproveitamento do produto." },
-    { k:["adub","fertiliz"], d:"Distribuição uniforme de fertilizantes por via aérea, cobrindo grandes áreas em pouco tempo, sem amassar a lavoura e aproveitando as melhores janelas de aplicação." },
-    { k:["semead","semente"], d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio de cobertura e forrageiras." },
-    { k:["incend","fogo"], d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e seu patrimônio com rapidez." }
+  var DESC=[
+    {k:["pulveriz"],d:"Aplicação aérea de defensivos com tecnologia de precisão. Gotas calibradas e monitoramento do clima garantem cobertura uniforme e menos deriva."},
+    {k:["adub","fertiliz"],d:"Distribuição uniforme de fertilizantes por via aérea, cobrindo grandes áreas em pouco tempo, sem amassar a lavoura."},
+    {k:["semead","semente"],d:"Semeadura aérea com dispersão homogênea, ideal para grandes áreas e para acelerar o plantio."},
+    {k:["incend","fogo"],d:"Atendimento aéreo emergencial no combate a focos de incêndio, protegendo sua lavoura e patrimônio."}
   ];
-  function descPadrao(nome){
-    var n=(nome||"").toLowerCase();
-    for(var i=0;i<DESC.length;i++){ for(var j=0;j<DESC[i].k.length;j++){ if(n.indexOf(DESC[i].k[j])>=0) return DESC[i].d; } }
-    return "Serviço de aviação agrícola executado com precisão, segurança e frota moderna.";
-  }
+  function itemVal(it,area){ return it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0); }
   function decodifica(){
     var h=location.hash.slice(1); if(!h) return null;
     try{ h=h.replace(/-/g,'+').replace(/_/g,'/'); while(h.length%4)h+='='; return JSON.parse(decodeURIComponent(escape(atob(h)))); }catch(e){ return null; }
   }
 
-  var p=decodifica();
-  if(!p||!p.produtor){ document.getElementById('nf').classList.remove('hidden'); }
-  else { render(p); }
+  var P=decodifica();
+  if(!P||!P.produtor){ document.getElementById('nf').classList.remove('hidden'); }
+  else { render(P); }
 
   function render(p){
-    var area=Number(p.area)||0, itens=Array.isArray(p.itens)?p.itens:[];
+    var area=Number(p.area)||0, planos=Array.isArray(p.planos)?p.planos:[];
     document.title="Proposta · "+p.produtor+" · Jusarah";
     document.getElementById('app').classList.remove('hidden');
 
@@ -334,66 +282,82 @@
     var sub=[]; if(p.fazenda)sub.push(p.fazenda); if(p.local)sub.push(p.local);
     document.getElementById('h-sub').textContent=sub.join(" · ")||"Sua proposta exclusiva";
     document.getElementById('bar-tag').textContent="Proposta · "+(p.fazenda||p.produtor);
-
     var meta=document.getElementById('h-meta');
     if(area) meta.innerHTML+='<span class="hero__chip">📐 '+area.toLocaleString('pt-BR')+' hectares</span>';
-    if(itens.length) meta.innerHTML+='<span class="hero__chip">✈️ '+itens.length+' serviço'+(itens.length>1?'s':'')+'</span>';
+    if(planos.length>1) meta.innerHTML+='<span class="hero__chip">📊 '+planos.length+' planos pra comparar</span>';
     if(p.validade) meta.innerHTML+='<span class="hero__chip">⏳ válida até '+fmtData(p.validade)+'</span>';
 
     if(p.mensagem){ document.getElementById('h-msg').textContent='“'+p.mensagem+'”'; document.getElementById('sec-msg').hidden=false; }
 
-    var wrap=document.getElementById('h-servs'), invList=document.getElementById('inv-list'), total=0;
-    itens.forEach(function(it,i){
-      var porHa=(it.unidade==='ha');
-      var val=porHa?(Number(it.preco)||0)*area:(Number(it.preco)||0);
-      total+=val;
-      var desc=it.detalhe && it.detalhe.trim() ? it.detalhe : descPadrao(it.servico);
-      var calc=porHa?(area.toLocaleString('pt-BR')+" ha × "+brl(it.preco)):"Valor fechado";
-      var card=document.createElement('div'); card.className='serv reveal';
-      card.innerHTML='<div class="serv__top"><div class="serv__ico">✈️</div><h3></h3><div class="serv__n">0'+(i+1)+'</div></div>'+
-        '<p class="serv__desc"></p>'+
-        '<div class="serv__foot"><span class="serv__calc">'+calc+'</span><span class="serv__val">'+brl(val)+'</span></div>';
-      card.querySelector('h3').textContent=it.servico||"Serviço";
-      card.querySelector('.serv__desc').textContent=desc;
-      wrap.appendChild(card);
-
-      var row=document.createElement('div'); row.className='inv__row';
-      row.innerHTML='<span></span><b>'+brl(val)+'</b>';
-      row.querySelector('span').textContent=(it.servico||"Serviço")+(porHa?(" ("+area.toLocaleString('pt-BR')+" ha)"):"");
-      invList.appendChild(row);
-    });
-    document.getElementById('inv-total').textContent=brl(total);
-    if(p.validade) document.getElementById('inv-validade').textContent="Proposta válida até "+fmtData(p.validade)+".";
-    document.getElementById('final-h').textContent="Bora fazer a safra da "+(p.fazenda||"sua fazenda")+" voar?";
-
-    // Falar / dúvida
     document.getElementById('h-ask').href="https://wa.me/"+JUSARAH_WPP+"?text="+encodeURIComponent("Olá! Estou vendo a proposta da Jusarah"+(p.fazenda?(" para a "+p.fazenda):"")+" e tenho uma dúvida.");
+    document.getElementById('final-h').textContent="Bora fazer a safra da "+(p.fazenda||"sua fazenda")+" voar?";
+    if(p.validade) document.getElementById('planos-validade').textContent="Proposta válida até "+fmtData(p.validade)+".";
+    document.getElementById('planos-title').textContent = planos.length>1 ? "Escolha o plano ideal pra você." : "A sua proposta, do jeitinho Jusarah.";
 
-    // Aceitar
-    function aceitar(){
-      var linhas=itens.map(function(it){ var porHa=(it.unidade==='ha'); var val=porHa?(Number(it.preco)||0)*area:(Number(it.preco)||0); return "• "+(it.servico||"Serviço")+": "+brl(val); }).join("%0A");
-      var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A*Produtor:* "+p.produtor+"%0A"+
-        (p.fazenda?("*Fazenda:* "+p.fazenda+"%0A"):"")+(p.local?("*Local:* "+p.local+"%0A"):"")+
-        (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+"%0A"+linhas+"%0A%0A*Total:* "+brl(total)+"%0A%0APodemos seguir? 🌱";
-      window.location.href="https://wa.me/"+JUSARAH_WPP+"?text="+msg;
+    // Avião
+    if(p.aviaoId){
+      fetch('data/avioes.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():[];}).then(function(list){
+        var a=(list||[]).filter(function(x){return x.id===p.aviaoId;})[0];
+        if(!a) return;
+        document.getElementById('av-nome').textContent=a.nome;
+        document.getElementById('av-modelo').textContent=a.modelo||"";
+        if(a.fotos&&a.fotos[0]) document.getElementById('av-foto').src=a.fotos[0];
+        var specs=document.getElementById('av-specs');
+        (a.caracteristicas||[]).forEach(function(c){ var li=document.createElement('li'); li.textContent=c; specs.appendChild(li); });
+        var th=document.getElementById('av-thumbs');
+        (a.fotos||[]).slice(1).forEach(function(f){ var im=document.createElement('img'); im.src=f; im.alt=""; th.appendChild(im); });
+        document.getElementById('sec-aviao').hidden=false;
+      }).catch(function(){});
     }
-    document.querySelectorAll('[data-accept]').forEach(function(b){ b.addEventListener('click',aceitar); });
+
+    // Planos
+    var wrap=document.getElementById('plans');
+    wrap.className='plans plans--'+Math.min(planos.length,3);
+    planos.forEach(function(pl){
+      var total=(pl.itens||[]).reduce(function(s,it){return s+itemVal(it,area);},0);
+      var card=document.createElement('div');
+      card.className='plan'+(pl.recomendado?' rec':'');
+      var lis=(pl.itens||[]).map(function(){return '<li><span></span><b></b></li>';}).join('');
+      var perha=area>0?('≈ '+brl(total/area)+' /ha'):'';
+      card.innerHTML=(pl.recomendado?'<div class="plan__badge">⭐ Recomendado</div>':'')+
+        '<div class="plan__name"></div><div class="plan__tag"></div>'+
+        '<div class="plan__total">'+brl(total)+'</div>'+(perha?'<div class="plan__perha">'+perha+'</div>':'')+
+        '<ul class="plan__items">'+lis+'</ul>'+
+        '<button class="plan__btn">Escolher este plano</button>';
+      card.querySelector('.plan__name').textContent=pl.nome||"Plano";
+      card.querySelector('.plan__tag').textContent=pl.tagline||"";
+      var liEls=card.querySelectorAll('.plan__items li');
+      (pl.itens||[]).forEach(function(it,i){
+        if(!liEls[i]) return;
+        liEls[i].querySelector('span').textContent=it.servico||"Serviço";
+        liEls[i].querySelector('b').textContent=brl(itemVal(it,area));
+      });
+      card.querySelector('.plan__btn').addEventListener('click',function(){ aceitar(pl,total,area); });
+      wrap.appendChild(card);
+    });
+
+    // navegação "ver planos"
+    document.querySelectorAll('[data-goplans]').forEach(function(b){ b.addEventListener('click',function(){ document.getElementById('sec-planos').scrollIntoView({behavior:'smooth'}); }); });
 
     // FAQ
     document.querySelectorAll('.faq__item').forEach(function(item){
-      var q=item.querySelector('.faq__q'), a=item.querySelector('.faq__a');
-      q.addEventListener('click',function(){
-        var open=item.classList.contains('open');
-        item.classList.toggle('open');
-        a.style.maxHeight=open?null:(a.scrollHeight+"px");
-      });
+      var q=item.querySelector('.faq__q'),a=item.querySelector('.faq__a');
+      q.addEventListener('click',function(){ var open=item.classList.contains('open'); item.classList.toggle('open'); a.style.maxHeight=open?null:(a.scrollHeight+"px"); });
     });
 
-    // Reveal
     if("IntersectionObserver" in window){
-      var io=new IntersectionObserver(function(en){ en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } }); },{threshold:.15});
-      document.querySelectorAll('.reveal').forEach(function(r){ io.observe(r); });
-    } else { document.querySelectorAll('.reveal').forEach(function(r){ r.classList.add('vis'); }); }
+      var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.12});
+      document.querySelectorAll('.reveal').forEach(function(r){io.observe(r);});
+    } else { document.querySelectorAll('.reveal').forEach(function(r){r.classList.add('vis');}); }
+  }
+
+  function aceitar(pl,total,area){
+    var linhas=(pl.itens||[]).map(function(it){return "• "+(it.servico||"Serviço")+": "+brl(itemVal(it,area));}).join("%0A");
+    var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A*Produtor:* "+P.produtor+"%0A"+
+      (P.fazenda?("*Fazenda:* "+P.fazenda+"%0A"):"")+(P.local?("*Local:* "+P.local+"%0A"):"")+
+      (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+
+      "%0A*Plano escolhido:* "+(pl.nome||"Plano")+"%0A"+linhas+"%0A%0A*Total:* "+brl(total)+"%0A%0APodemos seguir? 🌱";
+    window.location.href="https://wa.me/"+JUSARAH_WPP+"?text="+msg;
   }
 </script>
 </body>

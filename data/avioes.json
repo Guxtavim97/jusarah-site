@@ -1,0 +1,19 @@
+[
+  {
+    "id": "ipanema-ps-jus",
+    "nome": "Ipanema PS-JUS",
+    "modelo": "Embraer EMB-202 Ipanema",
+    "fotos": [
+      "assets/img/hero-aviao-decolagem.jpg",
+      "assets/img/aviao-campo-3.jpg",
+      "assets/img/aviao-campo-2.jpg"
+    ],
+    "caracteristicas": [
+      "Aeronave agrícola 100% brasileira, referência no país",
+      "Movida a etanol — mais sustentável e econômica",
+      "Sistema de pulverização de alta precisão",
+      "Grande capacidade de carga por voo",
+      "Ideal para cobrir grandes áreas com agilidade e segurança"
+    ]
+  }
+]

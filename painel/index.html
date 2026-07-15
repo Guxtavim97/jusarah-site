@@ -140,6 +140,22 @@
   .prop-rm:hover{background:#f8dcdc}
   .prop-result{margin-top:20px;padding:18px;background:var(--green-50);border:2px solid var(--green-100);border-radius:14px}
   .prop-result input{width:100%;padding:11px 12px;border:2px solid var(--line);border-radius:10px;font-size:.88rem;background:#fff;color:var(--ink)}
+  #pr-aviao{width:100%;padding:12px 13px;border:2px solid var(--line);border-radius:11px;font-size:1rem;background:var(--paper);font-family:inherit}
+  #pr-aviao:focus{outline:none;border-color:var(--green);background:#fff}
+  .aviao-prev{margin-top:12px;display:flex;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .aviao-prev img{width:110px;height:76px;object-fit:cover;border-radius:8px;flex:none}
+  .aviao-prev__txt{font-size:.86rem;color:var(--muted);line-height:1.5}
+  .aviao-prev__txt b{color:var(--ink);font-family:var(--font-head)}
+
+  /* Cards de plano */
+  .plano-card{border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;background:#fff}
+  .plano-card.rec{border-color:var(--green)}
+  .plano-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .plano-head .pl-nome{flex:1;min-width:120px;font-family:var(--font-head);font-weight:700;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:1rem}
+  .plano-head .pl-rec{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .pl-tag{width:100%;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:.92rem;margin-bottom:10px}
+  .plano-head .pl-nome:focus,.pl-tag:focus{outline:none;border-color:var(--green)}
+  .pl-add{margin-top:6px}
 
   .hidden{display:none!important}
 </style>
@@ -355,9 +371,14 @@
           <textarea id="pr-msg" placeholder="Ex: Foi um prazer conversar com você! Preparei esta proposta pensando na sua lavoura e no melhor pra sua safra."></textarea>
         </div>
         <div class="field">
-          <label>Serviços da proposta</label>
-          <div id="prop-itens"></div>
-          <button type="button" class="btn btn--ghost btn--sm" id="prop-add" style="margin-top:8px">+ Adicionar serviço</button>
+          <label>Avião da operação <span class="opt">(o que vai voar na área do cliente)</span></label>
+          <select id="pr-aviao"><option value="">— escolher depois —</option></select>
+          <div class="aviao-prev hidden" id="pr-aviao-prev"></div>
+        </div>
+
+        <div class="field">
+          <label>Planos da proposta <span class="opt">(preencha 1, 2 ou os 3 — o cliente compara)</span></label>
+          <div id="planos-wrap"></div>
         </div>
         <div class="form-acts">
           <button class="btn btn--green" id="btn-gerar-prop">Gerar proposta</button>
@@ -840,10 +861,11 @@ $("btn-save-rotina").addEventListener("click", async () => {
 });
 
 /* ============================================================
-   PROPOSTAS — gera link com os dados na URL (preços privados, sem salvar nada)
+   PROPOSTAS — avião + até 3 planos; gera link (preços privados)
    ============================================================ */
 function pv(id){ return ($(id).value || "").trim(); }
-function addPropItem(){
+
+function addItem(container){
   var card = document.createElement('div');
   card.className = 'prop-item-card';
   card.innerHTML =
@@ -851,32 +873,84 @@ function addPropItem(){
       '<input class="pi-servico" type="text" placeholder="Serviço (ex: Pulverização)">' +
       '<button type="button" class="prop-rm" title="Remover">✕</button>' +
     '</div>' +
-    '<input class="pi-detalhe" type="text" placeholder="Detalhe do serviço (opcional)">' +
+    '<input class="pi-detalhe" type="text" placeholder="Detalhe (opcional — senão vem descrição pronta)">' +
     '<div class="prop-item-price">' +
       '<input class="pi-preco" type="number" min="0" step="0.01" placeholder="Preço (R$)">' +
       '<select class="pi-unidade"><option value="ha">por hectare</option><option value="fixo">valor fechado</option></select>' +
     '</div>';
   card.querySelector('.prop-rm').addEventListener('click', function(){ card.remove(); });
-  $('prop-itens').appendChild(card);
+  container.appendChild(card);
 }
-$('prop-add').addEventListener('click', function(){ addPropItem(); });
-addPropItem();
+
+/* Monta os 3 construtores de plano */
+var PLANOS_DEF = [
+  { nome:"Econômica", tag:"O essencial pra sua safra", rec:false },
+  { nome:"Ideal", tag:"O melhor custo-benefício", rec:true },
+  { nome:"TOP 1", tag:"O máximo da Jusarah", rec:false }
+];
+PLANOS_DEF.forEach(function(pl, i){
+  var card = document.createElement('div');
+  card.className = 'plano-card' + (pl.rec ? ' rec' : '');
+  card.innerHTML =
+    '<div class="plano-head">' +
+      '<input class="pl-nome" type="text" value="'+pl.nome+'">' +
+      '<label class="pl-rec"><input type="radio" name="pl-rec"'+(pl.rec?' checked':'')+'> ⭐ recomendado</label>' +
+    '</div>' +
+    '<input class="pl-tag" type="text" placeholder="Frase curta do plano" value="'+pl.tag+'">' +
+    '<div class="pl-itens"></div>' +
+    '<button type="button" class="btn btn--ghost btn--sm pl-add">+ Adicionar serviço</button>';
+  var itensBox = card.querySelector('.pl-itens');
+  card.querySelector('.pl-add').addEventListener('click', function(){ addItem(itensBox); });
+  card.querySelector('.pl-rec input').addEventListener('change', function(){
+    document.querySelectorAll('#planos-wrap .plano-card').forEach(function(c){ c.classList.remove('rec'); });
+    card.classList.add('rec');
+  });
+  addItem(itensBox);
+  $('planos-wrap').appendChild(card);
+});
+
+/* Catálogo de aviões */
+var AVIOES = [];
+fetch('../data/avioes.json', { cache:'no-store' })
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(list){
+    AVIOES = list || [];
+    var sel = $('pr-aviao');
+    AVIOES.forEach(function(a){ var o=document.createElement('option'); o.value=a.id; o.textContent=a.nome+" — "+a.modelo; sel.appendChild(o); });
+  }).catch(function(){});
+$('pr-aviao').addEventListener('change', function(){
+  var a = AVIOES.filter(function(x){ return x.id === $('pr-aviao').value; })[0];
+  var prev = $('pr-aviao-prev');
+  if(!a){ prev.classList.add('hidden'); prev.innerHTML=''; return; }
+  prev.classList.remove('hidden');
+  prev.innerHTML = '<img src="../'+((a.fotos&&a.fotos[0])||'')+'" alt=""><div class="aviao-prev__txt"><b>'+a.nome+'</b> · '+a.modelo+'<br>'+(a.caracteristicas||[]).slice(0,3).join(' · ')+'</div>';
+});
+
+function coletaItens(box){
+  var itens = [];
+  box.querySelectorAll('.prop-item-card').forEach(function(c){
+    var s = c.querySelector('.pi-servico').value.trim();
+    if(!s) return;
+    itens.push({ servico:s, detalhe:c.querySelector('.pi-detalhe').value.trim(), preco:parseFloat(c.querySelector('.pi-preco').value)||0, unidade:c.querySelector('.pi-unidade').value });
+  });
+  return itens;
+}
 
 $('btn-gerar-prop').addEventListener('click', function(){
   var nome = pv('pr-nome');
   if(!nome){ toast('Coloque o nome do produtor.', 'err'); return; }
-  var itens = [];
-  document.querySelectorAll('#prop-itens .prop-item-card').forEach(function(c){
-    var s = c.querySelector('.pi-servico').value.trim();
-    if(!s) return;
-    itens.push({
-      servico: s,
-      detalhe: c.querySelector('.pi-detalhe').value.trim(),
-      preco: parseFloat(c.querySelector('.pi-preco').value) || 0,
-      unidade: c.querySelector('.pi-unidade').value
+  var planos = [];
+  document.querySelectorAll('#planos-wrap .plano-card').forEach(function(card){
+    var itens = coletaItens(card.querySelector('.pl-itens'));
+    if(!itens.length) return;
+    planos.push({
+      nome: card.querySelector('.pl-nome').value.trim() || "Plano",
+      tagline: card.querySelector('.pl-tag').value.trim(),
+      recomendado: card.querySelector('.pl-rec input').checked,
+      itens: itens
     });
   });
-  if(!itens.length){ toast('Adicione pelo menos um serviço (com nome).', 'err'); return; }
+  if(!planos.length){ toast('Preencha pelo menos um plano com um serviço.', 'err'); return; }
   var prop = {
     produtor: nome,
     fazenda: pv('pr-fazenda'),
@@ -884,7 +958,8 @@ $('btn-gerar-prop').addEventListener('click', function(){
     area: parseFloat(pv('pr-area')) || 0,
     validade: pv('pr-validade'),
     mensagem: pv('pr-msg'),
-    itens: itens
+    aviaoId: $('pr-aviao').value || "",
+    planos: planos
   };
   var b64 = encB64(JSON.stringify(prop)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   var link = location.origin + "/proposta.html#" + b64;
