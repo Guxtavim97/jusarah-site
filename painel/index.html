@@ -170,6 +170,24 @@
   .userrow select{padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-family:inherit;font-size:.92rem;background:#fff}
   .userrow select:disabled{opacity:.55}
 
+  /* Dashboard */
+  .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  @media(max-width:640px){.dash-stats{grid-template-columns:1fr 1fr}}
+  .dash-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm)}
+  .dash-stat b{font-family:var(--font-head);font-weight:800;font-size:1.5rem;display:block;color:var(--ink);line-height:1.1}
+  .dash-stat.rev b{color:var(--green-700);font-size:1.25rem}
+  .dash-stat span{font-size:.8rem;color:var(--muted)}
+  .dash-h{font-family:var(--font-head);font-weight:700;margin:20px 0 10px;color:var(--ink)}
+  .dashrow{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .dashrow:last-child{border-bottom:none}
+  .dashrow__info{flex:1;min-width:150px}
+  .dashrow__info b{font-family:var(--font-head);display:block;color:var(--ink)}
+  .dashrow__info span{font-size:.82rem;color:var(--muted)}
+  .dashrow__val{font-family:var(--font-head);font-weight:700;color:var(--green-700);white-space:nowrap}
+  .badge{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .badge.ac{background:#e9f6ee;color:var(--green-700)}
+  .badge.en{background:#fff3d6;color:#a06b00}
+
   .hidden{display:none!important}
 </style>
 </head>
@@ -233,6 +251,7 @@
       <button class="tab" data-tab="projeto" data-min="1">Semeando Esperança</button>
       <button class="tab" data-tab="rotina" data-min="1">Nossa Rotina</button>
       <button class="tab" data-tab="propostas" data-min="2">Propostas 💰</button>
+      <button class="tab" data-tab="dashboard" data-min="3">Dashboard 📊</button>
       <button class="tab" data-tab="usuarios" data-min="3">Usuários 🔐</button>
     </div>
 
@@ -429,6 +448,12 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- PAINEL: DASHBOARD (só N3) -->
+    <section class="panel" id="panel-dashboard">
+      <div class="head-row"><h2>Dashboard</h2><div class="spacer"></div><button class="btn btn--ghost btn--sm" id="btn-dash-reload">↻ Atualizar</button></div>
+      <div id="dash-content"><div class="empty">Carregando…</div></div>
     </section>
 
     <!-- PAINEL: USUÁRIOS (só N3) -->
@@ -1083,6 +1108,82 @@ $('prop-copiar').addEventListener('click', function(){
   if(navigator.clipboard){ navigator.clipboard.writeText(inp.value).then(function(){ toast('Link copiado! ✓', 'ok'); }).catch(function(){ toast('Selecionado — copie com Ctrl+C', 'ok'); }); }
   else { try { document.execCommand('copy'); toast('Link copiado!', 'ok'); } catch(e){ toast('Selecione e copie (Ctrl+C)'); } }
 });
+
+/* ============================================================
+   DASHBOARD (N3)
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function brlN(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function dataBR(iso){ return (iso||'').slice(0,10).split('-').reverse().join('/'); }
+function totalPlano(p, nomePlano){
+  var pls = p.planos || [];
+  var pl = pls.filter(function(x){ return x.nome === nomePlano; })[0] || pls[0];
+  if(!pl) return 0;
+  var area = Number(p.area) || 0;
+  return (pl.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return s + (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }, 0);
+}
+async function loadDashboard(){
+  var box = $("dash-content");
+  box.innerHTML = '<div class="empty">Carregando…</div>';
+  var pr = await sb.from('propostas').select('*').order('criado_em', { ascending:false });
+  if(pr.error){ box.innerHTML = '<div class="empty">Erro: ' + pr.error.message + '</div>'; return; }
+  var props = pr.data || [];
+  var aceitas = props.filter(function(p){ return p.status === 'aceita'; });
+  var receita = aceitas.reduce(function(s,p){ return s + totalPlano(p, p.plano_aceito); }, 0);
+  var taxa = props.length ? Math.round(aceitas.length / props.length * 100) : 0;
+  var sr = await sb.from('solicitacoes').select('*').order('criado_em', { ascending:false });
+  var sols = (sr && sr.data) || [];
+
+  var html = '<div class="dash-stats">' +
+    '<div class="dash-stat"><b>'+props.length+'</b><span>propostas enviadas</span></div>' +
+    '<div class="dash-stat"><b>'+aceitas.length+'</b><span>aceitas</span></div>' +
+    '<div class="dash-stat"><b>'+taxa+'%</b><span>conversão</span></div>' +
+    '<div class="dash-stat rev"><b>'+brlN(receita)+'</b><span>receita (aceitas)</span></div>' +
+  '</div>';
+
+  html += '<div class="dash-h">Propostas</div>';
+  if(!props.length){ html += '<div class="empty">Nenhuma proposta ainda.</div>'; }
+  else {
+    html += '<div class="card">';
+    props.forEach(function(p){
+      var ac = p.status === 'aceita';
+      var val = ac ? totalPlano(p, p.plano_aceito) : totalPlano(p, null);
+      html += '<div class="dashrow"><div class="dashrow__info"><b>'+esc(p.produtor)+'</b><span>'+esc(p.fazenda||'')+' · '+dataBR(p.criado_em)+(ac?(' · '+esc(p.plano_aceito||'')):'')+'</span></div>' +
+        '<span class="badge '+(ac?'ac':'en')+'">'+(ac?'Aceita ✓':'Enviada')+'</span>' +
+        '<span class="dashrow__val">'+brlN(val)+'</span>' +
+        (!ac ? '<button class="btn btn--ghost btn--sm dash-reab" data-p="'+p.id+'">Reabordar</button>' : '') +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div class="dash-h">Solicitações (leads do site)</div>';
+  if(!sols.length){ html += '<div class="empty">Nenhuma solicitação ainda.</div>'; }
+  else {
+    html += '<div class="card">';
+    sols.forEach(function(s){
+      var num = s.telefone ? ('55' + String(s.telefone).replace(/\D/g,'')) : '';
+      html += '<div class="dashrow"><div class="dashrow__info"><b>'+esc(s.nome||'(sem nome)')+'</b><span>'+esc(s.propriedade||'')+' · '+esc(s.cultura||'')+' · '+(s.hectares||'?')+' ha · '+dataBR(s.criado_em)+'</span></div>' +
+        (num ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+num+'">WhatsApp</a>' : '') +
+        (s.croqui_url ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="'+esc(s.croqui_url)+'">Croqui</a>' : '') +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  box.innerHTML = html;
+
+  document.querySelectorAll('.dash-reab').forEach(function(b){
+    b.addEventListener('click', function(){
+      var p = props.filter(function(x){ return x.id === b.getAttribute('data-p'); })[0]; if(!p) return;
+      var link = location.origin + "/proposta.html?id=" + p.id;
+      var msg = "Olá " + (p.produtor ? p.produtor.split(' ')[0] : '') + "! Passando pra retomar a sua proposta da Jusarah. É só dar uma olhadinha: " + link;
+      window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+    });
+  });
+}
+$("btn-dash-reload").addEventListener("click", loadDashboard);
+var _tabDash = document.querySelector('.tab[data-tab="dashboard"]');
+if(_tabDash) _tabDash.addEventListener('click', loadDashboard);
 
 /* ============================================================
    USUÁRIOS (N3) — aprova cadastros e define níveis
