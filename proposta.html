@@ -424,7 +424,7 @@
     document.getElementById('planos-title').textContent = planos.length>1 ? "Escolha o plano ideal pra você." : "A sua proposta, do jeitinho Jusarah.";
 
     // Mascote aviãozinho (provoca o clique 😄)
-    var nomeAviao = (p.aviaoNome||"").trim() || "Ipa";
+    var nomeAviao = (p.aviaoNome||"").trim() || "Jusarinho";
     var mf = document.getElementById('mascote-fala');
     if(mf){
       mf.innerHTML = 'Psss, produtor! Eu sou o <b>'+esc(nomeAviao)+'</b>, o aviãozinho que vai cuidar da sua lavoura. 😄 Tô <b>doido</b> pra decolar na <b>'+esc(p.fazenda||'sua lavoura')+'</b> — é só escolher um plano aí embaixo que eu <b>já começo</b> a aplicar! 🛫';
