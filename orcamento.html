@@ -495,7 +495,7 @@
       var ok = document.getElementById('q-ok');
       ok.style.display = 'block';
       ok.scrollIntoView({ behavior:'smooth', block:'center' });
-      if(waUrl){ try { window.open(waUrl, "_blank"); } catch(e){} }
+      /* NÃO abre o WhatsApp automático — o cliente clica no botão se quiser. */
     }
     async function salvaSolicitacao(){
       try{

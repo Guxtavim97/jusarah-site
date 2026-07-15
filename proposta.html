@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Sua Proposta · Jusarah Agro Aérea</title>
@@ -153,6 +154,21 @@
     .celebra__btn{background:#25D366;color:#fff;border:none;border-radius:14px;padding:16px 28px;font-family:var(--font-head);font-weight:700;font-size:1.08rem;cursor:pointer}
     .celebra__btn:hover{filter:brightness(1.05)}
 
+    /* Mascote aviãozinho */
+    .mascote{display:flex;align-items:center;gap:18px;margin:26px 0 4px;background:linear-gradient(120deg,#eaf6ff,#eafaf0);border:1px solid #d4ecdb;border-radius:22px;padding:16px 22px}
+    .mascote__plane{flex:none;animation:mascoteFloat 2.6s ease-in-out infinite;transform-origin:center}
+    @keyframes mascoteFloat{0%,100%{transform:translateY(0) rotate(-2.5deg)}50%{transform:translateY(-9px) rotate(2.5deg)}}
+    .mascote__bubble{position:relative;background:#fff;border:2px solid var(--green-600);border-radius:18px;padding:14px 18px;flex:1}
+    .mascote__bubble::before{content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);border:9px solid transparent;border-right-color:var(--green-600)}
+    .mascote__bubble p{margin:0;color:var(--ink);font-size:1.04rem;line-height:1.55}
+    .mascote__bubble b{color:var(--green-700);font-family:var(--font-head)}
+    @media(max-width:520px){
+      .mascote{flex-direction:column;text-align:center;gap:6px}
+      .mascote__plane svg{width:96px}
+      .mascote__bubble::before{left:50%;top:-11px;transform:translateX(-50%);border-right-color:transparent;border-bottom-color:var(--green-600)}
+    }
+    @media(prefers-reduced-motion:reduce){.mascote__plane{animation:none}}
+
     .nf{max-width:520px;margin:12vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:40px 30px;text-align:center}
     .nf h1{font-size:1.6rem;margin-bottom:10px}
     .nf p{color:var(--muted);margin-bottom:20px}
@@ -247,6 +263,30 @@
       <h2 id="planos-title">Você no controle da sua safra.</h2>
       <p class="sec__lead">Comparamos tudo pra você decidir com clareza. Sem letra miúda — o preço aberto, serviço por serviço.</p>
     </div>
+    <div class="mascote reveal" id="mascote" hidden>
+      <div class="mascote__plane" aria-hidden="true">
+        <svg viewBox="0 0 210 118" width="120" xmlns="http://www.w3.org/2000/svg">
+          <line x1="60" y1="72" x2="152" y2="72" stroke="#5a6b73" stroke-width="2.5"/>
+          <line x1="72" y1="72" x2="72" y2="79" stroke="#5a6b73" stroke-width="2"/>
+          <line x1="100" y1="72" x2="100" y2="79" stroke="#5a6b73" stroke-width="2"/>
+          <line x1="128" y1="72" x2="128" y2="79" stroke="#5a6b73" stroke-width="2"/>
+          <path d="M58 62 L156 60 Q170 60 170 65 L58 69 Z" fill="#1B6E3B"/>
+          <path d="M22 60 L11 30 Q9 26 14 29 L36 53 Z" fill="#2E86C1"/>
+          <path d="M24 58 L3 54 Q-1 54 3 59 L30 62 Z" fill="#1B3F8F"/>
+          <path d="M24 56 Q34 44 66 43 L170 46 Q192 48 200 56 Q192 64 170 65 L48 65 Q30 64 24 56 Z" fill="#1B3F8F"/>
+          <path d="M48 58 L190 56 L190 60 L48 61 Z" fill="#f5c518"/>
+          <path d="M92 43 Q108 28 130 34 L147 45 Z" fill="#bfe6ff" stroke="#8fb8d6" stroke-width="1"/>
+          <path d="M190 48 Q201 49 203 56 Q201 63 190 64 Z" fill="#12212e"/>
+          <circle cx="176" cy="50" r="3.4" fill="#12212e"/><circle cx="177" cy="49" r="1" fill="#fff"/>
+          <path d="M181 57 q5 3 10 0" stroke="#0a4020" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <ellipse cx="204" cy="56" rx="3" ry="24" fill="rgba(60,70,80,.30)"/>
+          <line x1="204" y1="32" x2="204" y2="80" stroke="rgba(30,40,50,.5)" stroke-width="2.5"/>
+          <line x1="86" y1="65" x2="80" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="79" cy="85" r="6" fill="#1a1a1a"/>
+          <line x1="122" y1="65" x2="128" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="129" cy="85" r="6" fill="#1a1a1a"/>
+        </svg>
+      </div>
+      <div class="mascote__bubble"><p id="mascote-fala"></p></div>
+    </div>
     <div class="plans" id="plans"></div>
     <p class="sec__lead" style="text-align:center;font-size:.9rem;color:var(--muted);margin:20px auto 0" id="planos-validade"></p>
     <p class="sec__lead" style="text-align:center;font-size:.9rem;color:var(--muted);margin:6px auto 0">Valores sujeitos a confirmação após vistoria da área.</p>
@@ -340,17 +380,19 @@
   var sb = window.supabase.createClient(SB_URL, SB_KEY);
   var P = null, propId = null;
 
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function mapRow(row){
     return { produtor:row.produtor, apresentador:row.apresentador, fazenda:row.fazenda, local:row.local,
-             area:Number(row.area)||0, validade:row.validade, mensagem:row.mensagem, aviaoId:row.aviao_id, planos:row.planos||[] };
+             area:Number(row.area)||0, validade:row.validade, mensagem:row.mensagem, aviaoId:row.aviao_id, aviaoNome:row.aviao_nome, planos:row.planos||[] };
   }
   (async function(){
-    var id = new URLSearchParams(location.search).get('id');
-    if(id){
-      try{ var r = await sb.from('propostas').select('*').eq('id', id).single(); if(r.data){ P = mapRow(r.data); propId = id; } }catch(e){}
-    } else {
-      P = decodifica();
-    }
+    var qs = new URLSearchParams(location.search);
+    var cod = qs.get('p'), id = qs.get('id');
+    try{
+      if(cod){ var rc = await sb.from('propostas').select('*').eq('codigo', cod).single(); if(rc.data){ P = mapRow(rc.data); propId = rc.data.id; } }
+      else if(id){ var r = await sb.from('propostas').select('*').eq('id', id).single(); if(r.data){ P = mapRow(r.data); propId = id; } }
+      else { P = decodifica(); }
+    }catch(e){}
     if(!P || !P.produtor){ document.getElementById('nf').classList.remove('hidden'); return; }
     render(P);
   })();
@@ -377,6 +419,14 @@
     document.getElementById('final-h').textContent="Bora fazer a safra da "+(p.fazenda||"sua fazenda")+" voar?";
     if(p.validade) document.getElementById('planos-validade').textContent="Proposta válida até "+fmtData(p.validade)+".";
     document.getElementById('planos-title').textContent = planos.length>1 ? "Escolha o plano ideal pra você." : "A sua proposta, do jeitinho Jusarah.";
+
+    // Mascote aviãozinho (provoca o clique 😄)
+    var nomeAviao = (p.aviaoNome||"").trim() || "Ipa";
+    var mf = document.getElementById('mascote-fala');
+    if(mf){
+      mf.innerHTML = 'Psss, produtor! Eu sou o <b>'+esc(nomeAviao)+'</b>, o aviãozinho que vai cuidar da sua lavoura. 😄 Tô <b>doido</b> pra decolar na <b>'+esc(p.fazenda||'sua lavoura')+'</b> — é só escolher um plano aí embaixo que eu <b>já começo</b> a aplicar! 🛫';
+      document.getElementById('mascote').hidden = false;
+    }
 
     // Avião
     if(p.aviaoId){

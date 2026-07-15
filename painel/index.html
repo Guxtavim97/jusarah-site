@@ -171,13 +171,46 @@
   .userrow select:disabled{opacity:.55}
 
   /* Dashboard */
-  .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
-  @media(max-width:640px){.dash-stats{grid-template-columns:1fr 1fr}}
-  .dash-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm)}
-  .dash-stat b{font-family:var(--font-head);font-weight:800;font-size:1.5rem;display:block;color:var(--ink);line-height:1.1}
-  .dash-stat.rev b{color:var(--green-700);font-size:1.25rem}
-  .dash-stat span{font-size:.8rem;color:var(--muted)}
-  .dash-h{font-family:var(--font-head);font-weight:700;margin:20px 0 10px;color:var(--ink)}
+  .dash-grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:720px){.dash-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:440px){.dash-grid{grid-template-columns:1fr}}
+  .dcard{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:18px 20px}
+  .gauge-card{grid-row:span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,#0e2f52 0%,#124e2e 100%);color:#fff;border:none}
+  @media(max-width:720px){.gauge-card{grid-column:1 / -1;grid-row:auto}}
+  .gauge-wrap{position:relative;width:158px;height:158px}
+  .gauge{width:158px;height:158px;transform:rotate(-90deg)}
+  .gauge__bg{fill:none;stroke:rgba(255,255,255,.15);stroke-width:13}
+  .gauge__fg{fill:none;stroke:url(#gg);stroke-width:13;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+  .gauge-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge-num b{font-size:2.4rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .gauge-num small{font-size:.72rem;color:rgba(255,255,255,.75);margin-top:2px}
+  .gauge-card h4{margin:16px 0 2px;font-size:1.05rem}
+  .gauge-card p{margin:0;font-size:.83rem;color:rgba(255,255,255,.72)}
+  .kpi{position:relative}
+  .kpi__ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:1.25rem;margin-bottom:11px}
+  .kpi b{display:block;font-size:2rem;font-weight:800;line-height:1;color:var(--ink);letter-spacing:-.02em}
+  .kpi span{font-size:.82rem;color:var(--muted)}
+  .kpi--blue .kpi__ic{background:#e7effb;color:var(--blue)}
+  .kpi--green .kpi__ic{background:#e6f6ec;color:var(--green-d)}
+  .kpi--amber .kpi__ic{background:#fdf0d5;color:#b5810a}
+  .kpi--rev{background:linear-gradient(160deg,#f0fbf3,#e2f4e9);border-color:#cfe9d6}
+  .kpi--rev .kpi__ic{background:var(--green);color:#fff}
+  .kpi--rev b{color:var(--green-d);font-size:1.55rem}
+  .chart-card{margin-bottom:8px}
+  .chart-card h4{margin:0 0 2px;font-size:1.05rem}
+  .chart-card .csub{margin:0 0 16px;font-size:.82rem;color:var(--muted)}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:150px}
+  .cbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%}
+  .cbar__pair{display:flex;align-items:flex-end;justify-content:center;gap:5px;flex:1;width:100%}
+  .cbar__b{width:15px;border-radius:7px 7px 0 0;min-height:4px;height:4px;transition:height 1s cubic-bezier(.2,.8,.2,1)}
+  .cbar__b.env{background:linear-gradient(180deg,var(--sky),var(--blue))}
+  .cbar__b.ac{background:linear-gradient(180deg,var(--green-v),var(--green-d))}
+  .cbar__lb{font-size:.74rem;color:var(--muted);font-weight:600;text-transform:capitalize}
+  .chart-legend{display:flex;gap:18px;margin-top:14px;font-size:.82rem;color:var(--muted)}
+  .chart-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .lg-env i{background:var(--blue)} .lg-ac i{background:var(--green-d)}
+  .dash-h{font-family:var(--font-head);font-weight:700;margin:22px 0 10px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .dash-h .cnt{font-size:.78rem;font-weight:700;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
   .dashrow{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .dashrow:last-child{border-bottom:none}
   .dashrow__info{flex:1;min-width:150px}
@@ -188,12 +221,35 @@
   .badge.ac{background:#e9f6ee;color:var(--green-700)}
   .badge.en{background:#fff3d6;color:#a06b00}
 
+  /* Palavra do dia */
+  .versic{position:fixed;inset:0;z-index:200;background:rgba(8,24,40,.72);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px}
+  .versic.show{display:flex}
+  .versic__card{position:relative;overflow:hidden;max-width:450px;width:100%;background:linear-gradient(165deg,#0e3a5c 0%,#12603a 100%);color:#fff;border-radius:26px;box-shadow:0 30px 70px rgba(0,0,0,.45);padding:46px 34px 34px;text-align:center;animation:versicIn .6s cubic-bezier(.2,.9,.3,1.3)}
+  @keyframes versicIn{from{transform:scale(.86) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+  .versic__sun{position:absolute;top:-72px;right:-54px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,102,.6),transparent 70%);pointer-events:none}
+  .versic__eyebrow{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#ffd666;margin-bottom:18px;position:relative}
+  .versic__text{font-size:1.32rem;line-height:1.55;font-weight:600;margin:0 0 14px;position:relative;text-wrap:balance}
+  .versic__ref{font-size:.96rem;color:rgba(255,255,255,.82);margin:0 0 28px;font-style:italic;position:relative}
+  .versic__btn{background:#fff;color:#12603a;border:none;border-radius:14px;padding:14px 28px;font-weight:800;font-size:1rem;position:relative}
+  .versic__btn:hover{filter:brightness(.96)}
+  @media(prefers-reduced-motion:reduce){.versic__card{animation:none}}
+
   .hidden{display:none!important}
 </style>
 </head>
 <body>
 
 <!-- ===== LOGIN ===== -->
+<div class="versic" id="versic">
+  <div class="versic__card">
+    <div class="versic__sun"></div>
+    <span class="versic__eyebrow">🌅 Palavra do dia</span>
+    <p class="versic__text" id="versic-text"></p>
+    <p class="versic__ref" id="versic-ref"></p>
+    <button class="versic__btn" id="versic-btn">Amém, bora trabalhar 🌱</button>
+  </div>
+</div>
+
 <div id="login" class="login">
   <div class="brand" style="margin-bottom:16px"><span class="leaf">🌱</span> Painel Jusarah</div>
 
@@ -428,6 +484,11 @@
           <label>Avião da operação <span class="opt">(o que vai voar na área do cliente)</span></label>
           <select id="pr-aviao"><option value="">— escolher depois —</option></select>
           <div class="aviao-prev hidden" id="pr-aviao-prev"></div>
+        </div>
+        <div class="field">
+          <label>Nome do aviãozinho <span class="opt">(aparece falando com o cliente na proposta 😄)</span></label>
+          <input type="text" id="pr-aviao-nome" placeholder="Ex: Ipa, Juca, Trovão… (deixe vazio pra usar “Ipa”)">
+          <div class="hint">Esse nome dá vida ao aviãozinho que provoca o cliente a aceitar. Um nome divertido combina!</div>
         </div>
 
         <div class="field">
@@ -681,7 +742,52 @@ function showApp() {
     if(vis) vis.click();
   }
   loadPosts(); loadProjeto(); loadRotina();
+  mostraVersiculo();
 }
+
+/* ============================================================
+   PALAVRA DO DIA — versículo no 1º acesso do dia (por pessoa)
+   ============================================================ */
+var VERSICULOS = [
+  {t:"Tudo posso naquele que me fortalece.", r:"Filipenses 4:13"},
+  {t:"O Senhor é o meu pastor; nada me faltará.", r:"Salmos 23:1"},
+  {t:"Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.", r:"Salmos 37:5"},
+  {t:"Porque para Deus nada é impossível.", r:"Lucas 1:37"},
+  {t:"Sê forte e corajoso; não temas, porque o Senhor, teu Deus, é contigo por onde quer que andares.", r:"Josué 1:9"},
+  {t:"Os que esperam no Senhor renovam as suas forças; sobem com asas como águias.", r:"Isaías 40:31"},
+  {t:"Lançai sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.", r:"1 Pedro 5:7"},
+  {t:"O choro pode durar uma noite, mas a alegria vem pela manhã.", r:"Salmos 30:5"},
+  {t:"Buscai primeiro o Reino de Deus, e todas estas coisas vos serão acrescentadas.", r:"Mateus 6:33"},
+  {t:"A tua palavra é lâmpada para os meus pés e luz para o meu caminho.", r:"Salmos 119:105"},
+  {t:"O Senhor pelejará por vós, e vós vos calareis.", r:"Êxodo 14:14"},
+  {t:"Tudo tem o seu tempo determinado debaixo do céu.", r:"Eclesiastes 3:1"},
+  {t:"Confia no Senhor de todo o teu coração e não te apoies no teu próprio entendimento.", r:"Provérbios 3:5"},
+  {t:"Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia.", r:"Salmos 46:1"},
+  {t:"Alegrai-vos na esperança, sede pacientes na tribulação.", r:"Romanos 12:12"},
+  {t:"Os que semeiam com lágrimas com júbilo ceifarão.", r:"Salmos 126:5"},
+  {t:"Ele dá força ao cansado e multiplica as forças ao que não tem nenhum vigor.", r:"Isaías 40:29"},
+  {t:"Entrega as tuas obras ao Senhor, e os teus planos serão estabelecidos.", r:"Provérbios 16:3"},
+  {t:"Não te deixes vencer do mal, mas vence o mal com o bem.", r:"Romanos 12:21"},
+  {t:"A fé é o firme fundamento das coisas que se esperam.", r:"Hebreus 11:1"},
+  {t:"Grandes coisas fez o Senhor por nós, e por isso estamos alegres.", r:"Salmos 126:3"},
+  {t:"Não andeis ansiosos por coisa alguma; em tudo, com gratidão, apresentai a Deus os vossos pedidos.", r:"Filipenses 4:6"},
+  {t:"Bem-aventurados os que têm fome e sede de justiça, porque serão fartos.", r:"Mateus 5:6"},
+  {t:"O que a sua mão tiver que fazer, faça-o com todas as suas forças.", r:"Eclesiastes 9:10"},
+  {t:"Regozijai-vos sempre. Orai sem cessar. Em tudo dai graças.", r:"1 Tessalonicenses 5:16-18"}
+];
+function mostraVersiculo(){
+  try{
+    var key = 'jusarah_verse_' + (usuario ? usuario.id : 'anon');
+    var hoje = new Date().toISOString().slice(0,10);
+    if(localStorage.getItem(key) === hoje) return;
+    localStorage.setItem(key, hoje);
+    var v = VERSICULOS[Math.floor(Math.random()*VERSICULOS.length)];
+    $("versic-text").textContent = '“' + v.t + '”';
+    $("versic-ref").textContent = '— ' + v.r;
+    $("versic").classList.add('show');
+  }catch(e){}
+}
+$("versic-btn").addEventListener('click', function(){ $("versic").classList.remove('show'); });
 
 /* ============================================================
    ABAS
@@ -1066,6 +1172,11 @@ function coletaItens(box){
   return itens;
 }
 
+function geraCodigo(){
+  var c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', s = '';
+  for(var i=0;i<6;i++) s += c[Math.floor(Math.random()*c.length)];
+  return s;
+}
 $('btn-gerar-prop').addEventListener('click', async function(){
   var nome = pv('pr-nome');
   if(!nome){ toast('Coloque o nome do produtor.', 'err'); return; }
@@ -1085,14 +1196,16 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   var rec = planos.filter(function(p){ return p.recomendado; })[0] || planos[0];
   var valorTotal = (rec.itens||[]).reduce(function(s,it){ var ap=Math.max(1,parseInt(it.aplicacoes)||1); return s + (it.unidade==='ha' ? (Number(it.preco)||0)*area : (Number(it.preco)||0))*ap; }, 0);
   var btnG = $('btn-gerar-prop'); btnG.disabled = true; btnG.textContent = "Gerando…";
+  var codigo = geraCodigo();
   var ins = await sb.from('propostas').insert({
     apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
     area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
-    aviao_id: $('pr-aviao').value || null, planos: planos, valor_total: valorTotal
-  }).select('id').single();
+    aviao_id: $('pr-aviao').value || null, aviao_nome: pv('pr-aviao-nome') || null,
+    codigo: codigo, planos: planos, valor_total: valorTotal
+  }).select('id,codigo').single();
   btnG.disabled = false; btnG.textContent = "Gerar proposta";
   if(ins.error){ toast('Erro ao salvar: ' + ins.error.message, 'err'); return; }
-  var link = location.origin + "/proposta.html?id=" + ins.data.id;
+  var link = location.origin + "/p/" + (ins.data.codigo || codigo);
   $('prop-link').value = link;
   $('prop-preview').href = link;
   var num = pv('pr-whats').replace(/\D/g, '');
@@ -1134,15 +1247,49 @@ async function loadDashboard(){
   var sr = await sb.from('solicitacoes').select('*').order('criado_em', { ascending:false });
   var sols = (sr && sr.data) || [];
 
-  var html = '<div class="dash-stats">' +
-    '<div class="dash-stat"><b>'+props.length+'</b><span>propostas enviadas</span></div>' +
-    '<div class="dash-stat"><b>'+aceitas.length+'</b><span>aceitas</span></div>' +
-    '<div class="dash-stat"><b>'+taxa+'%</b><span>conversão</span></div>' +
-    '<div class="dash-stat rev"><b>'+brlN(receita)+'</b><span>receita (aceitas)</span></div>' +
-  '</div>';
+  // Dados por mês (últimos 6)
+  var mesLbl = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var agora = new Date(), meses = [];
+  for(var i=5;i>=0;i--){ var d=new Date(agora.getFullYear(), agora.getMonth()-i, 1); meses.push({y:d.getFullYear(), m:d.getMonth(), env:0, ac:0, lb:mesLbl[d.getMonth()]}); }
+  props.forEach(function(p){
+    var d = new Date(p.criado_em), mm = null;
+    for(var j=0;j<meses.length;j++){ if(meses[j].y===d.getFullYear() && meses[j].m===d.getMonth()){ mm=meses[j]; break; } }
+    if(mm){ mm.env++; if(p.status==='aceita') mm.ac++; }
+  });
+  var maxV = 1; meses.forEach(function(x){ if(x.env>maxV) maxV=x.env; });
+  var ticket = aceitas.length ? receita/aceitas.length : 0;
+  var C = 2*Math.PI*66, off = C*(1 - taxa/100);
 
-  html += '<div class="dash-h">Propostas</div>';
-  if(!props.length){ html += '<div class="empty">Nenhuma proposta ainda.</div>'; }
+  var html = '<div class="dash-grid">';
+  html += '<div class="dcard gauge-card">'+
+      '<div class="gauge-wrap">'+
+        '<svg class="gauge" viewBox="0 0 158 158">'+
+          '<defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5FB130"/><stop offset="1" stop-color="#2E86C1"/></linearGradient></defs>'+
+          '<circle class="gauge__bg" cx="79" cy="79" r="66"/>'+
+          '<circle class="gauge__fg" id="gauge-fg" cx="79" cy="79" r="66" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+C.toFixed(1)+'"/>'+
+        '</svg>'+
+        '<div class="gauge-num"><b id="gauge-pct">0%</b><small>conversão</small></div>'+
+      '</div>'+
+      '<h4>'+aceitas.length+' de '+props.length+' fecharam</h4>'+
+      '<p>propostas que viraram safra 🌱</p>'+
+    '</div>';
+  html += '<div class="dcard kpi kpi--blue"><div class="kpi__ic">📄</div><b>'+props.length+'</b><span>propostas enviadas</span></div>';
+  html += '<div class="dcard kpi kpi--green"><div class="kpi__ic">✅</div><b>'+aceitas.length+'</b><span>aceitas</span></div>';
+  html += '<div class="dcard kpi kpi--amber"><div class="kpi__ic">🌾</div><b>'+sols.length+'</b><span>leads do site</span></div>';
+  html += '<div class="dcard kpi kpi--rev"><div class="kpi__ic">💰</div><b>'+brlN(receita)+'</b><span>receita fechada'+(ticket?(' · ticket médio '+brlN(ticket)):'')+'</span></div>';
+  html += '</div>';
+
+  html += '<div class="dcard chart-card"><h4>Últimos 6 meses 📈</h4><p class="csub">Propostas enviadas x aceitas, mês a mês</p><div class="chart">';
+  meses.forEach(function(x){
+    html += '<div class="cbar"><div class="cbar__pair">'+
+      '<i class="cbar__b env" data-h="'+(x.env/maxV*100).toFixed(1)+'"></i>'+
+      '<i class="cbar__b ac" data-h="'+(x.ac/maxV*100).toFixed(1)+'"></i>'+
+      '</div><span class="cbar__lb">'+x.lb+'</span></div>';
+  });
+  html += '</div><div class="chart-legend"><span class="lg-env"><i></i>Enviadas</span><span class="lg-ac"><i></i>Aceitas</span></div></div>';
+
+  html += '<div class="dash-h">Propostas <span class="cnt">'+props.length+'</span></div>';
+  if(!props.length){ html += '<div class="empty">Nenhuma proposta ainda. Gere a primeira na aba <b>Propostas 💰</b>.</div>'; }
   else {
     html += '<div class="card">';
     props.forEach(function(p){
@@ -1157,7 +1304,7 @@ async function loadDashboard(){
     html += '</div>';
   }
 
-  html += '<div class="dash-h">Solicitações (leads do site)</div>';
+  html += '<div class="dash-h">Solicitações do site <span class="cnt">'+sols.length+'</span></div>';
   if(!sols.length){ html += '<div class="empty">Nenhuma solicitação ainda.</div>'; }
   else {
     html += '<div class="card">';
@@ -1172,10 +1319,18 @@ async function loadDashboard(){
   }
   box.innerHTML = html;
 
+  // Anima a roda e as barras depois de pintar
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    var g = $("gauge-fg"); if(g) g.style.strokeDashoffset = off.toFixed(1);
+    var pctEl = $("gauge-pct");
+    if(pctEl){ var t0=Date.now(); (function tick(){ var pr=Math.min((Date.now()-t0)/1200,1); pctEl.textContent=Math.round(pr*taxa)+'%'; if(pr<1) requestAnimationFrame(tick); })(); }
+    document.querySelectorAll('.cbar__b').forEach(function(b){ var h=parseFloat(b.getAttribute('data-h'))||0; b.style.height=Math.max(h,1)+'%'; });
+  }); });
+
   document.querySelectorAll('.dash-reab').forEach(function(b){
     b.addEventListener('click', function(){
       var p = props.filter(function(x){ return x.id === b.getAttribute('data-p'); })[0]; if(!p) return;
-      var link = location.origin + "/proposta.html?id=" + p.id;
+      var link = p.codigo ? (location.origin + "/p/" + p.codigo) : (location.origin + "/proposta.html?id=" + p.id);
       var msg = "Olá " + (p.produtor ? p.produtor.split(' ')[0] : '') + "! Passando pra retomar a sua proposta da Jusarah. É só dar uma olhadinha: " + link;
       window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
     });
