@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel · Jusarah Agro Aérea</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --blue:#1B3F8F; --sky:#2E86C1; --green:#2f9e44; --green-d:#1B6E3B; --green-v:#5FB130;
@@ -167,21 +168,39 @@
 <!-- ===== LOGIN ===== -->
 <div id="login" class="login">
   <div class="brand" style="margin-bottom:16px"><span class="leaf">🌱</span> Painel Jusarah</div>
-  <h1>Entrar no painel</h1>
-  <p>Cole seu <strong>token do GitHub</strong> para publicar. Ele fica salvo só neste navegador.</p>
-  <div class="field">
-    <label for="tok">Token de acesso</label>
-    <input type="text" id="tok" placeholder="github_pat_..." autocomplete="off">
+
+  <div id="login-entrar">
+    <h1>Entrar</h1>
+    <p>Acesse com seu e-mail e senha.</p>
+    <div class="field"><label>E-mail</label><input type="email" id="lg-email" autocomplete="email"></div>
+    <div class="field"><label>Senha</label><input type="password" id="lg-senha" autocomplete="current-password"></div>
+    <button class="btn btn--green btn--block" id="btn-entrar">Entrar</button>
+    <p style="text-align:center;margin-top:16px;font-size:.92rem"><a href="#" id="lk-criar">Criar conta</a> &nbsp;·&nbsp; <a href="#" id="lk-reset">Esqueci a senha</a></p>
   </div>
-  <button class="btn btn--green btn--block" id="btn-login">Entrar</button>
-  <div class="help">
-    <strong>Primeira vez? Como criar o token (1 min):</strong>
-    <ol>
-      <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → novo token</a></li>
-      <li>Em <em>Repository access</em>, escolha <strong>Only select repositories → jusarah-site</strong></li>
-      <li>Em <em>Permissions → Contents</em>, marque <strong>Read and write</strong></li>
-      <li>Clique em <em>Generate token</em>, copie e cole aqui</li>
-    </ol>
+
+  <div id="login-criar" class="hidden">
+    <h1>Criar conta</h1>
+    <p>Crie seu acesso. Um administrador libera o seu nível depois.</p>
+    <div class="field"><label>Seu nome</label><input type="text" id="cr-nome"></div>
+    <div class="field"><label>E-mail</label><input type="email" id="cr-email" autocomplete="email"></div>
+    <div class="field"><label>Senha</label><input type="password" id="cr-senha" autocomplete="new-password" placeholder="mínimo 6 caracteres"></div>
+    <button class="btn btn--green btn--block" id="btn-criar">Criar conta</button>
+    <p style="text-align:center;margin-top:16px;font-size:.92rem"><a href="#" id="lk-voltar1">← Voltar pro login</a></p>
+  </div>
+
+  <div id="login-reset" class="hidden">
+    <h1>Redefinir senha</h1>
+    <p>Enviamos um link de redefinição pro seu e-mail.</p>
+    <div class="field"><label>E-mail</label><input type="email" id="rs-email" autocomplete="email"></div>
+    <button class="btn btn--green btn--block" id="btn-reset">Enviar link</button>
+    <p style="text-align:center;margin-top:16px;font-size:.92rem"><a href="#" id="lk-voltar2">← Voltar pro login</a></p>
+  </div>
+
+  <div id="login-pendente" class="hidden" style="text-align:center">
+    <div style="font-size:2.6rem">⏳</div>
+    <h1>Conta em análise</h1>
+    <p>Seu acesso foi criado! Falta um <strong>administrador liberar o seu nível</strong>. Assim que liberarem, você entra normalmente.</p>
+    <button class="btn btn--ghost btn--block" id="btn-sair-pendente">Sair</button>
   </div>
 </div>
 
@@ -190,7 +209,9 @@
   <header class="top">
     <div class="top__in">
       <div class="brand"><span class="leaf">🌱</span> Painel Jusarah</div>
+      <span id="top-nome" style="font-size:.82rem;color:var(--muted);font-weight:600;margin-left:4px"></span>
       <div class="spacer"></div>
+      <button class="btn btn--ghost btn--sm" id="btn-gh" title="Token do GitHub pra salvar matérias">GitHub</button>
       <a class="btn btn--ghost btn--sm" href="https://jusarah-site.vercel.app" target="_blank" rel="noopener">Ver site ↗</a>
       <button class="btn btn--ghost btn--sm" id="btn-logout">Sair</button>
     </div>
@@ -198,10 +219,10 @@
 
   <main>
     <div class="tabs">
-      <button class="tab is-active" data-tab="posts">Notícias & Eventos</button>
-      <button class="tab" data-tab="projeto">Semeando Esperança</button>
-      <button class="tab" data-tab="rotina">Nossa Rotina</button>
-      <button class="tab" data-tab="propostas">Propostas 💰</button>
+      <button class="tab is-active" data-tab="posts" data-min="1">Notícias & Eventos</button>
+      <button class="tab" data-tab="projeto" data-min="1">Semeando Esperança</button>
+      <button class="tab" data-tab="rotina" data-min="1">Nossa Rotina</button>
+      <button class="tab" data-tab="propostas" data-min="2">Propostas 💰</button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -419,13 +440,9 @@ const decB64 = (b) => decodeURIComponent(escape(atob(String(b).replace(/\s/g, ""
 
 /* ---- Chamada à API do GitHub ---- */
 async function gh(path, opts = {}) {
-  const res = await fetch(API + path, Object.assign({}, opts, {
-    headers: Object.assign({
-      "Authorization": "Bearer " + token,
-      "Accept": "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28"
-    }, opts.headers || {})
-  }));
+  const headers = Object.assign({ "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" }, opts.headers || {});
+  if (token) headers["Authorization"] = "Bearer " + token;
+  const res = await fetch(API + path, Object.assign({}, opts, { headers: headers }));
   return res;
 }
 /* Extrai a mensagem de erro real que o GitHub devolve */
@@ -526,36 +543,98 @@ function cleanHTML(html) {
 }
 
 /* ============================================================
-   LOGIN
+   LOGIN — Supabase Auth + níveis de acesso
    ============================================================ */
-async function tryLogin(t) {
-  token = t.trim();
-  const res = await gh("/contents/data/posts.json?ref=" + REPO.branch);
-  if (res.status === 401) throw new Error("Token inválido.");
-  if (!res.ok && res.status !== 404) throw new Error("Sem acesso ao repositório (" + res.status + ").");
-  localStorage.setItem("jusarah_gh_token", token);
+const SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+let usuario = null;
+
+function mostraTela(id){
+  ['login-entrar','login-criar','login-reset','login-pendente'].forEach(function(t){ $(t).classList.toggle('hidden', t !== id); });
+  $("login").classList.remove("hidden");
+  $("app").classList.add("hidden");
 }
-$("btn-login").addEventListener("click", async () => {
-  const v = $("tok").value;
-  if (!v.trim()) { toast("Cole o token primeiro.", "err"); return; }
-  const btn = $("btn-login");
-  btn.innerHTML = '<span class="spin"></span> Entrando…';
-  try { await tryLogin(v); showApp(); }
-  catch (e) { toast(e.message, "err"); }
-  finally { btn.innerHTML = "Entrar"; }
+$("lk-criar").onclick = function(e){ e.preventDefault(); mostraTela('login-criar'); };
+$("lk-reset").onclick = function(e){ e.preventDefault(); mostraTela('login-reset'); };
+$("lk-voltar1").onclick = function(e){ e.preventDefault(); mostraTela('login-entrar'); };
+$("lk-voltar2").onclick = function(e){ e.preventDefault(); mostraTela('login-entrar'); };
+$("btn-sair-pendente").onclick = async function(){ await sb.auth.signOut(); usuario = null; mostraTela('login-entrar'); };
+
+$("btn-entrar").addEventListener("click", async function(){
+  const email = $("lg-email").value.trim(), senha = $("lg-senha").value;
+  if(!email || !senha){ toast("Preencha e-mail e senha.", "err"); return; }
+  const btn = $("btn-entrar"); btn.innerHTML = '<span class="spin"></span> Entrando…';
+  const r = await sb.auth.signInWithPassword({ email: email, password: senha });
+  btn.innerHTML = "Entrar";
+  if(r.error){ toast(/confirm/i.test(r.error.message) ? "Confirme seu e-mail primeiro (veja a caixa de entrada)." : "E-mail ou senha incorretos.", "err"); return; }
+  await entrarApp();
 });
-$("tok").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-login").click(); });
-$("btn-logout").addEventListener("click", () => {
-  localStorage.removeItem("jusarah_gh_token"); token = "";
-  $("app").classList.add("hidden"); $("login").classList.remove("hidden");
+$("lg-senha").addEventListener("keydown", function(e){ if(e.key==="Enter") $("btn-entrar").click(); });
+
+$("btn-criar").addEventListener("click", async function(){
+  const nome = $("cr-nome").value.trim(), email = $("cr-email").value.trim(), senha = $("cr-senha").value;
+  if(!nome || !email || senha.length < 6){ toast("Preencha tudo (senha com 6+ caracteres).", "err"); return; }
+  const btn = $("btn-criar"); btn.innerHTML = '<span class="spin"></span> Criando…';
+  const r = await sb.auth.signUp({ email: email, password: senha, options: { data: { nome: nome }, emailRedirectTo: location.origin + "/painel/" } });
+  btn.innerHTML = "Criar conta";
+  if(r.error){ toast(r.error.message, "err"); return; }
+  toast("Conta criada! Confirme pelo link no seu e-mail. ✓", "ok");
+  mostraTela('login-entrar');
 });
+
+$("btn-reset").addEventListener("click", async function(){
+  const email = $("rs-email").value.trim();
+  if(!email){ toast("Digite seu e-mail.", "err"); return; }
+  const btn = $("btn-reset"); btn.innerHTML = '<span class="spin"></span> Enviando…';
+  const r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/painel/" });
+  btn.innerHTML = "Enviar link";
+  if(r.error){ toast(r.error.message, "err"); return; }
+  toast("Link enviado! Veja seu e-mail. ✓", "ok");
+  mostraTela('login-entrar');
+});
+
+$("btn-logout").addEventListener("click", async function(){ await sb.auth.signOut(); usuario = null; mostraTela('login-entrar'); });
+
+$("btn-gh").addEventListener("click", function(){
+  var t = prompt("Cole o token do GitHub (Contents: Read and write no repo jusarah-site).\nSó é preciso pra SALVAR matérias/notícias.", token || "");
+  if(t !== null){ token = t.trim(); localStorage.setItem("jusarah_gh_token", token); atualizaGh(); toast(token ? "GitHub conectado ✓" : "Token removido", "ok"); }
+});
+function atualizaGh(){ var b = $("btn-gh"); if(b) b.textContent = token ? "GitHub ✓" : "Conectar GitHub"; }
+
+sb.auth.onAuthStateChange(function(event){
+  if(event === "PASSWORD_RECOVERY"){
+    var np = prompt("Redefinir senha — digite a nova senha (6+ caracteres):");
+    if(np && np.length >= 6){ sb.auth.updateUser({ password: np }).then(function(){ toast("Senha alterada! Faça login.", "ok"); }); }
+  }
+});
+
+async function entrarApp(){
+  const g = await sb.auth.getUser();
+  const user = g.data ? g.data.user : null;
+  if(!user){ mostraTela('login-entrar'); return; }
+  const p = await sb.from('perfis').select('nome,nivel').eq('id', user.id).single();
+  var nivel = (p.data && typeof p.data.nivel === 'number') ? p.data.nivel : 0;
+  usuario = { id: user.id, email: user.email, nome: (p.data && p.data.nome) || user.email, nivel: nivel };
+  if(nivel < 1){ mostraTela('login-pendente'); return; }
+  showApp();
+}
 
 function showApp() {
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
-  loadPosts();
-  loadProjeto();
-  loadRotina();
+  var nomeEl = $("top-nome"); if(nomeEl) nomeEl.textContent = usuario.nome + " · Nível " + usuario.nivel;
+  atualizaGh();
+  document.querySelectorAll('.tab').forEach(function(t){
+    var min = parseInt(t.getAttribute('data-min') || "1");
+    t.style.display = (usuario.nivel >= min) ? "" : "none";
+  });
+  var ativa = document.querySelector('.tab.is-active');
+  if(ativa && ativa.style.display === "none"){
+    var vis = null; document.querySelectorAll('.tab').forEach(function(t){ if(!vis && t.style.display !== "none") vis = t; });
+    if(vis) vis.click();
+  }
+  loadPosts(); loadProjeto(); loadRotina();
 }
 
 /* ============================================================
@@ -985,8 +1064,11 @@ $('prop-copiar').addEventListener('click', function(){
   else { try { document.execCommand('copy'); toast('Link copiado!', 'ok'); } catch(e){ toast('Selecione e copie (Ctrl+C)'); } }
 });
 
-/* ---- Início ---- */
-if (token) { showApp(); }
+/* ---- Início: já logado? ---- */
+(async function(){
+  try { const s = await sb.auth.getSession(); if(s.data && s.data.session){ await entrarApp(); } else { mostraTela('login-entrar'); } }
+  catch(e){ mostraTela('login-entrar'); }
+})();
 </script>
 </body>
 </html>
