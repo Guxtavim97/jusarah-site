@@ -56,6 +56,9 @@
   .tabs{display:flex;gap:6px;margin-bottom:22px;background:#fff;padding:6px;border-radius:14px;border:1px solid var(--line);width:fit-content}
   .tab{border:none;background:transparent;padding:10px 18px;border-radius:10px;font-weight:700;color:var(--muted);font-size:.98rem}
   .tab.is-active{background:var(--blue);color:#fff}
+  .tab-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;margin-left:7px;border-radius:999px;background:var(--danger);color:#fff;font-size:.72rem;font-weight:800;vertical-align:middle;animation:pendPulse 1.8s ease-in-out infinite}
+  @keyframes pendPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+  @media(prefers-reduced-motion:reduce){.tab-badge{animation:none}}
 
   .panel{display:none}
   .panel.is-active{display:block}
@@ -360,7 +363,7 @@
       <button class="tab" data-tab="rotina" data-min="1">Nossa Rotina</button>
       <button class="tab" data-tab="propostas" data-min="2">Propostas 💰</button>
       <button class="tab" data-tab="dashboard" data-min="3">Dashboard 📊</button>
-      <button class="tab" data-tab="usuarios" data-min="3">Usuários 🔐</button>
+      <button class="tab" data-tab="usuarios" data-min="3">Usuários 🔐<span class="tab-badge hidden" id="badge-pend">0</span></button>
     </div>
 
     <!-- PAINEL: POSTS -->
@@ -856,6 +859,19 @@ function showApp(fresh) {
   loadPosts(); loadProjeto(); loadRotina();
   if(fresh) mostraVersiculo();   // só após login de verdade, não em refresh/sessão retomada
   iniciaControleInatividade();
+  checaPendentes();
+}
+
+/* Avisa o admin (N3) quantas pessoas estão esperando liberação de acesso */
+async function checaPendentes(){
+  var b = $("badge-pend");
+  if(!b || !usuario || usuario.nivel < 3) return;
+  try{
+    var r = await sb.from('perfis').select('id', { count: 'exact', head: true }).eq('nivel', 0);
+    var n = r.count || 0;
+    b.textContent = n;
+    b.classList.toggle('hidden', n === 0);
+  }catch(e){}
 }
 
 /* ============================================================
@@ -1665,12 +1681,13 @@ async function loadUsuarios(){
       var novo = parseInt(sel.value);
       const up = await sb.from('perfis').update({ nivel: novo }).eq('id', u.id);
       if(up.error){ toast(up.error.message, 'err'); sel.value = u.nivel; }
-      else { u.nivel = novo; row.className = 'userrow' + (novo === 0 ? ' pend' : ''); toast('Nível atualizado ✓', 'ok'); }
+      else { u.nivel = novo; row.className = 'userrow' + (novo === 0 ? ' pend' : ''); toast('Nível atualizado ✓', 'ok'); checaPendentes(); }
     });
     row.appendChild(info); row.appendChild(sel);
     card.appendChild(row);
   });
   list.appendChild(card);
+  checaPendentes();
 }
 $("btn-users-reload").addEventListener("click", loadUsuarios);
 var _tabUsers = document.querySelector('.tab[data-tab="usuarios"]');
