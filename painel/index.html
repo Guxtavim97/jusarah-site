@@ -738,6 +738,37 @@ const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let usuario = null;
 
+/* ---- Sessão: logout automático após 30 min de inatividade ---- */
+const INATIVIDADE_MS = 30 * 60 * 1000;
+let inatividadeTimer = null, _ultimaMarca = 0, _inatWired = false;
+function marcaAtividade(){
+  var agora = Date.now();
+  if(inatividadeTimer) clearTimeout(inatividadeTimer);
+  inatividadeTimer = setTimeout(expiraSessao, INATIVIDADE_MS);
+  if(agora - _ultimaMarca > 10000){ _ultimaMarca = agora; try{ localStorage.setItem('jusarah_last_activity', String(agora)); }catch(e){} }
+}
+async function expiraSessao(){
+  if(inatividadeTimer){ clearTimeout(inatividadeTimer); inatividadeTimer = null; }
+  if(!usuario) return;
+  try{ localStorage.removeItem('jusarah_last_activity'); }catch(e){}
+  try{ await sb.auth.signOut(); }catch(e){}
+  usuario = null;
+  mostraTela('login-entrar');
+  toast('Sua sessão expirou por inatividade (30 min). Entre novamente. 🔒', 'ok');
+}
+function iniciaControleInatividade(){
+  marcaAtividade();
+  if(_inatWired) return;
+  _inatWired = true;
+  ['mousemove','mousedown','keydown','scroll','touchstart','click'].forEach(function(ev){
+    document.addEventListener(ev, marcaAtividade, { passive:true });
+  });
+}
+function paraControleInatividade(){
+  if(inatividadeTimer){ clearTimeout(inatividadeTimer); inatividadeTimer = null; }
+  try{ localStorage.removeItem('jusarah_last_activity'); }catch(e){}
+}
+
 function mostraTela(id){
   ['login-entrar','login-criar','login-reset','login-pendente'].forEach(function(t){ $(t).classList.toggle('hidden', t !== id); });
   $("login").classList.remove("hidden");
@@ -782,7 +813,7 @@ $("btn-reset").addEventListener("click", async function(){
   mostraTela('login-entrar');
 });
 
-$("btn-logout").addEventListener("click", async function(){ await sb.auth.signOut(); usuario = null; mostraTela('login-entrar'); });
+$("btn-logout").addEventListener("click", async function(){ paraControleInatividade(); await sb.auth.signOut(); usuario = null; mostraTela('login-entrar'); });
 
 $("btn-gh").addEventListener("click", function(){
   var t = prompt("Cole o token do GitHub (Contents: Read and write no repo jusarah-site).\nSó é preciso pra SALVAR matérias/notícias.", token || "");
@@ -824,6 +855,7 @@ function showApp() {
   }
   loadPosts(); loadProjeto(); loadRotina();
   mostraVersiculo();
+  iniciaControleInatividade();
 }
 
 /* ============================================================
@@ -1644,9 +1676,21 @@ $("btn-users-reload").addEventListener("click", loadUsuarios);
 var _tabUsers = document.querySelector('.tab[data-tab="usuarios"]');
 if(_tabUsers) _tabUsers.addEventListener('click', loadUsuarios);
 
-/* ---- Início: já logado? ---- */
+/* ---- Início: já logado? (mas expira se ficou parado +30 min) ---- */
 (async function(){
-  try { const s = await sb.auth.getSession(); if(s.data && s.data.session){ await entrarApp(); } else { mostraTela('login-entrar'); } }
+  try {
+    const s = await sb.auth.getSession();
+    if(s.data && s.data.session){
+      var la = parseInt(localStorage.getItem('jusarah_last_activity') || '0', 10);
+      if(la && (Date.now() - la) > INATIVIDADE_MS){
+        try{ localStorage.removeItem('jusarah_last_activity'); }catch(e){}
+        await sb.auth.signOut();
+        mostraTela('login-entrar');
+      } else {
+        await entrarApp();
+      }
+    } else { mostraTela('login-entrar'); }
+  }
   catch(e){ mostraTela('login-entrar'); }
 })();
 </script>
