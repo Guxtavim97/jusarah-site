@@ -513,7 +513,20 @@
         </div>
         <div class="field">
           <label>Nome do aviãozinho <span class="opt">(aparece falando com o cliente na proposta 😄)</span></label>
-          <input type="text" id="pr-aviao-nome" placeholder="Ex: Ipa, Juca, Trovão… (deixe vazio pra usar “Ipa”)">
+          <select id="pr-aviao-nome-sel">
+            <option value="Ipa">Ipa</option>
+            <option value="Juca">Juca</option>
+            <option value="Trovão">Trovão</option>
+            <option value="Foguete">Foguete</option>
+            <option value="Falcão">Falcão</option>
+            <option value="Corisco">Corisco</option>
+            <option value="Relâmpago">Relâmpago</option>
+            <option value="Turbo">Turbo</option>
+            <option value="Guerreiro">Guerreiro</option>
+            <option value="Zé Voador">Zé Voador</option>
+            <option value="__outro">✍️ Outro (digitar)…</option>
+          </select>
+          <input type="text" id="pr-aviao-nome" class="hidden" placeholder="Digite o nome do aviãozinho" style="margin-top:8px">
           <div class="hint">Esse nome dá vida ao aviãozinho que provoca o cliente a aceitar. Um nome divertido combina!</div>
         </div>
 
@@ -1209,6 +1222,16 @@ fetch('../data/avioes.json', { cache:'no-store' })
 function avioesSelecionados(){
   return Array.prototype.slice.call(document.querySelectorAll('#pr-avioes input:checked')).map(function(c){ return c.value; });
 }
+function avioNome(){
+  var sel = $('pr-aviao-nome-sel');
+  if(sel.value === '__outro') return pv('pr-aviao-nome');
+  return sel.value;
+}
+$('pr-aviao-nome-sel').addEventListener('change', function(){
+  var outro = this.value === '__outro';
+  $('pr-aviao-nome').classList.toggle('hidden', !outro);
+  if(outro) $('pr-aviao-nome').focus();
+});
 
 /* Puxar dados de uma solicitação (lead do site) */
 var SOLIC = [];
@@ -1317,7 +1340,7 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   var ins = await sb.from('propostas').insert({
     apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
     area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
-    aviao_id: avSel[0] || null, aviao_ids: avSel.length ? avSel : null, aviao_nome: pv('pr-aviao-nome') || null,
+    aviao_id: avSel[0] || null, aviao_ids: avSel.length ? avSel : null, aviao_nome: avioNome() || null,
     codigo: codigo, planos: planos, valor_total: valorTotal
   }).select('id,codigo').single();
   btnG.disabled = false; btnG.textContent = "Gerar proposta";
