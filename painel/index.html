@@ -787,7 +787,7 @@ $("btn-entrar").addEventListener("click", async function(){
   const r = await sb.auth.signInWithPassword({ email: email, password: senha });
   btn.innerHTML = "Entrar";
   if(r.error){ toast(/confirm/i.test(r.error.message) ? "Confirme seu e-mail primeiro (veja a caixa de entrada)." : "E-mail ou senha incorretos.", "err"); return; }
-  await entrarApp();
+  await entrarApp(true);
 });
 $("lg-senha").addEventListener("keydown", function(e){ if(e.key==="Enter") $("btn-entrar").click(); });
 
@@ -828,7 +828,7 @@ sb.auth.onAuthStateChange(function(event){
   }
 });
 
-async function entrarApp(){
+async function entrarApp(fresh){
   const g = await sb.auth.getUser();
   const user = g.data ? g.data.user : null;
   if(!user){ mostraTela('login-entrar'); return; }
@@ -836,10 +836,10 @@ async function entrarApp(){
   var nivel = (p.data && typeof p.data.nivel === 'number') ? p.data.nivel : 0;
   usuario = { id: user.id, email: user.email, nome: (p.data && p.data.nome) || user.email, nivel: nivel };
   if(nivel < 1){ mostraTela('login-pendente'); return; }
-  showApp();
+  showApp(fresh);
 }
 
-function showApp() {
+function showApp(fresh) {
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
   var nomeEl = $("top-nome"); if(nomeEl) nomeEl.textContent = usuario.nome + " · Nível " + usuario.nivel;
@@ -854,7 +854,7 @@ function showApp() {
     if(vis) vis.click();
   }
   loadPosts(); loadProjeto(); loadRotina();
-  mostraVersiculo();
+  if(fresh) mostraVersiculo();   // só após login de verdade, não em refresh/sessão retomada
   iniciaControleInatividade();
 }
 
