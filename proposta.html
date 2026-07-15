@@ -126,6 +126,26 @@
     .sticky-cta button{width:100%;background:var(--green-700);color:#fff;border:none;border-radius:12px;padding:15px;font-family:var(--font-head);font-weight:700;font-size:1.05rem}
     @media(max-width:600px){.sticky-cta{display:block}body{padding-bottom:74px}.bar__cta{display:none}}
 
+    /* Vídeo da rotina */
+    .video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:#000 center/cover no-repeat;cursor:pointer;margin-top:22px}
+    .video::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.28)}
+    .video.play::after{display:none}
+    .video__play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:#f00;color:#fff;border:none;font-size:1.5rem;cursor:pointer;z-index:2;display:grid;place-items:center;padding-left:5px;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .2s}
+    .video:hover .video__play{transform:translate(-50%,-50%) scale(1.08)}
+    .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3}
+
+    /* Comemoração */
+    .celebra{position:fixed;inset:0;z-index:80;background:rgba(8,28,46,.78);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px}
+    .celebra.show{display:flex}
+    #confete{position:fixed;inset:0;pointer-events:none;z-index:90}
+    .celebra__card{position:relative;z-index:81;background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:38px 30px;text-align:center;max-width:430px;animation:celebraPop .5s cubic-bezier(.2,.9,.3,1.45)}
+    @keyframes celebraPop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
+    .celebra__emoji{font-size:2.8rem;margin-bottom:10px}
+    .celebra__card h2{font-size:1.8rem;color:var(--green-700);margin-bottom:8px}
+    .celebra__card p{color:var(--ink-soft);margin-bottom:24px;font-size:1.05rem}
+    .celebra__btn{background:#25D366;color:#fff;border:none;border-radius:14px;padding:16px 28px;font-family:var(--font-head);font-weight:700;font-size:1.08rem;cursor:pointer}
+    .celebra__btn:hover{filter:brightness(1.05)}
+
     .nf{max-width:520px;margin:12vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:40px 30px;text-align:center}
     .nf h1{font-size:1.6rem;margin-bottom:10px}
     .nf p{color:var(--muted);margin-bottom:20px}
@@ -205,6 +225,14 @@
     </div>
   </div></section>
 
+  <!-- VÍDEO ROTINA REAL -->
+  <section class="sec sec--tint"><div class="wrap reveal">
+    <div class="sec__num">✈️ A GENTE EM AÇÃO</div>
+    <h2>Um dia inteiro de aplicação, de verdade.</h2>
+    <p class="sec__lead">Sem encenação: veja a nossa rotina no campo, do preparo ao voo, aplicando com precisão numa lavoura de verdade.</p>
+    <div class="video" data-yt="iSuJHp-dB4k"><button class="video__play" aria-label="Assistir ao vídeo">▶</button></div>
+  </div></section>
+
   <!-- PLANOS -->
   <section class="sec" id="sec-planos"><div class="wrap">
     <div class="reveal">
@@ -240,6 +268,16 @@
     Jusarah Agro Aérea · Cerejeiras–RO · Atendemos RO, MT e AC<br>
     Proposta pessoal e confidencial. Registro ANAC · Registro MAPA.
   </footer>
+</div>
+
+<canvas id="confete"></canvas>
+<div class="celebra" id="celebra">
+  <div class="celebra__card">
+    <div class="celebra__emoji">🎉🚜✈️</div>
+    <h2 id="celebra-h">Que alegria!</h2>
+    <p id="celebra-p">Bora fazer essa safra voar!</p>
+    <button class="celebra__btn" id="celebra-go">Continuar no WhatsApp →</button>
+  </div>
 </div>
 
 <div class="sticky-cta" id="sticky"><button data-goplans>Ver os planos e escolher</button></div>
@@ -343,6 +381,11 @@
     // navegação "ver planos"
     document.querySelectorAll('[data-goplans]').forEach(function(b){ b.addEventListener('click',function(){ document.getElementById('sec-planos').scrollIntoView({behavior:'smooth'}); }); });
 
+    // vídeo da rotina (carrega só ao clicar)
+    var v=document.querySelector('.video');
+    if(v){ var vid=v.getAttribute('data-yt'); v.style.backgroundImage="url(https://i.ytimg.com/vi/"+vid+"/hqdefault.jpg)";
+      v.querySelector('.video__play').addEventListener('click',function(){ var f=document.createElement('iframe'); f.src="https://www.youtube-nocookie.com/embed/"+vid+"?autoplay=1&rel=0&modestbranding=1"; f.title="Rotina de aplicação — Jusarah"; f.allow="autoplay;encrypted-media;picture-in-picture;fullscreen"; f.setAttribute('allowfullscreen',''); v.classList.add('play'); v.innerHTML=''; v.appendChild(f); }); }
+
     // FAQ
     document.querySelectorAll('.faq__item').forEach(function(item){
       var q=item.querySelector('.faq__q'),a=item.querySelector('.faq__a');
@@ -357,11 +400,36 @@
 
   function aceitar(pl,total,area){
     var linhas=(pl.itens||[]).map(function(it){return "• "+(it.servico||"Serviço")+": "+brl(itemVal(it,area));}).join("%0A");
-    var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A*Produtor:* "+P.produtor+"%0A"+
+    var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A"+
+      (P.apresentador?("*Apresentada por:* "+P.apresentador+"%0A"):"")+
+      "*Produtor:* "+P.produtor+"%0A"+
       (P.fazenda?("*Fazenda:* "+P.fazenda+"%0A"):"")+(P.local?("*Local:* "+P.local+"%0A"):"")+
       (area?("*Área:* "+area.toLocaleString('pt-BR')+" ha%0A"):"")+
       "%0A*Plano escolhido:* "+(pl.nome||"Plano")+"%0A"+linhas+"%0A%0A*Total:* "+brl(total)+"%0A%0APodemos seguir? 🌱";
-    window.location.href="https://wa.me/"+JUSARAH_WPP+"?text="+msg;
+    var waUrl="https://wa.me/"+JUSARAH_WPP+"?text="+msg;
+    var pnome=(P.produtor||"").split(' ')[0];
+    document.getElementById('celebra-h').textContent="Parabéns"+(pnome?(", "+pnome):"")+"! 🎉";
+    document.getElementById('celebra-p').textContent="Bora fazer a safra da "+(P.fazenda||"sua fazenda")+" voar! 🌱✈️";
+    document.getElementById('celebra-go').onclick=function(){ window.location.href=waUrl; };
+    document.getElementById('celebra').classList.add('show');
+    soltaConfete(); tocaSom();
+    setTimeout(function(){ window.location.href=waUrl; }, 6000);
+  }
+  function soltaConfete(){
+    var c=document.getElementById('confete'); c.width=innerWidth; c.height=innerHeight;
+    var ctx=c.getContext('2d'), cores=['#5FB130','#15803D','#2E86C1','#f5c518','#e74c3c','#ffffff'], ps=[];
+    for(var i=0;i<170;i++){ ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.6,r:6+Math.random()*8,col:cores[i%cores.length],vy:2+Math.random()*4,vx:-2.5+Math.random()*5,rot:Math.random()*6,vr:-.25+Math.random()*.5}); }
+    var t0=Date.now();
+    (function frame(){ ctx.clearRect(0,0,c.width,c.height);
+      ps.forEach(function(p){ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.vy+=.03; ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.col;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.62);ctx.restore(); });
+      if(Date.now()-t0<6000) requestAnimationFrame(frame); else ctx.clearRect(0,0,c.width,c.height);
+    })();
+  }
+  function tocaSom(){
+    try{ var AC=window.AudioContext||window.webkitAudioContext; var ac=new AC();
+      [523.25,659.25,783.99,1046.5,1318.5].forEach(function(f,i){ var o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
+        var t=ac.currentTime+i*0.12; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.28,t+0.03); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); });
+    }catch(e){}
   }
 </script>
 </body>
