@@ -169,11 +169,6 @@
         </div>
 
         <div class="q-field">
-          <label for="cpf">Seu CPF <span style="font-weight:400;color:var(--muted)">(opcional — pra já adiantar o contrato)</span></label>
-          <input type="text" id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00">
-        </div>
-
-        <div class="q-field">
           <label for="zap">Seu WhatsApp (Zap)</label>
           <input type="tel" id="zap" name="zap" placeholder="(69) 9 9999-9999">
         </div>
@@ -427,10 +422,9 @@
       return '';
     }
     function montaMsg(){
-      var email = val('email'), cpf = val('cpf'), prop = val('propriedade'), trats = tratsSel().join(', '), pista = pistaStr();
+      var email = val('email'), prop = val('propriedade'), trats = tratsSel().join(', '), pista = pistaStr();
       return "*Solicitação de orçamento — Jusarah*%0A%0A" +
         "*Nome:* "+val('nome') +
-        (cpf ? "%0A*CPF:* "+cpf : "") +
         "%0A*Zap:* "+val('zap') +
         (email ? "%0A*E-mail:* "+email : "") +
         (prop ? "%0A*Propriedade:* "+prop : "") +
@@ -510,7 +504,7 @@
         }
         var sabe = val('sabe-pista');
         await sb.from('solicitacoes').insert({
-          nome: val('nome'), cpf: val('cpf'), email: val('email'), telefone: val('zap'),
+          nome: val('nome'), email: val('email'), telefone: val('zap'),
           propriedade: val('propriedade'), coordenadas_area: geoCoords || null, hectares: (+ha.value) || null, croqui_url: croqui_url,
           sabe_pista: sabe === 'sim' ? true : (sabe === 'nao' ? false : null),
           coordenadas_pista: sabe === 'sim' ? (val('pista-coords') || null) : null,
