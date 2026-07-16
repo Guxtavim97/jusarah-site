@@ -180,6 +180,56 @@
     }
     @media(prefers-reduced-motion:reduce){.mascote__plane{animation:none}}
 
+    /* ====== DOCUMENTO A4 (só no PDF/impressão) ====== */
+    #doc{display:none}
+    .bar__pdf{background:none;border:1px solid var(--line);color:var(--ink-soft);border-radius:9px;padding:8px 12px;font-family:var(--font-head);font-weight:600;font-size:.82rem;cursor:pointer;margin-left:auto}
+    .bar__pdf:hover{background:var(--paper);border-color:var(--green-600)}
+    .bar__pdf + .bar__cta{margin-left:8px}
+    @media(max-width:560px){.bar__pdf{display:none}}
+
+    @media print{
+      @page{ size:A4; margin:14mm 15mm 12mm; }
+      html,body{background:#fff!important}
+      #app,.sticky-cta,#confete,#aviao,.celebra,.nf{display:none!important}
+      #doc{display:block!important}
+    }
+    #doc{
+      --ink:#12212e; --gold:#B0862F; --gold-l:#d9c48a; --deep:#0F3D24; --mut:#6b7b72; --rule:#e4ded2;
+      color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:10.5pt; line-height:1.55;
+    }
+    #doc *{ -webkit-print-color-adjust:exact; print-color-adjust:exact }
+    .d-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+    .d-logo{height:38px;width:auto}
+    .d-meta{text-align:right;line-height:1.4}
+    .d-tag{display:block;font-family:Georgia,serif;font-weight:700;font-size:13pt;color:var(--deep);letter-spacing:.02em}
+    .d-cod{display:block;font-size:8.5pt;color:var(--mut);font-variant-numeric:tabular-nums}
+    .d-rule{height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-l) 60%,transparent);margin:10px 0 22px}
+    .d-eyebrow{display:block;font-size:7.5pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+    #doc h1{font-family:Georgia,serif;font-size:24pt;line-height:1.15;color:var(--deep);margin:0 0 4px;font-weight:700}
+    .d-sub{margin:0;color:var(--mut);font-size:9.5pt}
+    .d-msg{margin:18px 0 22px;padding:10px 0 10px 16px;border-left:2.5px solid var(--gold);font-family:Georgia,serif;font-style:italic;font-size:11pt;color:#3a4a55;line-height:1.6}
+    .d-plano{border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin-bottom:12px;break-inside:avoid;page-break-inside:avoid}
+    .d-plano.rec{border-color:var(--gold);border-width:1.5px;background:#fdfbf6}
+    .d-plano__h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
+    .d-plano__nome{font-family:Georgia,serif;font-weight:700;font-size:14pt;color:var(--deep)}
+    .d-plano__badge{font-size:7pt;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--gold);border-radius:99px;padding:3px 9px;white-space:nowrap}
+    .d-plano__tag{margin:0 0 10px;font-size:9pt;color:var(--mut)}
+    .d-tab{width:100%;border-collapse:collapse;font-size:9.5pt}
+    .d-tab th{text-align:left;font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--rule);padding:0 0 5px}
+    .d-tab td{padding:6px 0;border-bottom:1px dotted var(--rule);vertical-align:top}
+    .d-tab .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .d-tab .d-det{color:var(--mut);font-size:8.5pt}
+    .d-tab tfoot td{border-bottom:none;border-top:1.5px solid var(--ink);padding-top:8px;font-weight:700}
+    .d-tot{font-family:Georgia,serif;font-size:15pt;color:var(--deep);font-weight:700}
+    .d-de{color:#b23b3b;font-size:8.5pt;font-weight:400;margin-right:6px}
+    .d-eco{display:inline-block;margin-top:6px;font-size:8pt;font-weight:700;color:var(--deep);background:#eef6f0;border:1px solid #d7e8dc;border-radius:99px;padding:3px 9px}
+    .d-val{margin:16px 0 0;font-size:9pt;color:var(--mut);text-align:center}
+    .d-termos{margin-top:20px;break-inside:avoid}
+    .d-termos h3{font-family:Georgia,serif;font-size:10.5pt;color:var(--deep);margin:0 0 6px}
+    .d-termos ul{margin:0;padding-left:16px;font-size:8.5pt;color:var(--mut);line-height:1.7}
+    .d-foot{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);font-size:7.5pt;color:var(--mut);line-height:1.6;text-align:center}
+    .d-foot b{color:var(--ink)}
+
     .nf{max-width:520px;margin:12vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:40px 30px;text-align:center}
     .nf h1{font-size:1.6rem;margin-bottom:10px}
     .nf p{color:var(--muted);margin-bottom:20px}
@@ -193,6 +243,7 @@
   <div class="bar"><div class="bar__in">
     <img class="bar__logo" src="assets/img/logo.png" alt="Jusarah">
     <span class="bar__tag" id="bar-tag"></span>
+    <button class="bar__pdf" id="btn-pdf" title="Salvar/enviar em PDF">📄 Baixar PDF</button>
     <button class="bar__cta" data-goplans>Ver planos</button>
   </div></div>
 
@@ -321,6 +372,44 @@
     <img src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
     Jusarah Agro Aérea · Cerejeiras–RO · Atendemos RO, MT, RR e AM<br>
     Proposta pessoal e confidencial. Registro ANAC · Registro MAPA.
+  </footer>
+</div>
+
+<!-- ====== DOCUMENTO A4 — aparece só no PDF/impressão ====== -->
+<div id="doc">
+  <header class="d-top">
+    <img class="d-logo" src="assets/img/logo.png" alt="Jusarah Agro Aérea">
+    <div class="d-meta">
+      <span class="d-tag">Proposta Comercial</span>
+      <span class="d-cod" id="d-cod"></span>
+    </div>
+  </header>
+  <div class="d-rule"></div>
+
+  <span class="d-eyebrow">Preparada para</span>
+  <h1 id="d-produtor"></h1>
+  <p class="d-sub" id="d-sub"></p>
+
+  <blockquote class="d-msg" id="d-msg" hidden></blockquote>
+
+  <div id="d-planos"></div>
+
+  <p class="d-val" id="d-val"></p>
+
+  <section class="d-termos">
+    <h3>Condições</h3>
+    <ul>
+      <li>Valores sujeitos a confirmação após vistoria da área.</li>
+      <li>A aplicação é realizada somente em condições climáticas seguras; havendo vento, temperatura ou umidade fora do ideal, a operação é remarcada.</li>
+      <li>Operação executada por empresa com registro na ANAC e no MAPA, com piloto e equipe capacitados.</li>
+      <li>Proposta pessoal e confidencial, destinada exclusivamente ao produtor identificado acima.</li>
+    </ul>
+  </section>
+
+  <footer class="d-foot">
+    <b>Jusarah Agro Aérea</b> · Estância Linha 02, Lote 09, nº 09 — Zona Rural · Cerejeiras–RO · 76997-000<br>
+    Registro ANAC nº 2022-11-00ND-01 · Registro MAPA nº RO 000541-0 · Atendemos RO, MT, RR e AM<br>
+    (69) 99325-7000 · financeiro@voejusarah.com · www.jusarah.com.br
   </footer>
 </div>
 
@@ -512,6 +601,52 @@
       var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.12});
       document.querySelectorAll('.reveal').forEach(function(r){io.observe(r);});
     } else { document.querySelectorAll('.reveal').forEach(function(r){r.classList.add('vis');}); }
+
+    // Documento A4 (PDF)
+    montaDoc(p);
+    var bp = document.getElementById('btn-pdf');
+    if(bp) bp.addEventListener('click', function(){ window.print(); });
+    if(new URLSearchParams(location.search).get('pdf')) setTimeout(function(){ window.print(); }, 1000);
+  }
+
+  /* Monta o documento A4 que sai no PDF (mesma proposta, formato de documento) */
+  function montaDoc(p){
+    var area = Number(p.area)||0;
+    var cod = (location.pathname.match(/\/p\/([^\/?#]+)/)||[])[1] || new URLSearchParams(location.search).get('p') || '';
+    document.getElementById('d-cod').textContent = (cod ? ('Nº '+cod+'  ·  ') : '') + new Date().toLocaleDateString('pt-BR');
+    document.getElementById('d-produtor').textContent = p.produtor || '';
+    var sub = [];
+    if(p.fazenda) sub.push(p.fazenda);
+    if(p.local) sub.push(p.local);
+    if(area) sub.push(area.toLocaleString('pt-BR')+' hectares');
+    document.getElementById('d-sub').textContent = sub.join('  ·  ');
+    if(p.mensagem){ var m=document.getElementById('d-msg'); m.textContent='“'+p.mensagem+'”'; m.hidden=false; }
+
+    var html = '';
+    (Array.isArray(p.planos)?p.planos:[]).forEach(function(pl){
+      var total=(pl.itens||[]).reduce(function(s,it){ return s+itemVal(it,area); },0);
+      var cheio=Math.ceil(total*1.15/10)*10, eco=cheio-total;
+      var linhas=(pl.itens||[]).map(function(it){
+        var ap=Math.max(1,parseInt(it.aplicacoes)||1), q=itemQtd(it,area), det=[];
+        if(it.vazao) det.push(esc(it.vazao));
+        if(it.unidade==='ha' && q) det.push(q.toLocaleString('pt-BR')+' ha');
+        if(ap>1) det.push(ap+'x aplicações');
+        return '<tr><td>'+esc(it.servico||'Serviço')+'</td><td class="d-det">'+det.join('  ·  ')+'</td><td class="r">'+brl(itemVal(it,area))+'</td></tr>';
+      }).join('');
+      html += '<div class="d-plano'+(pl.recomendado?' rec':'')+'">'+
+        '<div class="d-plano__h"><span class="d-plano__nome">'+esc(pl.nome||'Plano')+'</span>'+
+          (pl.recomendado?'<span class="d-plano__badge">Recomendado</span>':'')+'</div>'+
+        (pl.tagline?'<p class="d-plano__tag">'+esc(pl.tagline)+'</p>':'')+
+        '<table class="d-tab">'+
+          '<thead><tr><th>Aplicação</th><th>Detalhe</th><th class="r">Valor</th></tr></thead>'+
+          '<tbody>'+linhas+'</tbody>'+
+          '<tfoot><tr><td colspan="2">Total'+(eco>0?'<br><span class="d-eco">Economia de '+brl(eco)+'  ·  −15%</span>':'')+'</td>'+
+          '<td class="r"><span class="d-tot">'+(total>0?'<span class="d-de"><s>'+brl(cheio)+'</s></span>':'')+brl(total)+'</span></td></tr></tfoot>'+
+        '</table>'+
+      '</div>';
+    });
+    document.getElementById('d-planos').innerHTML = html;
+    document.getElementById('d-val').textContent = p.validade ? ('Proposta válida até '+fmtData(p.validade)+'.') : '';
   }
 
   function aceitar(pl,total,area){

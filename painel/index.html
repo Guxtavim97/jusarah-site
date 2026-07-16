@@ -1648,6 +1648,7 @@ async function loadPropostas(){
         '<td><div class="crm-acts">'+
           '<button title="Copiar link" class="crm-copy" data-link="'+esc(link)+'">🔗</button>'+
           '<a title="Abrir proposta" href="'+esc(link)+'" target="_blank" rel="noopener">👁</a>'+
+          '<a title="Baixar em PDF" href="'+esc(link+(link.indexOf('?')>=0?'&':'?')+'pdf=1')+'" target="_blank" rel="noopener">📄</a>'+
           '<button title="Reabordar no WhatsApp" class="crm-reab" data-id="'+p.id+'">📲</button>'+
           (podeApagar?'<button title="Excluir (só admin)" class="del crm-del" data-id="'+p.id+'">🗑️</button>':'')+
         '</div></td>'+
