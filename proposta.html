@@ -515,7 +515,14 @@
   }
 
   function aceitar(pl,total,area){
-    if(propId){ try{ sb.rpc('aceitar_proposta', { pid: propId, plano: (pl.nome || 'Plano') }); }catch(e){} }
+    /* .then() é obrigatório: o supabase-js só dispara a requisição quando a promise é consumida */
+    if(propId){
+      try{
+        sb.rpc('aceitar_proposta', { pid: propId, plano: (pl.nome || 'Plano') })
+          .then(function(r){ if(r && r.error) console.error('aceitar_proposta', r.error); },
+                function(e){ console.error('aceitar_proposta', e); });
+      }catch(e){ console.error(e); }
+    }
     var linhas=(pl.itens||[]).map(function(it){return "• "+(it.servico||"Serviço")+": "+brl(itemVal(it,area));}).join("%0A");
     var msg="✅ *Aceito a proposta da Jusarah!*%0A%0A"+
       (P.apresentador?("*Apresentada por:* "+P.apresentador+"%0A"):"")+

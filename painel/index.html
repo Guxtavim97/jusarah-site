@@ -262,6 +262,10 @@
   .crm-cli b{display:block;color:var(--ink)}
   .crm-cli span{font-size:.82rem;color:var(--muted)}
   .crm-val{font-weight:800;color:var(--green-d);white-space:nowrap}
+  .crm-status{border:1px solid #f0dcb0;border-radius:999px;padding:5px 10px;font-size:.76rem;font-weight:800;background:#fff3d6;color:#a06b00;font-family:inherit;cursor:pointer;max-width:180px}
+  .crm-status:hover{filter:brightness(.97)}
+  .crm-status:focus{outline:none;border-color:var(--green)}
+  .crm-status.is-ac{background:#e9f6ee;color:var(--green-d);border-color:#cfe9d6}
   .crm-acts{display:flex;gap:5px;justify-content:flex-end}
   .crm-acts a,.crm-acts button{border:1px solid var(--line);background:#fff;border-radius:9px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;font-size:1rem;text-decoration:none;color:inherit;padding:0;transition:background .12s,border-color .12s}
   .crm-acts a:hover,.crm-acts button:hover{background:var(--paper);border-color:var(--green)}
@@ -1627,10 +1631,14 @@ async function loadPropostas(){
       var ac = p.status==='aceita';
       var val = ac ? totalPlano(p, p.plano_aceito) : totalPlano(p, null);
       var link = p.codigo ? (location.origin+"/p/"+p.codigo) : (location.origin+"/proposta.html?id="+p.id);
+      var nomes = (p.planos||[]).map(function(pl){ return pl.nome || 'Plano'; });
+      if(ac && p.plano_aceito && nomes.indexOf(p.plano_aceito) < 0) nomes.push(p.plano_aceito);
+      var opts = '<option value=""'+(!ac?' selected':'')+'>Enviada</option>' +
+        nomes.map(function(nm){ return '<option value="'+esc(nm)+'"'+((ac && p.plano_aceito===nm)?' selected':'')+'>✓ Aceita: '+esc(nm)+'</option>'; }).join('');
       return '<tr>'+
         '<td class="crm-cli"><b>'+esc(p.produtor||'')+'</b><span>'+esc(p.fazenda||'')+'</span></td>'+
         '<td class="crm-val">'+brlN(val)+'</td>'+
-        '<td><span class="badge '+(ac?'ac':'en')+'">'+(ac?'Aceita ✓':'Enviada')+'</span></td>'+
+        '<td><select class="crm-status'+(ac?' is-ac':'')+'" data-id="'+p.id+'" title="Mudar o status da proposta">'+opts+'</select></td>'+
         '<td>'+dataBR(p.criado_em)+'</td>'+
         '<td><div class="crm-acts">'+
           '<button title="Copiar link" class="crm-copy" data-link="'+esc(link)+'">🔗</button>'+
@@ -1643,6 +1651,16 @@ async function loadPropostas(){
     lista.innerHTML = '<div class="crm-card"><div class="crm-wrap"><table class="crm-table"><thead><tr><th>Cliente</th><th>Valor</th><th>Status</th><th>Data</th><th style="text-align:right">Ações</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
   }
 
+  document.querySelectorAll('.crm-status').forEach(function(s){
+    s.addEventListener('change', async function(){
+      var v = s.value;
+      var patch = v ? { status:'aceita', plano_aceito:v } : { status:'enviada', plano_aceito:null };
+      var r = await sb.from('propostas').update(patch).eq('id', s.getAttribute('data-id'));
+      if(r.error){ toast('Erro ao mudar o status: '+r.error.message, 'err'); }
+      else { toast(v ? ('Marcada como aceita ✓ (' + v + ')') : 'Voltou para enviada', 'ok'); }
+      loadPropostas();
+    });
+  });
   document.querySelectorAll('.lead-fazer').forEach(function(b){ b.addEventListener('click', function(){ abreFormNova(PROP_LEADS[parseInt(b.getAttribute('data-i'))]); }); });
   document.querySelectorAll('.crm-copy').forEach(function(b){ b.addEventListener('click', function(){ var l=b.getAttribute('data-link'); if(navigator.clipboard){ navigator.clipboard.writeText(l).then(function(){ toast('Link copiado! ✓','ok'); }); } else toast(l); }); });
   document.querySelectorAll('.crm-reab').forEach(function(b){ b.addEventListener('click', function(){ reabordar(props.filter(function(x){return x.id===b.getAttribute('data-id');})[0]); }); });
