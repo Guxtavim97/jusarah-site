@@ -216,7 +216,7 @@
   <section class="sec sec--dark"><div class="wrap reveal">
     <div class="sec__num">02 — QUEM VOA COM VOCÊ</div>
     <h2>Seriedade e proximidade em cada voo.</h2>
-    <p class="sec__lead">Desde 2020, a Jusarah leva tecnologia de aplicação aérea ao produtor do Norte do país. Somos de Cerejeiras–RO e conhecemos de perto quem planta em Rondônia, Mato Grosso e Acre. Segurança, capacitação e responsabilidade em cada voo.</p>
+    <p class="sec__lead">Desde 2020, a Jusarah leva tecnologia de aplicação aérea ao produtor do Norte do país. Somos de Cerejeiras–RO e conhecemos de perto quem planta em Rondônia, Mato Grosso, Roraima e Amazonas. Segurança, capacitação e responsabilidade em cada voo.</p>
     <div class="stats">
       <div class="stat"><b>2,5 mi</b><span>hectares tratados</span></div>
       <div class="stat"><b>12.500</b><span>horas de voo</span></div>
@@ -319,7 +319,7 @@
 
   <footer class="foot">
     <img src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
-    Jusarah Agro Aérea · Cerejeiras–RO · Atendemos RO, MT e AC<br>
+    Jusarah Agro Aérea · Cerejeiras–RO · Atendemos RO, MT, RR e AM<br>
     Proposta pessoal e confidencial. Registro ANAC · Registro MAPA.
   </footer>
 </div>
@@ -466,18 +466,15 @@
     wrap.className='plans plans--'+Math.min(planos.length,3);
     planos.forEach(function(pl){
       var total=(pl.itens||[]).reduce(function(s,it){return s+itemVal(it,area);},0);
-      var planHa=(pl.itens||[]).reduce(function(s,it){ return s + (it.unidade==='ha' ? itemQtd(it,area) : 0); },0);
       var cheio=Math.ceil(total*1.15/10)*10, economia=cheio-total;
       var card=document.createElement('div');
       card.className='plan'+(pl.recomendado?' rec':'');
       var lis=(pl.itens||[]).map(function(){return '<li><span class="pl-lab"></span><b></b></li>';}).join('');
-      var perha=planHa>0?('≈ '+brl(total/planHa)+' por hectare'):(area>0?('≈ '+brl(total/area)+' por hectare'):'');
       card.innerHTML=(pl.recomendado?'<div class="plan__badge">⭐ Recomendado</div>':'')+
         '<div class="plan__name"></div><div class="plan__tag"></div>'+
         '<div class="plan__price">'+
           (total>0?'<span class="plan__from">de <s>'+brl(cheio)+'</s> por</span>':'')+
           '<div class="plan__total">'+brl(total)+'</div>'+
-          (perha?'<div class="plan__perha">'+perha+'</div>':'')+
           (economia>0?'<span class="plan__save">🌱 você economiza '+brl(economia)+' &nbsp;·&nbsp; −15%</span>':'')+
         '</div>'+
         '<ul class="plan__items">'+lis+'</ul>'+

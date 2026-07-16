@@ -216,7 +216,8 @@
               <option value="">Escolha o estado</option>
               <option value="RO">Rondônia</option>
               <option value="MT">Mato Grosso</option>
-              <option value="AC">Acre</option>
+              <option value="RR">Roraima</option>
+              <option value="AM">Amazonas</option>
             </select>
             <select id="cidade" name="cidade" disabled>
               <option>Escolha o estado antes</option>
@@ -342,7 +343,8 @@
     var cidades = {
       RO:["Cerejeiras","Vilhena","Colorado do Oeste","Cabixi","Corumbiara","Pimenteiras do Oeste","Chupinguaia","Porto Velho","Ji-Paraná","Ariquemes","Cacoal","Rolim de Moura"],
       MT:["Cuiabá","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Primavera do Leste","Campo Novo do Parecis","Sapezal","Nova Mutum","Tangará da Serra","Campo Verde","Diamantino"],
-      AC:["Rio Branco","Cruzeiro do Sul","Sena Madureira","Feijó","Brasiléia","Tarauacá","Senador Guiomard","Plácido de Castro"]
+      RR:["Boa Vista","Cantá","Bonfim","Mucajaí","Alto Alegre","Caracaraí","Rorainópolis","Amajari","Iracema","Normandia","Pacaraima","São Luiz"],
+      AM:["Humaitá","Apuí","Lábrea","Boca do Acre","Canutama","Manicoré","Manaus","Itacoatiara","Presidente Figueiredo","Autazes","Careiro","Rio Preto da Eva","Parintins"]
     };
     var ha = document.getElementById('ha'), haVal = document.getElementById('ha-val');
     function fmtHa(v){ v = Math.round(v/10)*10; return v>=5000 ? "5.000+ ha" : v.toLocaleString('pt-BR')+" ha"; }
