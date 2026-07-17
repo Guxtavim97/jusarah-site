@@ -271,6 +271,32 @@
   .faz__acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .cli-dados{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   @media(max-width:620px){.cli-dados{grid-template-columns:1fr}}
+  /* Contatos */
+  .ct{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:7px;flex-wrap:wrap}
+  .ct__i{flex:1;min-width:150px}
+  .ct__i b{color:var(--ink);display:block;font-size:.96rem}
+  .ct__i span{font-size:.82rem;color:var(--muted)}
+  .ct__b{display:flex;gap:5px;flex-wrap:wrap}
+  .cbadge{font-size:.68rem;font-weight:800;border-radius:999px;padding:3px 8px;white-space:nowrap;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--muted)}
+  .cbadge.on-a{background:#fdf3e0;color:#a06b00;border-color:#f0dcb0}
+  .cbadge.on-p{background:#eef4fd;color:var(--blue);border-color:#d6e4f8}
+  .cbadge:hover{filter:brightness(.96)}
+  .ct__x{border:none;background:#fdf2f2;color:#c0392b;border-radius:8px;cursor:pointer;padding:5px 9px;font-size:.85rem}
+  .ct-form{background:#fff;border:2px dashed var(--line);border-radius:11px;padding:12px;margin-top:8px}
+  .ct-form .cli-dados{margin-bottom:10px}
+  /* Linha do tempo */
+  .tl{position:relative;padding-left:22px}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .tl__i{position:relative;padding:0 0 14px}
+  .tl__i:last-child{padding-bottom:0}
+  .tl__d{position:absolute;left:-19px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-size:.6rem}
+  .tl__i.ok .tl__d{border-color:var(--green);background:#e9f6ee}
+  .tl__i.hot .tl__d{border-color:var(--blue);background:#eef4fd}
+  .tl__t{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tl__h{color:var(--ink);font-weight:700;font-size:.94rem}
+  .tl__s{font-size:.85rem;color:var(--muted)}
+  .tl__v{font-weight:800;color:var(--green-d);font-size:.88rem}
+  .tl-add{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
   .cli-dados label{font-size:.75rem;font-weight:700;color:var(--muted);display:block;margin-bottom:3px}
   .cli-dados input{width:100%;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:.92rem;font-family:inherit;background:#fff}
   .cli-dados input:focus{outline:none;border-color:var(--green)}
@@ -1765,17 +1791,29 @@ function iniciais(n){
   var p = String(n||'?').trim().split(/\s+/);
   return (((p[0]||'')[0]||'?') + (p.length>1 ? (p[p.length-1][0]||'') : '')).toUpperCase();
 }
+var CLI_OPEN = {};
+var EV_IC = { solicitacao:'🌱', proposta:'📄', aceite:'✅', ligacao:'📞', visita:'🚜', nota:'📝', documento:'📎' };
+function dataHora(iso){
+  if(!iso) return '';
+  var d = new Date(iso);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' · ' +
+         d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
 async function loadClientes(){
   var box = $("clientes-lista"); if(!box) return;
   box.innerHTML = '<div class="empty">Carregando…</div>';
   var rc = await sb.from('clientes').select('*').order('nome');
   if(rc.error){ box.innerHTML = '<div class="empty">Erro ao carregar: '+rc.error.message+'</div>'; return; }
   var rp  = await sb.from('propriedades').select('*');
+  var rct = await sb.from('contatos').select('*').order('principal', { ascending:false });
+  var rev = await sb.from('eventos').select('*').order('criado_em', { ascending:false });
   var rpr = await sb.from('propostas').select('*').order('criado_em', { ascending:false });
-  var fz = (rp && rp.data) || [], pp = (rpr && rpr.data) || [];
+  var fz = (rp && rp.data)||[], ct = (rct && rct.data)||[], ev = (rev && rev.data)||[], pp = (rpr && rpr.data)||[];
   CLIENTES = (rc.data||[]).map(function(c){
     return { c:c,
       fz: fz.filter(function(f){ return f.cliente_id === c.id; }),
+      ct: ct.filter(function(t){ return t.cliente_id === c.id; }),
+      ev: ev.filter(function(e){ return e.cliente_id === c.id; }),
       pp: pp.filter(function(p){ return p.cliente_id === c.id; }) };
   });
   renderClientes();
@@ -1784,7 +1822,9 @@ function renderClientes(){
   var box = $("clientes-lista"), q = norm($("cli-busca").value || '');
   var lista = CLIENTES.filter(function(x){
     if(!q) return true;
-    var alvo = norm(x.c.nome) + norm(x.c.telefone) + norm(x.c.cpf_cnpj) + x.fz.map(function(f){ return norm(f.nome); }).join('');
+    var alvo = norm(x.c.nome) + norm(x.c.razao_social) + norm(x.c.cpf_cnpj) +
+      x.fz.map(function(f){ return norm(f.nome); }).join('') +
+      x.ct.map(function(t){ return norm(t.nome) + norm(t.telefone); }).join('');
     return alvo.indexOf(q) >= 0;
   });
   if(!lista.length){
@@ -1801,15 +1841,18 @@ function cardCliente(x){
   var receita = aceitas.reduce(function(s,p){ return s + totalPlano(p, p.plano_aceito); }, 0);
   var hect = x.fz.reduce(function(s,f){ return s + (Number(f.hectares)||0); }, 0);
 
-  var tags = '';
+  var TIPO_L = { fisica:'👤 Pessoa Física', juridica:'🏢 Pessoa Jurídica', publico:'🏛️ Órgão Público' };
+  var tags = '<span class="ctag">'+(TIPO_L[c.tipo]||TIPO_L.fisica)+'</span>';
+  if(x.ct.length)   tags += '<span class="ctag">'+x.ct.length+' contato'+(x.ct.length>1?'s':'')+'</span>';
   if(x.fz.length)   tags += '<span class="ctag">'+x.fz.length+' fazenda'+(x.fz.length>1?'s':'')+'</span>';
   if(hect)          tags += '<span class="ctag">'+hect.toLocaleString('pt-BR')+' ha</span>';
   if(x.pp.length)   tags += '<span class="ctag rev">'+x.pp.length+' proposta'+(x.pp.length>1?'s':'')+'</span>';
   if(aceitas.length)tags += '<span class="ctag ok">✓ '+brlN(receita)+'</span>';
 
+  var princ = x.ct.filter(function(t){ return t.principal; })[0] || x.ct[0];
   var sub = [];
-  if(c.telefone) sub.push(esc(c.telefone));
-  if(c.email)    sub.push(esc(c.email));
+  if(princ){ sub.push('<b style="color:var(--ink)">'+esc(princ.nome)+'</b>' + (princ.cargo?(' ('+esc(princ.cargo)+')'):'')); if(princ.telefone) sub.push(esc(princ.telefone)); }
+  else if(c.telefone) sub.push(esc(c.telefone));
 
   var fzHtml = x.fz.length ? x.fz.map(function(f){
     var det = [];
@@ -1835,47 +1878,189 @@ function cardCliente(x){
       '<td><div class="crm-acts"><a title="Abrir proposta" href="'+esc(link)+'" target="_blank" rel="noopener">👁</a></div></td></tr>';
   }).join('') + '</tbody></table></div></div>' : '<div class="empty" style="padding:12px">Nenhuma proposta ainda.</div>';
 
-  var num = c.telefone ? ('55'+digits(c.telefone)) : '';
-  return '<div class="cli" data-id="'+c.id+'">' +
+  // ---- Contatos ----
+  var ctHtml = x.ct.map(function(t){
+    var s = [];
+    if(t.cargo) s.push(esc(t.cargo));
+    if(t.telefone) s.push(esc(t.telefone));
+    if(t.email) s.push(esc(t.email));
+    var n = t.telefone ? ('55'+digits(t.telefone)) : '';
+    return '<div class="ct" data-ct="'+t.id+'">' +
+      '<span class="ct__i"><b>'+esc(t.nome)+'</b><span>'+s.join(' · ')+'</span></span>' +
+      '<span class="ct__b">' +
+        '<button class="cbadge ct-tog'+(t.principal?' on-p':'')+'" data-f="principal" title="Contato do dia a dia">📌 principal</button>' +
+        '<button class="cbadge ct-tog'+(t.assina?' on-a':'')+'" data-f="assina" title="Representante legal — quem assina o contrato">⭐ assina</button>' +
+      '</span>' +
+      (n ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+n+'" title="WhatsApp">📲</a>' : '') +
+      '<button class="ct__x ct-mv" title="Mover para outro cliente">⇄</button>' +
+      '<button class="ct__x ct-del" title="Remover contato">✕</button>' +
+      '<select class="ct-sel hidden" style="width:100%;margin-top:6px;padding:8px;border:2px solid var(--line);border-radius:9px;font-family:inherit"></select>' +
+    '</div>';
+  }).join('');
+
+  // ---- Linha do tempo ----
+  var tlHtml = x.ev.length ? '<div class="tl">' + x.ev.map(function(e){
+    var cls = e.tipo==='aceite' ? ' ok' : (e.tipo==='proposta' ? ' hot' : '');
+    return '<div class="tl__i'+cls+'"><span class="tl__d">'+(EV_IC[e.tipo]||'•')+'</span>' +
+      '<div class="tl__t">'+dataHora(e.criado_em)+'</div>' +
+      '<div class="tl__h">'+esc(e.titulo)+(e.valor?' <span class="tl__v">'+brlN(e.valor)+'</span>':'')+'</div>' +
+      (e.detalhe?'<div class="tl__s">'+esc(e.detalhe)+'</div>':'') +
+    '</div>';
+  }).join('') + '</div>' : '<div class="empty" style="padding:12px">Nada registrado ainda.</div>';
+
+  return '<div class="cli'+(CLI_OPEN[c.id]?' open':'')+'" data-id="'+c.id+'">' +
     '<div class="cli__head"><span class="cli__av">'+esc(iniciais(c.nome))+'</span>' +
       '<span class="cli__info"><b>'+esc(c.nome)+'</b><span>'+sub.join(' · ')+'</span></span>' +
       '<span class="cli__tags">'+tags+'</span><span class="cli__arrow">▶</span></div>' +
     '<div class="cli__body">' +
       '<p class="cli__sec">Dados do cliente</p>' +
       '<div class="cli-dados">' +
-        '<div><label>Nome</label><input class="cd-nome" type="text" value="'+esc(c.nome||'')+'"></div>' +
-        '<div><label>CPF / CNPJ</label><input class="cd-cpf" type="text" value="'+esc(c.cpf_cnpj||'')+'" placeholder="só quando ele passar"></div>' +
-        '<div><label>WhatsApp</label><input class="cd-fone" type="text" value="'+esc(c.telefone||'')+'"></div>' +
+        '<div><label>Tipo</label><select class="cd-tipo">' +
+          ['fisica','juridica','publico'].map(function(t){ return '<option value="'+t+'"'+((c.tipo||'fisica')===t?' selected':'')+'>'+TIPO_L[t]+'</option>'; }).join('') +
+        '</select></div>' +
+        '<div><label>Nome (como vocês chamam)</label><input class="cd-nome" type="text" value="'+esc(c.nome||'')+'"></div>' +
+        '<div><label>Razão social <span style="font-weight:400">(vai no contrato)</span></label><input class="cd-rs" type="text" value="'+esc(c.razao_social||'')+'" placeholder="só p/ empresa e órgão"></div>' +
+        '<div><label>CPF / CNPJ</label><input class="cd-cpf" type="text" value="'+esc(c.cpf_cnpj||'')+'"></div>' +
+        '<div><label>Inscrição Estadual</label><input class="cd-ie" type="text" value="'+esc(c.inscricao_estadual||'')+'"></div>' +
         '<div><label>E-mail</label><input class="cd-mail" type="text" value="'+esc(c.email||'')+'"></div>' +
       '</div>' +
-      '<div class="faz__acts" style="margin-top:10px">' +
-        '<button class="btn btn--green btn--sm cli-save">Salvar dados</button>' +
-        (num ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+num+'">📲 WhatsApp</a>' : '') +
+      '<div class="faz__acts" style="margin-top:10px"><button class="btn btn--green btn--sm cli-save">Salvar dados</button></div>' +
+
+      '<p class="cli__sec">👥 Contatos <span style="font-weight:400;text-transform:none;letter-spacing:0">— 📌 principal = quem fala no dia a dia · ⭐ assina = quem assina o contrato</span></p>' +
+      (ctHtml || '<div class="empty" style="padding:12px">Nenhum contato.</div>') +
+      '<button class="btn btn--ghost btn--sm ct-new" style="margin-top:6px">+ Adicionar contato</button>' +
+      '<div class="ct-form hidden">' +
+        '<div class="cli-dados">' +
+          '<div><label>Nome</label><input class="nc-nome" type="text" placeholder="Ex: Carlos Souza"></div>' +
+          '<div><label>Cargo</label><input class="nc-cargo" type="text" placeholder="Ex: Gerente, Agrônomo"></div>' +
+          '<div><label>WhatsApp</label><input class="nc-fone" type="text" placeholder="(69) 9 9999-9999"></div>' +
+          '<div><label>E-mail</label><input class="nc-mail" type="text"></div>' +
+        '</div>' +
+        '<button class="btn btn--green btn--sm ct-save">Salvar contato</button> ' +
+        '<button class="btn btn--ghost btn--sm ct-cancel">Cancelar</button>' +
       '</div>' +
-      '<p class="cli__sec">Fazendas</p>' + fzHtml +
-      '<p class="cli__sec">Propostas</p>' + ppHtml +
+
+      '<p class="cli__sec">🌾 Fazendas</p>' + fzHtml +
+
+      '<p class="cli__sec">📅 Histórico</p>' +
+      '<div class="tl-add">' +
+        '<button class="btn btn--ghost btn--sm ev-add" data-t="nota">📝 Anotação</button>' +
+        '<button class="btn btn--ghost btn--sm ev-add" data-t="ligacao">📞 Ligação</button>' +
+        '<button class="btn btn--ghost btn--sm ev-add" data-t="visita">🚜 Visita</button>' +
+      '</div>' + tlHtml +
+
+      '<p class="cli__sec">📄 Propostas</p>' + ppHtml +
     '</div></div>';
 }
 function wireClientes(){
   document.querySelectorAll('.cli__head').forEach(function(h){
     h.addEventListener('click', function(e){
-      if(e.target.closest('a,button,input')) return;
-      h.closest('.cli').classList.toggle('open');
+      if(e.target.closest('a,button,input,select')) return;
+      var card = h.closest('.cli');
+      card.classList.toggle('open');
+      CLI_OPEN[card.getAttribute('data-id')] = card.classList.contains('open');
     });
   });
+
+  // salvar dados do cliente
   document.querySelectorAll('.cli-save').forEach(function(b){
     b.addEventListener('click', async function(){
-      var card = b.closest('.cli'), id = card.getAttribute('data-id');
+      var card = b.closest('.cli');
       b.disabled = true; b.textContent = 'Salvando…';
       var r = await sb.from('clientes').update({
-        nome:      card.querySelector('.cd-nome').value.trim() || '(sem nome)',
-        cpf_cnpj:  card.querySelector('.cd-cpf').value.trim() || null,
-        telefone:  card.querySelector('.cd-fone').value.trim() || null,
-        email:     card.querySelector('.cd-mail').value.trim() || null
-      }).eq('id', id);
+        tipo:               card.querySelector('.cd-tipo').value,
+        nome:               card.querySelector('.cd-nome').value.trim() || '(sem nome)',
+        razao_social:       card.querySelector('.cd-rs').value.trim() || null,
+        cpf_cnpj:           card.querySelector('.cd-cpf').value.trim() || null,
+        inscricao_estadual: card.querySelector('.cd-ie').value.trim() || null,
+        email:              card.querySelector('.cd-mail').value.trim() || null
+      }).eq('id', card.getAttribute('data-id'));
       b.disabled = false; b.textContent = 'Salvar dados';
       if(r.error) toast('Erro ao salvar: '+r.error.message, 'err');
       else { toast('Cliente atualizado ✓', 'ok'); loadClientes(); }
+    });
+  });
+
+  // 📌 principal / ⭐ assina
+  document.querySelectorAll('.ct-tog').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var row = b.closest('.ct'), campo = b.getAttribute('data-f');
+      var liga = !b.classList.contains(campo==='principal' ? 'on-p' : 'on-a');
+      var card = b.closest('.cli'), cliId = card.getAttribute('data-id');
+      // só um principal / um que assina por cliente
+      if(liga){ await sb.from('contatos').update({ [campo]: false }).eq('cliente_id', cliId); }
+      var r = await sb.from('contatos').update({ [campo]: liga }).eq('id', row.getAttribute('data-ct'));
+      if(r.error) toast('Erro: '+r.error.message, 'err'); else loadClientes();
+    });
+  });
+
+  // ⇄ mover contato pra outro cliente
+  document.querySelectorAll('.ct-mv').forEach(function(b){
+    b.addEventListener('click', function(){
+      var row = b.closest('.ct'), sel = row.querySelector('.ct-sel');
+      var atual = b.closest('.cli').getAttribute('data-id');
+      if(!sel.options.length){
+        sel.innerHTML = '<option value="">mover este contato para…</option>' +
+          CLIENTES.filter(function(x){ return x.c.id !== atual; })
+                  .map(function(x){ return '<option value="'+x.c.id+'">'+esc(x.c.nome)+'</option>'; }).join('');
+        sel.addEventListener('change', async function(){
+          if(!sel.value) return;
+          var r = await sb.from('contatos').update({ cliente_id: sel.value }).eq('id', row.getAttribute('data-ct'));
+          if(r.error) toast('Erro: '+r.error.message, 'err');
+          else { toast('Contato movido ✓', 'ok'); CLI_OPEN[sel.value] = true; loadClientes(); }
+        });
+      }
+      sel.classList.toggle('hidden');
+    });
+  });
+
+  // ✕ remover contato
+  document.querySelectorAll('.ct-del').forEach(function(b){
+    b.addEventListener('click', async function(){
+      if(!confirm('Remover este contato?')) return;
+      var r = await sb.from('contatos').delete().eq('id', b.closest('.ct').getAttribute('data-ct'));
+      if(r.error) toast('Erro: '+r.error.message, 'err'); else { toast('Contato removido', 'ok'); loadClientes(); }
+    });
+  });
+
+  // + adicionar contato
+  document.querySelectorAll('.ct-new').forEach(function(b){
+    b.addEventListener('click', function(){ b.closest('.cli__body').querySelector('.ct-form').classList.remove('hidden'); b.classList.add('hidden'); });
+  });
+  document.querySelectorAll('.ct-cancel').forEach(function(b){
+    b.addEventListener('click', function(){ var body = b.closest('.cli__body'); body.querySelector('.ct-form').classList.add('hidden'); body.querySelector('.ct-new').classList.remove('hidden'); });
+  });
+  document.querySelectorAll('.ct-save').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var f = b.closest('.ct-form'), card = b.closest('.cli');
+      var nome = f.querySelector('.nc-nome').value.trim();
+      if(!nome){ toast('Coloque o nome do contato.', 'err'); return; }
+      b.disabled = true;
+      var r = await sb.from('contatos').insert({
+        cliente_id: card.getAttribute('data-id'), nome: nome,
+        cargo:    f.querySelector('.nc-cargo').value.trim() || null,
+        telefone: f.querySelector('.nc-fone').value.trim() || null,
+        email:    f.querySelector('.nc-mail').value.trim() || null
+      });
+      b.disabled = false;
+      if(r.error) toast(/duplicate|unique/i.test(r.error.message) ? 'Esse telefone já é de outro contato no sistema.' : ('Erro: '+r.error.message), 'err');
+      else { toast('Contato adicionado ✓', 'ok'); loadClientes(); }
+    });
+  });
+
+  // 📝 anotação / 📞 ligação / 🚜 visita
+  document.querySelectorAll('.ev-add').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var tipo = b.getAttribute('data-t');
+      var lbl = { nota:'Anotação', ligacao:'Ligação', visita:'Visita' }[tipo];
+      var txt = prompt(lbl + ' — o que aconteceu?');
+      if(!txt || !txt.trim()) return;
+      var r = await sb.from('eventos').insert({
+        cliente_id: b.closest('.cli').getAttribute('data-id'),
+        tipo: tipo, titulo: lbl, detalhe: txt.trim(), criado_por: usuario.id
+      });
+      if(r.error) toast('Erro: '+r.error.message, 'err');
+      else { toast(lbl+' registrada ✓', 'ok'); loadClientes(); }
     });
   });
 }
