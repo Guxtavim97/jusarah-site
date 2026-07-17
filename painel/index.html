@@ -242,6 +242,39 @@
   .dash-h{font-family:var(--font-head);font-weight:700;margin:22px 0 10px;color:var(--ink);display:flex;align-items:center;gap:8px}
   .dash-h .cnt{font-size:.78rem;font-weight:700;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
 
+  /* CRM — Clientes */
+  .cli-busca{padding:9px 13px;border:2px solid var(--line);border-radius:10px;font-size:.92rem;font-family:inherit;min-width:250px;background:#fff}
+  .cli-busca:focus{outline:none;border-color:var(--green)}
+  @media(max-width:620px){.cli-busca{min-width:0;flex:1}}
+  .cli{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:10px;overflow:hidden}
+  .cli__head{display:flex;gap:12px;align-items:center;padding:14px 16px;cursor:pointer;flex-wrap:wrap}
+  .cli__head:hover{background:var(--paper)}
+  .cli__av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--green-v));color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:.95rem;flex:none}
+  .cli__info{flex:1;min-width:150px}
+  .cli__info b{display:block;color:var(--ink);font-size:1.02rem}
+  .cli__info span{font-size:.83rem;color:var(--muted)}
+  .cli__tags{display:flex;gap:6px;flex-wrap:wrap}
+  .ctag{font-size:.72rem;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--paper);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+  .ctag.ok{background:#e9f6ee;color:var(--green-d);border-color:#cfe9d6}
+  .ctag.rev{background:#eef4fd;color:var(--blue);border-color:#d6e4f8}
+  .cli__arrow{color:var(--muted);font-size:.85rem;transition:transform .2s;flex:none}
+  .cli.open .cli__arrow{transform:rotate(90deg)}
+  .cli__body{display:none;border-top:1px solid var(--line);padding:16px;background:var(--paper)}
+  .cli.open .cli__body{display:block}
+  .cli__sec{font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  .cli__sec:not(:first-child){margin-top:18px}
+  .faz{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:8px}
+  .faz__t{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .faz__t b{color:var(--ink)}
+  .faz__t span{font-size:.82rem;color:var(--muted)}
+  .faz__acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .cli-dados{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:620px){.cli-dados{grid-template-columns:1fr}}
+  .cli-dados label{font-size:.75rem;font-weight:700;color:var(--muted);display:block;margin-bottom:3px}
+  .cli-dados input{width:100%;padding:9px 11px;border:2px solid var(--line);border-radius:9px;font-size:.92rem;font-family:inherit;background:#fff}
+  .cli-dados input:focus{outline:none;border-color:var(--green)}
+
   /* CRM — Propostas */
   .form-topbar{display:flex;align-items:center;justify-content:space-between;margin:-2px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
   .form-topbar b{font-size:1.12rem}
@@ -365,6 +398,7 @@
       <button class="tab is-active" data-tab="posts" data-min="1">Notícias & Eventos</button>
       <button class="tab" data-tab="projeto" data-min="1">Semeando Esperança</button>
       <button class="tab" data-tab="rotina" data-min="1">Nossa Rotina</button>
+      <button class="tab" data-tab="clientes" data-min="2">Clientes 👥</button>
       <button class="tab" data-tab="propostas" data-min="2">Propostas 💰</button>
       <button class="tab" data-tab="dashboard" data-min="3">Dashboard 📊</button>
       <button class="tab" data-tab="usuarios" data-min="3">Usuários 🔐<span class="tab-badge hidden" id="badge-pend">0</span></button>
@@ -515,6 +549,17 @@
           <button class="btn btn--green" id="btn-save-rotina">Salvar alterações</button>
         </div>
       </div>
+    </section>
+
+    <!-- PAINEL: CLIENTES -->
+    <section class="panel" id="panel-clientes">
+      <div class="head-row">
+        <h2>Clientes</h2>
+        <div class="spacer"></div>
+        <input type="text" id="cli-busca" class="cli-busca" placeholder="🔎 Buscar por nome, fazenda ou telefone…">
+        <button class="btn btn--ghost btn--sm" id="btn-cli-reload">↻</button>
+      </div>
+      <div id="clientes-lista"><div class="empty">Carregando…</div></div>
     </section>
 
     <!-- PAINEL: PROPOSTAS -->
@@ -1711,6 +1756,133 @@ $("btn-nova-prop").addEventListener("click", function(){ abreFormNova(null); });
 $("btn-fechar-prop").addEventListener("click", function(){ $("form-nova-prop").classList.add('hidden'); });
 var _tabDash = document.querySelector('.tab[data-tab="dashboard"]');
 if(_tabDash) _tabDash.addEventListener('click', loadDashboard);
+
+/* ============================================================
+   CLIENTES (N2+) — ficha: dados, fazendas (croqui/mapa) e histórico
+   ============================================================ */
+var CLIENTES = [];
+function iniciais(n){
+  var p = String(n||'?').trim().split(/\s+/);
+  return (((p[0]||'')[0]||'?') + (p.length>1 ? (p[p.length-1][0]||'') : '')).toUpperCase();
+}
+async function loadClientes(){
+  var box = $("clientes-lista"); if(!box) return;
+  box.innerHTML = '<div class="empty">Carregando…</div>';
+  var rc = await sb.from('clientes').select('*').order('nome');
+  if(rc.error){ box.innerHTML = '<div class="empty">Erro ao carregar: '+rc.error.message+'</div>'; return; }
+  var rp  = await sb.from('propriedades').select('*');
+  var rpr = await sb.from('propostas').select('*').order('criado_em', { ascending:false });
+  var fz = (rp && rp.data) || [], pp = (rpr && rpr.data) || [];
+  CLIENTES = (rc.data||[]).map(function(c){
+    return { c:c,
+      fz: fz.filter(function(f){ return f.cliente_id === c.id; }),
+      pp: pp.filter(function(p){ return p.cliente_id === c.id; }) };
+  });
+  renderClientes();
+}
+function renderClientes(){
+  var box = $("clientes-lista"), q = norm($("cli-busca").value || '');
+  var lista = CLIENTES.filter(function(x){
+    if(!q) return true;
+    var alvo = norm(x.c.nome) + norm(x.c.telefone) + norm(x.c.cpf_cnpj) + x.fz.map(function(f){ return norm(f.nome); }).join('');
+    return alvo.indexOf(q) >= 0;
+  });
+  if(!lista.length){
+    box.innerHTML = '<div class="empty">' + (q ? 'Nenhum cliente encontrado.' :
+      'Nenhum cliente ainda. Eles entram sozinhos quando alguém pede orçamento no site — ou quando você gera uma proposta.') + '</div>';
+    return;
+  }
+  box.innerHTML = lista.map(cardCliente).join('');
+  wireClientes();
+}
+function cardCliente(x){
+  var c = x.c;
+  var aceitas = x.pp.filter(function(p){ return p.status === 'aceita'; });
+  var receita = aceitas.reduce(function(s,p){ return s + totalPlano(p, p.plano_aceito); }, 0);
+  var hect = x.fz.reduce(function(s,f){ return s + (Number(f.hectares)||0); }, 0);
+
+  var tags = '';
+  if(x.fz.length)   tags += '<span class="ctag">'+x.fz.length+' fazenda'+(x.fz.length>1?'s':'')+'</span>';
+  if(hect)          tags += '<span class="ctag">'+hect.toLocaleString('pt-BR')+' ha</span>';
+  if(x.pp.length)   tags += '<span class="ctag rev">'+x.pp.length+' proposta'+(x.pp.length>1?'s':'')+'</span>';
+  if(aceitas.length)tags += '<span class="ctag ok">✓ '+brlN(receita)+'</span>';
+
+  var sub = [];
+  if(c.telefone) sub.push(esc(c.telefone));
+  if(c.email)    sub.push(esc(c.email));
+
+  var fzHtml = x.fz.length ? x.fz.map(function(f){
+    var det = [];
+    if(f.hectares) det.push(Number(f.hectares).toLocaleString('pt-BR')+' ha');
+    if(f.cultura)  det.push(esc(f.cultura));
+    if(f.local)    det.push(esc(f.local));
+    var a = '';
+    if(f.coordenadas)       a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://maps.google.com/?q='+esc(f.coordenadas)+'">📍 Mapa</a>';
+    if(f.croqui_url)        a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="'+esc(f.croqui_url)+'">📎 Croqui</a>';
+    if(f.coordenadas_pista) a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://maps.google.com/?q='+esc(f.coordenadas_pista)+'">🛬 Pista</a>';
+    else if(f.sabe_pista === false) a += '<span class="ctag">sem pista informada</span>';
+    return '<div class="faz"><div class="faz__t"><b>'+esc(f.nome||'(fazenda sem nome)')+'</b><span>'+det.join(' · ')+'</span></div>' +
+           (a?'<div class="faz__acts">'+a+'</div>':'') + '</div>';
+  }).join('') : '<div class="empty" style="padding:12px">Nenhuma fazenda cadastrada.</div>';
+
+  var ppHtml = x.pp.length ? '<div class="crm-card"><div class="crm-wrap"><table class="crm-table"><tbody>' + x.pp.map(function(p){
+    var ac = p.status === 'aceita';
+    var v  = ac ? totalPlano(p, p.plano_aceito) : totalPlano(p, null);
+    var link = p.codigo ? (location.origin+'/p/'+p.codigo) : (location.origin+'/proposta.html?id='+p.id);
+    return '<tr><td class="crm-cli"><b>'+esc(p.fazenda||'—')+'</b><span>'+dataBR(p.criado_em)+(ac?(' · '+esc(p.plano_aceito||'')):'')+'</span></td>' +
+      '<td class="crm-val">'+brlN(v)+'</td>' +
+      '<td><span class="badge '+(ac?'ac':'en')+'">'+(ac?'Aceita ✓':'Enviada')+'</span></td>' +
+      '<td><div class="crm-acts"><a title="Abrir proposta" href="'+esc(link)+'" target="_blank" rel="noopener">👁</a></div></td></tr>';
+  }).join('') + '</tbody></table></div></div>' : '<div class="empty" style="padding:12px">Nenhuma proposta ainda.</div>';
+
+  var num = c.telefone ? ('55'+digits(c.telefone)) : '';
+  return '<div class="cli" data-id="'+c.id+'">' +
+    '<div class="cli__head"><span class="cli__av">'+esc(iniciais(c.nome))+'</span>' +
+      '<span class="cli__info"><b>'+esc(c.nome)+'</b><span>'+sub.join(' · ')+'</span></span>' +
+      '<span class="cli__tags">'+tags+'</span><span class="cli__arrow">▶</span></div>' +
+    '<div class="cli__body">' +
+      '<p class="cli__sec">Dados do cliente</p>' +
+      '<div class="cli-dados">' +
+        '<div><label>Nome</label><input class="cd-nome" type="text" value="'+esc(c.nome||'')+'"></div>' +
+        '<div><label>CPF / CNPJ</label><input class="cd-cpf" type="text" value="'+esc(c.cpf_cnpj||'')+'" placeholder="só quando ele passar"></div>' +
+        '<div><label>WhatsApp</label><input class="cd-fone" type="text" value="'+esc(c.telefone||'')+'"></div>' +
+        '<div><label>E-mail</label><input class="cd-mail" type="text" value="'+esc(c.email||'')+'"></div>' +
+      '</div>' +
+      '<div class="faz__acts" style="margin-top:10px">' +
+        '<button class="btn btn--green btn--sm cli-save">Salvar dados</button>' +
+        (num ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+num+'">📲 WhatsApp</a>' : '') +
+      '</div>' +
+      '<p class="cli__sec">Fazendas</p>' + fzHtml +
+      '<p class="cli__sec">Propostas</p>' + ppHtml +
+    '</div></div>';
+}
+function wireClientes(){
+  document.querySelectorAll('.cli__head').forEach(function(h){
+    h.addEventListener('click', function(e){
+      if(e.target.closest('a,button,input')) return;
+      h.closest('.cli').classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('.cli-save').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var card = b.closest('.cli'), id = card.getAttribute('data-id');
+      b.disabled = true; b.textContent = 'Salvando…';
+      var r = await sb.from('clientes').update({
+        nome:      card.querySelector('.cd-nome').value.trim() || '(sem nome)',
+        cpf_cnpj:  card.querySelector('.cd-cpf').value.trim() || null,
+        telefone:  card.querySelector('.cd-fone').value.trim() || null,
+        email:     card.querySelector('.cd-mail').value.trim() || null
+      }).eq('id', id);
+      b.disabled = false; b.textContent = 'Salvar dados';
+      if(r.error) toast('Erro ao salvar: '+r.error.message, 'err');
+      else { toast('Cliente atualizado ✓', 'ok'); loadClientes(); }
+    });
+  });
+}
+$("btn-cli-reload").addEventListener("click", loadClientes);
+$("cli-busca").addEventListener("input", renderClientes);
+var _tabCli = document.querySelector('.tab[data-tab="clientes"]');
+if(_tabCli) _tabCli.addEventListener('click', loadClientes);
 
 /* ============================================================
    USUÁRIOS (N3) — aprova cadastros e define níveis
