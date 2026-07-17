@@ -1851,7 +1851,12 @@ function cardCliente(x){
 
   var princ = x.ct.filter(function(t){ return t.principal; })[0] || x.ct[0];
   var sub = [];
-  if(princ){ sub.push('<b style="color:var(--ink)">'+esc(princ.nome)+'</b>' + (princ.cargo?(' ('+esc(princ.cargo)+')'):'')); if(princ.telefone) sub.push(esc(princ.telefone)); }
+  if(princ){
+    // só mostra o nome do contato se for diferente do cliente (ex: gerente); se for a própria pessoa, não repete
+    if(norm(princ.nome) !== norm(c.nome)) sub.push('<b style="color:var(--ink)">'+esc(princ.nome)+'</b>' + (princ.cargo?(' ('+esc(princ.cargo)+')'):''));
+    else if(princ.cargo) sub.push(esc(princ.cargo));
+    if(princ.telefone) sub.push(esc(princ.telefone));
+  }
   else if(c.telefone) sub.push(esc(c.telefone));
 
   var fzHtml = x.fz.length ? x.fz.map(function(f){
@@ -1892,9 +1897,20 @@ function cardCliente(x){
         '<button class="cbadge ct-tog'+(t.assina?' on-a':'')+'" data-f="assina" title="Representante legal — quem assina o contrato">⭐ assina</button>' +
       '</span>' +
       (n ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+n+'" title="WhatsApp">📲</a>' : '') +
+      '<button class="ct__x ct-edit" title="Editar contato">✏️</button>' +
       '<button class="ct__x ct-mv" title="Mover para outro cliente">⇄</button>' +
       '<button class="ct__x ct-del" title="Remover contato">✕</button>' +
       '<select class="ct-sel hidden" style="width:100%;margin-top:6px;padding:8px;border:2px solid var(--line);border-radius:9px;font-family:inherit"></select>' +
+      '<div class="ct-ef hidden" style="width:100%;margin-top:8px">' +
+        '<div class="cli-dados">' +
+          '<div><label>Nome</label><input class="ce-nome" type="text" value="'+esc(t.nome||'')+'"></div>' +
+          '<div><label>Cargo</label><input class="ce-cargo" type="text" value="'+esc(t.cargo||'')+'"></div>' +
+          '<div><label>WhatsApp</label><input class="ce-fone" type="text" value="'+esc(t.telefone||'')+'"></div>' +
+          '<div><label>E-mail</label><input class="ce-mail" type="text" value="'+esc(t.email||'')+'"></div>' +
+        '</div>' +
+        '<button class="btn btn--green btn--sm ct-ef-save">Salvar</button> ' +
+        '<button class="btn btn--ghost btn--sm ct-ef-cancel">Cancelar</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 
@@ -2011,6 +2027,31 @@ function wireClientes(){
         });
       }
       sel.classList.toggle('hidden');
+    });
+  });
+
+  // ✏️ editar contato (abre/fecha o form inline)
+  document.querySelectorAll('.ct-edit').forEach(function(b){
+    b.addEventListener('click', function(){ b.closest('.ct').querySelector('.ct-ef').classList.toggle('hidden'); });
+  });
+  document.querySelectorAll('.ct-ef-cancel').forEach(function(b){
+    b.addEventListener('click', function(){ b.closest('.ct-ef').classList.add('hidden'); });
+  });
+  document.querySelectorAll('.ct-ef-save').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var row = b.closest('.ct'), f = b.closest('.ct-ef');
+      var nome = f.querySelector('.ce-nome').value.trim();
+      if(!nome){ toast('O contato precisa de um nome.', 'err'); return; }
+      b.disabled = true;
+      var r = await sb.from('contatos').update({
+        nome: nome,
+        cargo:    f.querySelector('.ce-cargo').value.trim() || null,
+        telefone: f.querySelector('.ce-fone').value.trim() || null,
+        email:    f.querySelector('.ce-mail').value.trim() || null
+      }).eq('id', row.getAttribute('data-ct'));
+      b.disabled = false;
+      if(r.error) toast(/duplicate|unique/i.test(r.error.message) ? 'Esse telefone já é de outro contato no sistema.' : ('Erro: '+r.error.message), 'err');
+      else { toast('Contato atualizado ✓', 'ok'); loadClientes(); }
     });
   });
 
