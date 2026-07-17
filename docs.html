@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Seus documentos · Jusarah Agro Aérea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    .d-hero{background:linear-gradient(135deg,#0B2942 0%,#123f6b 55%,#1B6E3B 100%);color:#fff;padding:clamp(38px,7vw,64px) 0 clamp(96px,14vw,130px);text-align:center}
+    .d-hero .eyebrow{color:#9be3b6;justify-content:center}
+    .d-hero .eyebrow::before{background:#9be3b6}
+    .d-hero h1{color:#fff;font-size:clamp(1.7rem,5vw,2.6rem);max-width:16ch;margin:0 auto;text-wrap:balance}
+    .d-hero p{color:rgba(255,255,255,.92);font-size:1.1rem;max-width:42ch;margin:12px auto 0}
+    .d-wrap{max-width:600px;margin:-90px auto 0;padding:0 18px 80px;position:relative;z-index:2}
+    .d-card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow-lg);padding:clamp(20px,4vw,34px);margin-bottom:16px}
+    .d-lista{background:var(--green-50);border:1px solid var(--green-100);border-radius:14px;padding:14px 16px;margin-bottom:18px;font-size:.95rem;color:var(--green-900);line-height:1.7}
+    .d-lista b{font-family:var(--font-head)}
+    .sec-t{font-family:var(--font-head);font-weight:700;font-size:1.12rem;color:var(--green-700);margin:26px 0 4px;display:flex;align-items:center;gap:8px}
+    .sec-t:first-child{margin-top:0}
+    .sec-s{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+    .fld{margin-bottom:16px}
+    .fld label{display:block;font-family:var(--font-head);font-weight:600;font-size:.98rem;margin-bottom:7px}
+    .fld input{width:100%;font-family:var(--font-body);font-size:1.05rem;padding:14px 15px;border:2px solid var(--line);border-radius:13px;background:var(--paper)}
+    .fld input:focus{outline:none;border-color:var(--green-600);background:#fff}
+    .fld .opt{font-weight:400;color:var(--muted)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:480px){.row2{grid-template-columns:1fr}}
+    /* escolha PF/PJ */
+    .tipo-opt{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+    @media(max-width:460px){.tipo-opt{grid-template-columns:1fr}}
+    .tipo-b{border:2px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center;cursor:pointer;background:#fff;transition:border-color .15s,background .15s}
+    .tipo-b:hover{border-color:var(--green-200)}
+    .tipo-b.sel{border-color:var(--green-600);background:var(--green-50)}
+    .tipo-b .em{font-size:2rem;display:block;margin-bottom:6px}
+    .tipo-b b{font-family:var(--font-head);display:block;font-size:1.05rem}
+    .tipo-b span{font-size:.85rem;color:var(--muted)}
+    /* documento (upload) */
+    .doc{border:2px solid var(--line);border-radius:15px;padding:15px 16px;margin-bottom:11px;transition:border-color .15s}
+    .doc.ok{border-color:var(--green-600);background:var(--green-50)}
+    .doc__t{display:flex;align-items:flex-start;gap:11px}
+    .doc__t .ic{font-size:1.5rem;flex:none}
+    .doc__t b{font-family:var(--font-head);font-size:1.02rem;display:block}
+    .doc__t p{font-size:.88rem;color:var(--muted);margin:2px 0 0;line-height:1.45}
+    .doc__t .warn{color:#b26a00}
+    .doc__acts{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
+    .doc__btn{flex:1;min-width:130px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--sky-50);color:var(--blue-700);border:2px solid var(--blue-100);border-radius:12px;padding:12px;font-family:var(--font-head);font-weight:600;font-size:.95rem;cursor:pointer}
+    .doc__btn:hover{background:#dcecf8}
+    .doc__btn input{display:none}
+    .doc__later{background:none;border:none;color:var(--muted);font-size:.88rem;cursor:pointer;text-decoration:underline;padding:6px}
+    .doc__done{display:none;align-items:center;gap:8px;color:var(--green-900);font-family:var(--font-head);font-weight:600;font-size:.95rem;margin-top:10px}
+    .doc.ok .doc__done{display:flex}
+    .doc.ok .doc__acts{display:none}
+    .doc__rm{background:none;border:none;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:.85rem}
+    .d-send{width:100%;background:var(--green-700);color:#fff;border:none;border-radius:15px;padding:18px;font-family:var(--font-head);font-weight:700;font-size:1.15rem;cursor:pointer;box-shadow:0 8px 20px rgba(21,128,61,.28);margin-top:8px}
+    .d-send:hover{background:var(--green-600)}
+    .d-send:disabled{opacity:.6}
+    .d-reassure{text-align:center;color:var(--muted);font-size:.9rem;margin-top:14px;line-height:1.5}
+    .d-hidden{display:none}
+    /* sucesso */
+    .d-ok{text-align:center;padding:14px 6px}
+    .d-ok__c{width:82px;height:82px;border-radius:50%;background:var(--green-600);color:#fff;font-size:2.6rem;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 12px 28px rgba(21,128,61,.35)}
+    .d-ok h2{color:var(--green-900);margin:0 0 10px}
+    .d-ok p{color:var(--muted);font-size:1.05rem;max-width:38ch;margin:0 auto}
+    .d-nf{max-width:460px;margin:16vh auto;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:38px 28px;text-align:center}
+    .d-nf h1{font-size:1.5rem;margin-bottom:8px}
+    .d-nf p{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="brand" aria-label="Jusarah Agro Aérea"><img class="brand__img" src="assets/img/logo.png" alt="Jusarah Agro Aérea"></a>
+    </div>
+  </header>
+
+  <section class="d-hero">
+    <div class="container">
+      <span class="eyebrow">Documentação</span>
+      <h1 id="d-title">Falta pouco! 🛫</h1>
+      <p id="d-subtitle">Vamos organizar os papéis pra sua safra decolar.</p>
+    </div>
+  </section>
+
+  <div class="d-wrap">
+    <div class="d-card" id="d-app">
+      <div id="d-loading" class="empty">Carregando…</div>
+
+      <div id="d-content" class="d-hidden">
+        <div class="d-lista" id="d-checklist"></div>
+
+        <!-- Escolha PF/PJ -->
+        <div id="d-tipo-box" class="d-hidden">
+          <div class="sec-t">Como vai ser o contrato?</div>
+          <p class="sec-s">Isso muda quais documentos a gente precisa.</p>
+          <div class="tipo-opt">
+            <div class="tipo-b" data-tipo="fisica"><span class="em">👤</span><b>No meu nome</b><span>sou eu, produtor</span></div>
+            <div class="tipo-b" data-tipo="juridica"><span class="em">🏢</span><b>No CNPJ</b><span>da fazenda/empresa</span></div>
+          </div>
+        </div>
+
+        <form id="d-form" class="d-hidden">
+          <!-- Dados -->
+          <div class="sec-t">📝 Alguns dados</div>
+          <p class="sec-s">Pode preencher só o que souber agora.</p>
+
+          <div id="fld-rs" class="fld d-hidden">
+            <label>Razão social <span class="opt">(nome da empresa no CNPJ)</span></label>
+            <input type="text" id="f-rs" placeholder="Ex: Agropecuária Boa Vista Ltda">
+          </div>
+          <div class="row2">
+            <div class="fld"><label id="lbl-doc">CPF</label><input type="text" id="f-doc" inputmode="numeric" placeholder="000.000.000-00"></div>
+            <div class="fld"><label>Inscrição Estadual <span class="opt">(se tiver)</span></label><input type="text" id="f-ie"></div>
+          </div>
+          <div class="fld"><label>Endereço completo</label><input type="text" id="f-end" placeholder="Rua/estrada, nº, zona"></div>
+          <div class="row2">
+            <div class="fld"><label>Cidade</label><input type="text" id="f-cid"></div>
+            <div class="fld"><label>Estado</label><input type="text" id="f-uf" placeholder="RO" maxlength="2"></div>
+          </div>
+
+          <!-- Representante (PJ) -->
+          <div id="rep-box" class="d-hidden">
+            <div class="sec-t">✍️ Quem assina pela empresa</div>
+            <p class="sec-s">A pessoa que vai assinar o contrato.</p>
+            <div class="fld"><label>Nome de quem assina</label><input type="text" id="r-nome"></div>
+            <div class="row2">
+              <div class="fld"><label>CPF</label><input type="text" id="r-cpf" inputmode="numeric" placeholder="000.000.000-00"></div>
+              <div class="fld"><label>WhatsApp</label><input type="tel" id="r-fone" placeholder="(69) 9 9999-9999"></div>
+            </div>
+          </div>
+
+          <!-- Dados bancários -->
+          <div class="sec-t">🏦 Dados bancários <span class="opt" style="font-weight:400;font-size:.85rem;color:var(--muted)">(pra eventual devolução)</span></div>
+          <div class="row2">
+            <div class="fld"><label>Banco</label><input type="text" id="f-banco"></div>
+            <div class="fld"><label>PIX <span class="opt">(mais fácil)</span></label><input type="text" id="f-pix" placeholder="chave PIX"></div>
+          </div>
+
+          <!-- Documentos (montados por JS) -->
+          <div class="sec-t">📎 Os documentos</div>
+          <p class="sec-s">Pode mandar <b>foto do papel</b> mesmo 📸 — não precisa escanear.</p>
+          <div id="d-docs"></div>
+
+          <button type="submit" class="d-send" id="d-send">Enviar tudo pra Jusarah</button>
+          <p class="d-reassure">🔒 Seus documentos vão direto e seguro pra equipe da Jusarah. Ninguém mais tem acesso.</p>
+        </form>
+      </div>
+
+      <!-- Sucesso -->
+      <div id="d-success" class="d-ok d-hidden">
+        <div class="d-ok__c">✓</div>
+        <h2 id="d-ok-nome">Recebemos, obrigado! 🎉</h2>
+        <p>A equipe da Jusarah vai conferir tudo e te chamar no WhatsApp pra combinar o voo. 🛫</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-nf d-hidden" id="d-nf">
+    <h1>Link não encontrado 🌱</h1>
+    <p>Esse link pode estar incompleto ou expirado. Chama a equipe da Jusarah no WhatsApp que a gente te manda o certo.</p>
+  </div>
+
+  <script>
+    var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+    var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+    var sb = window.supabase.createClient(SB_URL, SB_KEY);
+    var $ = function(id){ return document.getElementById(id); };
+
+    var TOKEN = (location.pathname.match(/\/docs\/([^\/?#]+)/) || [])[1] ||
+                new URLSearchParams(location.search).get('t') || '';
+    var CLI = null, TIPO = '';
+    var ARQUIVOS = {};   // tipo_doc -> {file, path, nome}
+
+    // Documentos por tipo de cliente
+    var DOCS_PF = [
+      { k:'rg_cpf',       ic:'🪪', t:'RG e CPF',              d:'Foto do seu documento (frente e verso).' },
+      { k:'endereco',     ic:'🏠', t:'Comprovante de endereço', d:'Conta de luz, água ou telefone recente.' },
+      { k:'car',          ic:'🌱', t:'CAR da área',           d:'O Cadastro Ambiental Rural da propriedade.' },
+      { k:'dados_banc',   ic:'🏦', t:'Comprovante bancário',  d:'Foto do cartão ou de um comprovante da conta.' }
+    ];
+    var DOCS_PJ = [
+      { k:'cartao_cnpj',    ic:'🏢', t:'Cartão CNPJ',            d:'Aquele comprovante de inscrição do CNPJ.' },
+      { k:'contrato_social',ic:'📜', t:'Contrato Social',        d:'Ou a última alteração contratual.' },
+      { k:'rg_cpf_rep',     ic:'🪪', t:'RG e CPF de quem assina', d:'Documento do representante legal.' },
+      { k:'endereco',       ic:'🏠', t:'Comprovante de endereço da empresa', d:'Conta recente no nome da empresa.' },
+      { k:'car',            ic:'🌱', t:'CAR da área',            d:'O Cadastro Ambiental Rural da propriedade.' }
+    ];
+
+    function show(id){ $(id).classList.remove('d-hidden'); }
+    function hide(id){ $(id).classList.add('d-hidden'); }
+
+    (async function(){
+      if(!TOKEN){ falha(); return; }
+      try{
+        var r = await sb.rpc('docs_info', { p_token: TOKEN });
+        if(r.error || !r.data){ falha(); return; }
+        CLI = r.data;
+      }catch(e){ falha(); return; }
+      iniciar();
+    })();
+
+    function falha(){ hide('d-app'); show('d-nf'); }
+
+    function iniciar(){
+      var pnome = (CLI.nome || '').split(' ')[0];
+      $('d-title').textContent = 'Falta pouco, ' + (pnome || 'produtor') + '! 🛫';
+      var faz = (CLI.fazendas && CLI.fazendas[0] && CLI.fazendas[0].nome) ? CLI.fazendas[0].nome : '';
+      $('d-subtitle').textContent = faz ? ('Vamos organizar os papéis pra ' + faz + ' decolar.') : 'Vamos organizar os papéis pra sua safra decolar.';
+      $('d-ok-nome').textContent = 'Recebemos, obrigado' + (pnome ? (', ' + pnome) : '') + '! 🎉';
+      $('d-checklist').innerHTML = '<b>É rapidinho 😉</b> A gente precisa de alguns documentos e dados pra deixar o contrato pronto. Pode mandar <b>foto do papel</b> mesmo.';
+      hide('d-loading'); show('d-content');
+
+      if(CLI.tipo === 'juridica' || CLI.tipo === 'fisica'){ escolheTipo(CLI.tipo); }
+      else { show('d-tipo-box'); }
+
+      document.querySelectorAll('.tipo-b').forEach(function(b){
+        b.addEventListener('click', function(){ escolheTipo(b.getAttribute('data-tipo')); });
+      });
+    }
+
+    function escolheTipo(t){
+      TIPO = t;
+      document.querySelectorAll('.tipo-b').forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-tipo')===t); });
+      var pj = (t === 'juridica');
+      $('lbl-doc').textContent = pj ? 'CNPJ' : 'CPF';
+      $('f-doc').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
+      $('fld-rs').classList.toggle('d-hidden', !pj);
+      $('rep-box').classList.toggle('d-hidden', !pj);
+      var lista = pj ? DOCS_PJ : DOCS_PF;
+      $('d-checklist').innerHTML = '<b>Pra fechar o contrato, a gente precisa destes documentos:</b><br>' +
+        lista.map(function(d){ return d.ic + ' ' + d.t; }).join(' &nbsp;·&nbsp; ');
+      montaDocs(lista);
+      show('d-form');
+      $('d-form').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    function montaDocs(lista){
+      var jaTem = CLI.docs || [];
+      $('d-docs').innerHTML = lista.map(function(doc){
+        return '<div class="doc" data-k="'+doc.k+'">' +
+          '<div class="doc__t"><span class="ic">'+doc.ic+'</span><div><b>'+doc.t+'</b><p>'+doc.d+'</p></div></div>' +
+          '<div class="doc__acts">' +
+            '<label class="doc__btn">📸 Tirar foto<input type="file" accept="image/*" capture="environment" data-k="'+doc.k+'"></label>' +
+            '<label class="doc__btn">📎 Anexar<input type="file" accept="image/*,application/pdf" data-k="'+doc.k+'"></label>' +
+          '</div>' +
+          '<div class="doc__done"><span>✅ <span class="nm"></span></span> <button type="button" class="doc__rm" data-k="'+doc.k+'">trocar</button></div>' +
+        '</div>';
+      }).join('');
+      $('d-docs').querySelectorAll('input[type=file]').forEach(function(inp){
+        inp.addEventListener('change', function(e){ pegaArquivo(inp.getAttribute('data-k'), e.target.files[0]); });
+      });
+      $('d-docs').querySelectorAll('.doc__rm').forEach(function(b){
+        b.addEventListener('click', function(){ delete ARQUIVOS[b.getAttribute('data-k')]; marcaDoc(b.getAttribute('data-k'), false); });
+      });
+    }
+
+    function pegaArquivo(k, file){
+      if(!file) return;
+      ARQUIVOS[k] = { file:file, nome:file.name };
+      var card = $('d-docs').querySelector('.doc[data-k="'+k+'"]');
+      if(card) card.querySelector('.nm').textContent = file.name;
+      marcaDoc(k, true);
+    }
+    function marcaDoc(k, ok){
+      var card = $('d-docs').querySelector('.doc[data-k="'+k+'"]');
+      if(card) card.classList.toggle('ok', ok);
+    }
+
+    function val(id){ return ($(id).value || '').trim(); }
+
+    $('d-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      var btn = $('d-send'); btn.disabled = true; btn.textContent = 'Enviando…';
+      try{
+        // 1) sobe os arquivos
+        var docs = [], car = null;
+        for(var k in ARQUIVOS){
+          var a = ARQUIVOS[k];
+          var ext = (a.nome.split('.').pop() || 'jpg').toLowerCase();
+          var path = 'doc-' + CLI.id + '-' + k + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,6) + '.' + ext;
+          var up = await sb.storage.from('documentos').upload(path, a.file);
+          if(!up.error){ docs.push({ tipo:k, path:path, nome:a.nome }); }
+        }
+        // 2) dados + representante
+        var dados = {
+          cpf_cnpj: val('f-doc'), razao_social: val('f-rs'), inscricao_estadual: val('f-ie'),
+          endereco: val('f-end'), cidade: val('f-cid'), uf: val('f-uf'),
+          banco: val('f-banco'), pix: val('f-pix')
+        };
+        var rep = (TIPO === 'juridica' && val('r-nome')) ? { nome:val('r-nome'), cpf:val('r-cpf'), telefone:val('r-fone') } : null;
+        var r = await sb.rpc('docs_salvar', {
+          p_token: TOKEN, p_tipo: TIPO, p_dados: dados, p_rep: rep, p_docs: docs, p_car: null
+        });
+        if(r.error){ throw r.error; }
+        hide('d-content'); show('d-success');
+        $('d-success').scrollIntoView({ behavior:'smooth', block:'center' });
+      }catch(err){
+        console.error(err);
+        btn.disabled = false; btn.textContent = 'Enviar tudo pra Jusarah';
+        alert('Ops, algo falhou no envio. Tenta de novo, ou chama a equipe no WhatsApp. 🙏');
+      }
+    });
+  </script>
+</body>
+</html>
