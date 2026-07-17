@@ -1376,8 +1376,10 @@ async function loadSolicSelect(){
     }).join('');
   }catch(e){}
 }
+var PROP_VINCULO = { cliente_id:null, propriedade_id:null };
 function preencheDaSolicitacao(s){
   if(!s) return;
+  PROP_VINCULO = { cliente_id: s.cliente_id || null, propriedade_id: s.propriedade_id || null };
   $('pr-nome').value = s.nome || '';
   $('pr-whats').value = s.telefone || '';
   $('pr-fazenda').value = s.propriedade || '';
@@ -1443,6 +1445,34 @@ function geraCodigo(){
   for(var i=0;i<6;i++) s += c[Math.floor(Math.random()*c.length)];
   return s;
 }
+
+/* Garante que a proposta tenha um cliente na base — casa pelo telefone, nunca duplica */
+function foneNorm(s){ return digits(s).slice(-11); }
+async function resolveCliente(nome, whats, cpf){
+  try{
+    var id = PROP_VINCULO.cliente_id, fn = foneNorm(whats);
+    if(!id && fn){
+      var q = await sb.from('clientes').select('id').eq('fone_norm', fn).limit(1);
+      if(q.data && q.data.length) id = q.data[0].id;
+    }
+    if(id){
+      var patch = {};
+      if(nome)  patch.nome = nome;
+      if(whats) patch.telefone = whats;
+      if(cpf)   patch.cpf_cnpj = cpf;
+      if(Object.keys(patch).length){
+        var up = await sb.from('clientes').update(patch).eq('id', id);
+        if(up.error) console.error('resolveCliente/update', up.error);
+      }
+      return id;
+    }
+    var ins = await sb.from('clientes')
+      .insert({ nome: nome || '(sem nome)', telefone: whats || null, cpf_cnpj: cpf || null })
+      .select('id').single();
+    if(ins.error){ console.error('resolveCliente/insert', ins.error); return null; }
+    return ins.data.id;
+  }catch(e){ console.error('resolveCliente', e); return null; }
+}
 $('btn-gerar-prop').addEventListener('click', async function(){
   var nome = pv('pr-nome');
   if(!nome){ toast('Coloque o nome do produtor.', 'err'); return; }
@@ -1467,11 +1497,14 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   var btnG = $('btn-gerar-prop'); btnG.disabled = true; btnG.textContent = "Gerando…";
   var codigo = geraCodigo();
   var avSel = avioesSelecionados();
+  var cliId = await resolveCliente(nome, pv('pr-whats'), pv('pr-cpf'));
   var ins = await sb.from('propostas').insert({
     apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
     area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
     aviao_id: avSel[0] || null, aviao_ids: avSel.length ? avSel : null, aviao_nome: avioNome() || null,
-    whats: pv('pr-whats') || null, cpf: pv('pr-cpf') || null, codigo: codigo, planos: planos, valor_total: valorTotal
+    whats: pv('pr-whats') || null, cpf: pv('pr-cpf') || null,
+    cliente_id: cliId, propriedade_id: PROP_VINCULO.propriedade_id,
+    codigo: codigo, planos: planos, valor_total: valorTotal
   }).select('id,codigo').single();
   btnG.disabled = false; btnG.textContent = "Gerar proposta";
   if(ins.error){ toast('Erro ao salvar: ' + ins.error.message, 'err'); return; }
@@ -1581,6 +1614,7 @@ function abreFormNova(lead){
   $("form-nova-prop").classList.remove('hidden');
   $("prop-result").classList.add('hidden');
   if(lead) preencheDaSolicitacao(lead);
+  else PROP_VINCULO = { cliente_id:null, propriedade_id:null };
   $("form-nova-prop").scrollIntoView({ behavior:'smooth', block:'start' });
 }
 function reabordar(p){
