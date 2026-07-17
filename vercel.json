@@ -1,5 +1,7 @@
 {
   "rewrites": [
-    { "source": "/p/:codigo", "destination": "/proposta.html?p=:codigo" }
+    { "source": "/p/:codigo", "destination": "/proposta.html?p=:codigo" },
+    { "source": "/orcamento", "destination": "/orcamento.html" },
+    { "source": "/orcar", "destination": "/orcamento.html" }
   ]
 }
