@@ -503,14 +503,24 @@
           if(!up.error){ croqui_url = sb.storage.from('croquis').getPublicUrl(path).data.publicUrl; }
         }
         var sabe = val('sabe-pista');
-        await sb.from('solicitacoes').insert({
-          nome: val('nome'), email: val('email'), telefone: val('zap'),
-          propriedade: val('propriedade'), coordenadas_area: geoCoords || null, hectares: (+ha.value) || null, croqui_url: croqui_url,
-          sabe_pista: sabe === 'sim' ? true : (sabe === 'nao' ? false : null),
-          coordenadas_pista: sabe === 'sim' ? (val('pista-coords') || null) : null,
-          cultura: val('cultura'), tipos_tratamento: tratsSel(),
-          qtd_aplicacoes: parseInt(val('qtd-aplic')) || 1, data_prevista: val('data-prev') || null
+        /* Uma função só cria/atualiza cliente + fazenda + solicitação.
+           O site não lê nada do banco — a carteira de clientes fica protegida. */
+        var r = await sb.rpc('registrar_solicitacao', {
+          p_nome: val('nome'),
+          p_email: val('email') || null,
+          p_telefone: val('zap'),
+          p_propriedade: val('propriedade') || null,
+          p_coordenadas: geoCoords || null,
+          p_hectares: (+ha.value) || null,
+          p_croqui_url: croqui_url,
+          p_sabe_pista: sabe === 'sim' ? true : (sabe === 'nao' ? false : null),
+          p_coordenadas_pista: sabe === 'sim' ? (val('pista-coords') || null) : null,
+          p_cultura: val('cultura') || null,
+          p_tipos: tratsSel(),
+          p_qtd: parseInt(val('qtd-aplic')) || 1,
+          p_data: val('data-prev') || null
         });
+        if(r && r.error) console.error('registrar_solicitacao', r.error);
       }catch(e){ console.error('salvaSolicitacao', e); }
     }
     document.getElementById('form-orc').addEventListener('submit', function(e){
