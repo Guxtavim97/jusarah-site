@@ -1793,6 +1793,13 @@ function iniciais(n){
 }
 var CLI_OPEN = {};
 var EV_IC = { solicitacao:'🌱', proposta:'📄', aceite:'✅', ligacao:'📞', visita:'🚜', nota:'📝', documento:'📎' };
+var DOC_LBL = { rg_cpf:'RG e CPF', endereco:'Comprovante de endereço', car:'CAR da área', dados_banc:'Comprovante bancário',
+  cartao_cnpj:'Cartão CNPJ', contrato_social:'Contrato Social', rg_cpf_rep:'RG e CPF do representante',
+  croqui:'Croqui', receituario:'Receituário', areas_sensiveis:'Áreas sensíveis', contrato_assinado:'Contrato assinado', outro:'Documento' };
+var DOC_ESPERADOS = {
+  fisica:  ['rg_cpf','endereco','car','dados_banc'],
+  juridica:['cartao_cnpj','contrato_social','rg_cpf_rep','endereco','car'],
+  publico: ['cartao_cnpj','contrato_social','rg_cpf_rep','endereco'] };
 function dataHora(iso){
   if(!iso) return '';
   var d = new Date(iso);
@@ -1808,13 +1815,15 @@ async function loadClientes(){
   var rct = await sb.from('contatos').select('*').order('principal', { ascending:false });
   var rev = await sb.from('eventos').select('*').order('criado_em', { ascending:false });
   var rpr = await sb.from('propostas').select('*').order('criado_em', { ascending:false });
-  var fz = (rp && rp.data)||[], ct = (rct && rct.data)||[], ev = (rev && rev.data)||[], pp = (rpr && rpr.data)||[];
+  var rdc = await sb.from('documentos').select('*').order('criado_em', { ascending:false });
+  var fz = (rp && rp.data)||[], ct = (rct && rct.data)||[], ev = (rev && rev.data)||[], pp = (rpr && rpr.data)||[], dc = (rdc && rdc.data)||[];
   CLIENTES = (rc.data||[]).map(function(c){
     return { c:c,
       fz: fz.filter(function(f){ return f.cliente_id === c.id; }),
       ct: ct.filter(function(t){ return t.cliente_id === c.id; }),
       ev: ev.filter(function(e){ return e.cliente_id === c.id; }),
-      pp: pp.filter(function(p){ return p.cliente_id === c.id; }) };
+      pp: pp.filter(function(p){ return p.cliente_id === c.id; }),
+      dc: dc.filter(function(d){ return d.cliente_id === c.id; }) };
   });
   renderClientes();
 }
@@ -1924,6 +1933,26 @@ function cardCliente(x){
     '</div>';
   }).join('') + '</div>' : '<div class="empty" style="padding:12px">Nada registrado ainda.</div>';
 
+  // ---- Documentos ----
+  var docHtml = '';
+  if(x.dc.length){
+    docHtml += '<div class="crm-card" style="margin-bottom:8px">' + x.dc.map(function(d){
+      return '<div class="faz" style="margin:0;border:none;border-bottom:1px solid var(--line);border-radius:0"><div class="faz__t"><b>'+esc(DOC_LBL[d.tipo]||d.tipo)+'</b><span>'+dataBR(d.criado_em)+'</span></div>' +
+        '<div class="faz__acts"><button class="btn btn--ghost btn--sm doc-ver" data-u="'+esc(d.url)+'">👁 Ver</button></div></div>';
+    }).join('') + '</div>';
+  }
+  var esp = DOC_ESPERADOS[c.tipo] || DOC_ESPERADOS.fisica;
+  var temDoc = {}; x.dc.forEach(function(d){ temDoc[d.tipo] = 1; });
+  var faltam = esp.filter(function(t){ return !temDoc[t]; });
+  if(faltam.length){
+    docHtml += '<div style="background:#fff8e6;border:1px solid #f1e0bf;border-radius:11px;padding:11px 14px;font-size:.88rem;color:#a06b00"><b>⚠️ Faltam:</b> ' +
+      faltam.map(function(t){ return esc(DOC_LBL[t]||t); }).join(' · ') + '</div>';
+  } else if(x.dc.length){
+    docHtml += '<div style="background:#e9f6ee;border:1px solid #cfe9d6;border-radius:11px;padding:11px 14px;font-size:.88rem;color:var(--green-d)"><b>✅ Documentos completos</b></div>';
+  } else {
+    docHtml += '<div class="empty" style="padding:12px">Nenhum documento ainda. Use <b>📎 Copiar link de documentos</b> e mande pro cliente.</div>';
+  }
+
   return '<div class="cli'+(CLI_OPEN[c.id]?' open':'')+'" data-id="'+c.id+'">' +
     '<div class="cli__head"><span class="cli__av">'+esc(iniciais(c.nome))+'</span>' +
       '<span class="cli__info"><b>'+esc(c.nome)+'</b><span>'+sub.join(' · ')+'</span></span>' +
@@ -1940,7 +1969,9 @@ function cardCliente(x){
         '<div><label>Inscrição Estadual</label><input class="cd-ie" type="text" value="'+esc(c.inscricao_estadual||'')+'"></div>' +
         '<div><label>E-mail</label><input class="cd-mail" type="text" value="'+esc(c.email||'')+'"></div>' +
       '</div>' +
-      '<div class="faz__acts" style="margin-top:10px"><button class="btn btn--green btn--sm cli-save">Salvar dados</button></div>' +
+      '<div class="faz__acts" style="margin-top:10px"><button class="btn btn--green btn--sm cli-save">Salvar dados</button>' +
+        (c.token ? '<button class="btn btn--blue btn--sm cli-doclink" data-t="'+esc(c.token)+'">📎 Copiar link de documentos</button>' : '') +
+      '</div>' +
 
       '<p class="cli__sec">👥 Contatos <span style="font-weight:400;text-transform:none;letter-spacing:0">— 📌 principal = quem fala no dia a dia · ⭐ assina = quem assina o contrato</span></p>' +
       (ctHtml || '<div class="empty" style="padding:12px">Nenhum contato.</div>') +
@@ -1957,6 +1988,8 @@ function cardCliente(x){
       '</div>' +
 
       '<p class="cli__sec">🌾 Fazendas</p>' + fzHtml +
+
+      '<p class="cli__sec">📎 Documentos</p>' + docHtml +
 
       '<p class="cli__sec">📅 Histórico</p>' +
       '<div class="tl-add">' +
@@ -2086,6 +2119,28 @@ function wireClientes(){
       b.disabled = false;
       if(r.error) toast(/duplicate|unique/i.test(r.error.message) ? 'Esse telefone já é de outro contato no sistema.' : ('Erro: '+r.error.message), 'err');
       else { toast('Contato adicionado ✓', 'ok'); loadClientes(); }
+    });
+  });
+
+  // 📎 copiar link de documentos
+  document.querySelectorAll('.cli-doclink').forEach(function(b){
+    b.addEventListener('click', function(){
+      var link = location.origin + '/docs/' + b.getAttribute('data-t');
+      if(navigator.clipboard){ navigator.clipboard.writeText(link).then(function(){ toast('Link copiado! Mande no WhatsApp do cliente. ✓', 'ok'); }); }
+      else { prompt('Copie o link:', link); }
+    });
+  });
+
+  // 👁 ver documento (bucket privado → signed url; croqui público → direto)
+  document.querySelectorAll('.doc-ver').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var u = b.getAttribute('data-u');
+      if(/^https?:\/\//.test(u)){ window.open(u, '_blank'); return; }
+      b.disabled = true;
+      var r = await sb.storage.from('documentos').createSignedUrl(u, 3600);
+      b.disabled = false;
+      if(r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
+      else toast('Não consegui abrir o documento.', 'err');
     });
   });
 
