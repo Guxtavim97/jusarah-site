@@ -134,13 +134,6 @@
             </div>
           </div>
 
-          <!-- Dados bancários -->
-          <div class="sec-t">🏦 Dados bancários <span class="opt" style="font-weight:400;font-size:.85rem;color:var(--muted)">(pra eventual devolução)</span></div>
-          <div class="row2">
-            <div class="fld"><label>Banco</label><input type="text" id="f-banco"></div>
-            <div class="fld"><label>PIX <span class="opt">(mais fácil)</span></label><input type="text" id="f-pix" placeholder="chave PIX"></div>
-          </div>
-
           <!-- Documentos (montados por JS) -->
           <div class="sec-t">📎 Os documentos</div>
           <p class="sec-s">Pode mandar <b>foto do papel</b> mesmo 📸 — não precisa escanear.</p>
@@ -180,8 +173,7 @@
     var DOCS_PF = [
       { k:'rg_cpf',       ic:'🪪', t:'RG e CPF',              d:'Foto do seu documento (frente e verso).' },
       { k:'endereco',     ic:'🏠', t:'Comprovante de endereço', d:'Conta de luz, água ou telefone recente.' },
-      { k:'car',          ic:'🌱', t:'CAR da área',           d:'O Cadastro Ambiental Rural da propriedade.' },
-      { k:'dados_banc',   ic:'🏦', t:'Comprovante bancário',  d:'Foto do cartão ou de um comprovante da conta.' }
+      { k:'car',          ic:'🌱', t:'CAR da área',           d:'O Cadastro Ambiental Rural da propriedade.' }
     ];
     var DOCS_PJ = [
       { k:'cartao_cnpj',    ic:'🏢', t:'Cartão CNPJ',            d:'Aquele comprovante de inscrição do CNPJ.' },
@@ -289,8 +281,7 @@
         // 2) dados + representante
         var dados = {
           cpf_cnpj: val('f-doc'), razao_social: val('f-rs'), inscricao_estadual: val('f-ie'),
-          endereco: val('f-end'), cidade: val('f-cid'), uf: val('f-uf'),
-          banco: val('f-banco'), pix: val('f-pix')
+          endereco: val('f-end'), cidade: val('f-cid'), uf: val('f-uf')
         };
         var rep = (TIPO === 'juridica' && val('r-nome')) ? { nome:val('r-nome'), cpf:val('r-cpf'), telefone:val('r-fone') } : null;
         var r = await sb.rpc('docs_salvar', {
