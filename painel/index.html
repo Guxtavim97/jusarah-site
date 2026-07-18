@@ -389,6 +389,34 @@
     .topbar{padding:12px 16px}
   }
 
+  /* ══════════ INÍCIO — a casa deles (entrada sobrenatural) ══════════ */
+  .home-hero{position:relative;overflow:hidden;border-radius:24px;min-height:560px;display:flex;align-items:center;
+    background:radial-gradient(130% 120% at 50% 130%, rgba(95,177,48,.34), transparent 56%),
+               radial-gradient(90% 80% at 85% 10%, rgba(46,134,193,.28), transparent 60%),
+               linear-gradient(180deg,#06121f 0%,#0b2a44 44%,#0e3a26 100%);
+    box-shadow:0 24px 60px rgba(6,18,31,.35)}
+  #home-fx{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+  .home-glow{position:absolute;left:50%;bottom:-40%;width:120%;height:80%;transform:translateX(-50%);z-index:0;
+    background:radial-gradient(closest-side, rgba(255,214,102,.22), transparent 70%);pointer-events:none;animation:homeBreathe 7s ease-in-out infinite}
+  @keyframes homeBreathe{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.12)}}
+  .home-content{position:relative;z-index:2;padding:clamp(30px,5vw,66px);max-width:760px}
+  .home-eyebrow{font-family:var(--font);font-weight:800;font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;
+    color:#9be3b6;display:inline-flex;align-items:center;gap:8px}
+  .home-content h1{font-family:var(--font);font-size:clamp(2.1rem,5.6vw,3.6rem);font-weight:800;color:#fff;
+    margin:16px 0 12px;letter-spacing:-.02em;line-height:1.08;text-shadow:0 4px 30px rgba(0,0,0,.4);
+    animation:homeUp .9s cubic-bezier(.16,.84,.44,1) both}
+  .home-content h1 b{background:linear-gradient(90deg,#ffe08a,#9be3b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .home-sub{color:rgba(255,255,255,.88);font-size:clamp(1.05rem,2.2vw,1.28rem);max-width:46ch;line-height:1.6;
+    animation:homeUp .9s .12s cubic-bezier(.16,.84,.44,1) both}
+  @keyframes homeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .home-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;animation:homeUp .9s .24s cubic-bezier(.16,.84,.44,1) both}
+  .home-act{display:inline-flex;align-items:center;gap:11px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:14px;padding:14px 20px;color:#fff;
+    font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;transition:transform .15s,background .15s,border-color .15s}
+  .home-act:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4);transform:translateY(-3px)}
+  .home-act .ic{font-size:1.35rem}
+  @media(prefers-reduced-motion:reduce){.home-glow,.home-content h1,.home-sub,.home-actions{animation:none}}
+
   .hidden{display:none!important}
 </style>
 </head>
@@ -450,12 +478,13 @@
     <aside class="sidebar" id="sidebar">
       <div class="side-brand"><img src="../assets/img/logo-branca.png" alt="Jusarah Agro Aérea"></div>
       <nav class="side-nav">
+        <button class="tab is-active" data-tab="home" data-min="1"><span class="ic">✨</span> Início</button>
         <div class="side-sep tab-sep" data-min="2">Gestão</div>
         <button class="tab" data-tab="dashboard" data-min="3"><span class="ic">📊</span> Dashboard</button>
         <button class="tab" data-tab="clientes" data-min="2"><span class="ic">👥</span> Clientes</button>
         <button class="tab" data-tab="propostas" data-min="2"><span class="ic">💰</span> Propostas</button>
         <div class="side-sep tab-sep" data-min="1">Conteúdo do site</div>
-        <button class="tab is-active" data-tab="posts" data-min="1"><span class="ic">📰</span> Notícias &amp; Eventos</button>
+        <button class="tab" data-tab="posts" data-min="1"><span class="ic">📰</span> Notícias &amp; Eventos</button>
         <button class="tab" data-tab="projeto" data-min="1"><span class="ic">🌱</span> Semeando Esperança</button>
         <button class="tab" data-tab="rotina" data-min="1"><span class="ic">🎬</span> Nossa Rotina</button>
         <div class="side-sep tab-sep" data-min="3">Administração</div>
@@ -478,8 +507,22 @@
 
       <main>
 
+    <!-- PAINEL: INÍCIO (a casa deles) -->
+    <section class="panel is-active" id="panel-home">
+      <div class="home-hero">
+        <canvas id="home-fx"></canvas>
+        <div class="home-content">
+          <span class="home-eyebrow">✨ Seu espaço na Jusarah</span>
+          <h1 id="home-greet">Bem-vindo</h1>
+          <p class="home-sub" id="home-sub"></p>
+          <div class="home-actions" id="home-actions"></div>
+        </div>
+        <div class="home-glow"></div>
+      </div>
+    </section>
+
     <!-- PAINEL: POSTS -->
-    <section class="panel is-active" id="panel-posts">
+    <section class="panel" id="panel-posts">
       <div class="head-row">
         <h2>Publicações</h2>
         <div class="spacer"></div>
@@ -982,8 +1025,8 @@ function showApp(fresh) {
     var min = parseInt(t.getAttribute('data-min') || "1");
     t.style.display = (usuario.nivel >= min) ? "" : "none";
   });
-  // N3 abre direto no Dashboard; os outros, na primeira aba visível
-  var alvo = (usuario.nivel >= 3) ? document.querySelector('.tab[data-tab="dashboard"]') : null;
+  // N3 abre no Dashboard; os demais entram na "casa deles" (Início)
+  var alvo = document.querySelector('.tab[data-tab="' + (usuario.nivel >= 3 ? 'dashboard' : 'home') + '"]');
   if(!alvo || alvo.style.display === "none"){
     alvo = null; document.querySelectorAll('.tab').forEach(function(t){ if(!alvo && t.style.display !== "none") alvo = t; });
   }
@@ -1073,11 +1116,72 @@ function fechaMenu(){ $("sidebar").classList.remove('open'); $("side-backdrop").
 $("side-toggle").addEventListener('click', function(){ $("sidebar").classList.toggle('open'); $("side-backdrop").classList.toggle('show'); });
 $("side-backdrop").addEventListener('click', fechaMenu);
 
+/* ===== INÍCIO — a casa deles ===== */
+function irAba(t){ var b = document.querySelector('.tab[data-tab="'+t+'"]'); if(b) b.click(); }
+function loadHome(){
+  var h = new Date().getHours();
+  var s = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
+  var nome = (usuario && usuario.nome ? usuario.nome : '').split(' ')[0];
+  $("home-greet").innerHTML = s + ', <b>' + esc(nome) + '</b>';
+  var subs = {
+    1:'Aqui você dá voz à Jusarah — conte as histórias e novidades que nascem no campo. 🌱',
+    2:'Suas propostas, seus clientes, sua safra de resultados. Bora fazer essa safra voar. ✈️',
+    3:'O comando da operação está nas suas mãos. Que hoje renda bons frutos. 🚀'
+  };
+  $("home-sub").textContent = subs[usuario.nivel] || subs[1];
+  var acts = [
+    { min:2, ic:'💰', t:'Nova proposta',       go:function(){ irAba('propostas'); setTimeout(function(){ var b=$("btn-nova-prop"); if(b) b.click(); }, 250); } },
+    { min:2, ic:'👥', t:'Clientes',            go:function(){ irAba('clientes'); } },
+    { min:3, ic:'📊', t:'Dashboard',           go:function(){ irAba('dashboard'); } },
+    { min:1, ic:'📰', t:'Publicar notícia',    go:function(){ irAba('posts'); } },
+    { min:1, ic:'🌱', t:'Semeando Esperança',  go:function(){ irAba('projeto'); } }
+  ].filter(function(a){ return usuario.nivel >= a.min; });
+  var box = $("home-actions"); box.innerHTML = '';
+  acts.forEach(function(a){
+    var el = document.createElement('button'); el.className = 'home-act';
+    el.innerHTML = '<span class="ic">' + a.ic + '</span> ' + a.t;
+    el.addEventListener('click', a.go); box.appendChild(el);
+  });
+  homeFxStart();
+}
+/* partículas de luz subindo (sementes de esperança) */
+var homeFxOn = false, homeFxRAF = null;
+function homeNovaP(w,h){
+  var cols = ['95,177,48','46,134,193','255,214,102','255,255,255'];
+  return { x:Math.random()*w, y:h+Math.random()*h, vy:.25+Math.random()*.85, r:1+Math.random()*2.4,
+           ph:Math.random()*6.28, life:.35+Math.random()*.65, alpha:.5+Math.random()*.5, col:cols[(Math.random()*cols.length)|0] };
+}
+function homeFxStart(){
+  var cv = $("home-fx"); if(!cv) return;
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  homeFxStop();
+  var ctx = cv.getContext('2d');
+  cv.width = cv.clientWidth || 900; cv.height = cv.clientHeight || 560;
+  var ps = []; for(var i=0;i<52;i++){ var p=homeNovaP(cv.width,cv.height); p.y=Math.random()*cv.height; ps.push(p); }
+  homeFxOn = true;
+  (function loop(){
+    if(!homeFxOn) return;
+    var w=cv.width, hh=cv.height;
+    ctx.clearRect(0,0,w,hh);
+    ps.forEach(function(p){
+      p.y -= p.vy; p.x += Math.sin(p.y*0.012 + p.ph)*0.5; p.life -= 0.0035;
+      if(p.y < -12 || p.life <= 0){ var n=homeNovaP(w,hh); for(var k in n) p[k]=n[k]; }
+      var a = Math.max(0, Math.min(1, p.life)) * p.alpha;
+      var g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4.2);
+      g.addColorStop(0,'rgba('+p.col+','+a+')'); g.addColorStop(1,'rgba('+p.col+',0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*4.2,0,6.283); ctx.fill();
+    });
+    homeFxRAF = requestAnimationFrame(loop);
+  })();
+}
+function homeFxStop(){ homeFxOn = false; if(homeFxRAF){ cancelAnimationFrame(homeFxRAF); homeFxRAF=null; } }
+
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach((x) => x.classList.remove("is-active"));
   document.querySelectorAll(".panel").forEach((x) => x.classList.remove("is-active"));
   t.classList.add("is-active");
   $("panel-" + t.dataset.tab).classList.add("is-active");
+  if(t.dataset.tab === 'home'){ loadHome(); } else { homeFxStop(); }
   fechaMenu();
 }));
 
