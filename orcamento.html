@@ -501,7 +501,9 @@
           var ext = (croquiFile.name.split('.').pop() || 'dat').toLowerCase();
           var path = 'croqui-' + Date.now() + '-' + Math.random().toString(36).slice(2,7) + '.' + ext;
           var up = await sb.storage.from('croquis').upload(path, croquiFile);
-          if(!up.error){ croqui_url = sb.storage.from('croquis').getPublicUrl(path).data.publicUrl; }
+          /* guarda o CAMINHO (não a URL pública): o painel abre via URL assinada,
+             então o croqui da fazenda do cliente não vaza por link. */
+          if(!up.error){ croqui_url = path; }
         }
         var sabe = val('sabe-pista');
         /* Uma função só cria/atualiza cliente + fazenda + solicitação.

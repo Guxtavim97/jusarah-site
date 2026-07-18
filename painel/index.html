@@ -2070,7 +2070,7 @@ async function loadPropostas(){
       var num = s.telefone ? ('55'+digits(s.telefone)) : '';
       h += '<div class="lead-card"><div class="lead-card__info"><b>'+esc(s.nome||'(sem nome)')+'</b><span>'+esc(s.propriedade||'')+(s.cultura?(' · '+esc(s.cultura)):'')+(s.hectares?(' · '+s.hectares+' ha'):'')+' · '+dataBR(s.criado_em)+'</span></div>'+
         (num?'<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+num+'">WhatsApp</a>':'')+
-        (s.croqui_url?'<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="'+esc(s.croqui_url)+'">Croqui</a>':'')+
+        (s.croqui_url?'<button type="button" class="btn btn--ghost btn--sm croqui-ver" data-u="'+esc(s.croqui_url)+'">Croqui</button>':'')+
         '<button class="btn btn--green btn--sm lead-fazer" data-i="'+i+'">Fazer proposta →</button></div>';
     });
     h += '</div>';
@@ -2129,6 +2129,21 @@ if(_tabDash) _tabDash.addEventListener('click', loadDashboard);
 /* ============================================================
    CLIENTES (N2+) — ficha: dados, fazendas (croqui/mapa) e histórico
    ============================================================ */
+/* abre o croqui da fazenda (bucket privado) via URL assinada.
+   fallback: registros antigos que guardaram a URL pública (http…) abrem direto. */
+async function abreCroqui(u, btn){
+  if(!u) return;
+  if(/^https?:\/\//.test(u)){ window.open(u, '_blank'); return; }
+  if(btn) btn.disabled = true;
+  var r = await sb.storage.from('croquis').createSignedUrl(u, 3600);
+  if(btn) btn.disabled = false;
+  if(r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
+  else toast('Não consegui abrir o croqui.', 'err');
+}
+document.addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('.croqui-ver') : null;
+  if(b){ e.preventDefault(); abreCroqui(b.getAttribute('data-u'), b); }
+});
 var CLIENTES = [];
 function iniciais(n){
   var p = String(n||'?').trim().split(/\s+/);
@@ -2218,7 +2233,7 @@ function cardCliente(x){
     if(f.local)    det.push(esc(f.local));
     var a = '';
     if(f.coordenadas)       a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://maps.google.com/?q='+esc(f.coordenadas)+'">📍 Mapa</a>';
-    if(f.croqui_url)        a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="'+esc(f.croqui_url)+'">📎 Croqui</a>';
+    if(f.croqui_url)        a += '<button type="button" class="btn btn--ghost btn--sm croqui-ver" data-u="'+esc(f.croqui_url)+'">📎 Croqui</button>';
     if(f.coordenadas_pista) a += '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="https://maps.google.com/?q='+esc(f.coordenadas_pista)+'">🛬 Pista</a>';
     else if(f.sabe_pista === false) a += '<span class="ctag">sem pista informada</span>';
     return '<div class="faz"><div class="faz__t"><b>'+esc(f.nome||'(fazenda sem nome)')+'</b><span>'+det.join(' · ')+'</span></div>' +
