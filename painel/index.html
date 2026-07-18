@@ -1237,7 +1237,9 @@ function drawScene(cv){
   var ctx=cv.getContext('2d');
   if(cv.clientWidth && cv.clientWidth!==cv.width){ cv.width=cv.clientWidth; cv.height=cv.clientHeight; S.w=cv.width; S.h=cv.height; }
   var w=cv.width, h=cv.height, hz=h*0.72;
-  var now=new Date(), hf=now.getHours()+now.getMinutes()/60, sky=skyAt(hf), tn=performance.now();
+  var now=new Date();
+  var hf=(S.forceHf!=null)?S.forceHf:(now.getHours()+now.getMinutes()/60);   // ?ceu=dia/tarde/amanhecer/noite força o horário
+  var sky=skyAt(hf), tn=performance.now();
   // céu
   var g=ctx.createLinearGradient(0,0,0,hz); g.addColorStop(0,rgb(sky.top)); g.addColorStop(1,rgb(sky.horizon));
   ctx.fillStyle=g; ctx.fillRect(0,0,w,hz+2);
@@ -1298,7 +1300,9 @@ function homeFxStart(){
   var stars=[], clouds=[];
   for(var i=0;i<70;i++) stars.push({x:Math.random()*w, y:Math.random()*h*0.6, ph:Math.random()*6.3, s:Math.random()});
   for(var j=0;j<5;j++) clouds.push({x:Math.random()*w, y:h*(0.1+Math.random()*0.34), sc:0.6+Math.random()*1.2, sp:0.1+Math.random()*0.22});
-  homeScene={w:w,h:h,stars:stars,clouds:clouds,droplets:[],plane:null,lastPass:performance.now()-9000};
+  var _fc=new URLSearchParams(location.search).get('ceu');
+  var _fh={dia:9,tarde:17,amanhecer:6.5,anoitecer:19,noite:22}[_fc];
+  homeScene={w:w,h:h,stars:stars,clouds:clouds,droplets:[],plane:null,lastPass:performance.now()-9000,forceHf:(_fh!=null?_fh:null)};
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){ drawScene(cv); return; }
   homeFxOn=true;
   (function loop(){ if(!homeFxOn) return; drawScene(cv); homeFxRAF=requestAnimationFrame(loop); })();
