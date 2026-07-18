@@ -177,6 +177,14 @@ p { margin: 0 0 1rem; }
 }
 /* silhueta sutil de avião/curva de pulverização */
 .hero__plane { position: absolute; right: -4%; top: 14%; width: min(52%, 620px); opacity: .16; }
+/* selo da marca — brasão colorido INTEIRO à direita do hero */
+.hero__seal {
+  position: absolute; right: 3.5%; top: 50%; transform: translateY(-50%);
+  width: min(40%, 430px); pointer-events: none; z-index: 0;
+  filter: drop-shadow(0 10px 26px rgba(0,0,0,.35));
+}
+/* em telas onde o selo encostaria no texto, esconde (a marca continua no cabeçalho) */
+@media (max-width: 1080px) { .hero__seal { display: none; } }
 .hero__inner { position: relative; padding: clamp(70px, 12vh, 150px) 0 clamp(80px, 12vh, 140px); max-width: 760px; }
 .hero .tag {
   display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.14);
