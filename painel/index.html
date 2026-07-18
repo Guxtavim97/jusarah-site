@@ -393,6 +393,18 @@
   .home-hero{position:relative;overflow:hidden;border-radius:22px;min-height:min(74vh,620px);
     display:flex;align-items:flex-end;background:#0a1526;box-shadow:0 26px 64px rgba(6,18,31,.45)}
   #home-fx{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
+  .home-plane{position:absolute;top:16%;left:0;z-index:1;pointer-events:none;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:homeFly 17s linear infinite}
+  .home-plane svg{display:block}
+  @keyframes homeFly{
+    0%{transform:translate(-200px,0);opacity:0}
+    6%{opacity:1}
+    50%{transform:translate(46vw,-18px)}
+    94%{opacity:1}
+    100%{transform:translate(94vw,6px);opacity:0}
+  }
+  @media(max-width:860px){ .home-plane svg{width:110px} .home-plane{top:12%} }
+  @media(prefers-reduced-motion:reduce){ .home-plane{animation:none;left:60%;top:20%;opacity:.9} }
   .home-content{position:relative;z-index:2;padding:clamp(26px,4.4vw,56px);max-width:780px;width:100%;
     animation:homeUp 1s cubic-bezier(.16,.84,.44,1) both}
   @keyframes homeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
@@ -511,6 +523,25 @@
     <section class="panel is-active" id="panel-home">
       <div class="home-hero">
         <canvas id="home-fx"></canvas>
+        <div class="home-plane" aria-hidden="true">
+          <svg viewBox="0 0 210 110" width="150" xmlns="http://www.w3.org/2000/svg">
+            <line x1="60" y1="72" x2="152" y2="72" stroke="#5a6b73" stroke-width="2.5"/>
+            <line x1="72" y1="72" x2="72" y2="79" stroke="#5a6b73" stroke-width="2"/>
+            <line x1="100" y1="72" x2="100" y2="79" stroke="#5a6b73" stroke-width="2"/>
+            <line x1="128" y1="72" x2="128" y2="79" stroke="#5a6b73" stroke-width="2"/>
+            <path d="M58 62 L156 60 Q170 60 170 65 L58 69 Z" fill="#1B6E3B"/>
+            <path d="M22 60 L11 30 Q9 26 14 29 L36 53 Z" fill="#2E86C1"/>
+            <path d="M24 58 L3 54 Q-1 54 3 59 L30 62 Z" fill="#1B3F8F"/>
+            <path d="M24 56 Q34 44 66 43 L170 46 Q192 48 200 56 Q192 64 170 65 L48 65 Q30 64 24 56 Z" fill="#1B3F8F"/>
+            <path d="M48 58 L190 56 L190 60 L48 61 Z" fill="#f5c518"/>
+            <path d="M92 43 Q108 28 130 34 L147 45 Z" fill="#bfe6ff" stroke="#8fb8d6" stroke-width="1"/>
+            <path d="M190 48 Q201 49 203 56 Q201 63 190 64 Z" fill="#12212e"/>
+            <ellipse cx="204" cy="56" rx="3" ry="25" fill="rgba(60,70,80,.32)"/>
+            <line x1="204" y1="31" x2="204" y2="81" stroke="rgba(30,40,50,.5)" stroke-width="2.5"/>
+            <line x1="86" y1="65" x2="80" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="79" cy="85" r="6" fill="#1a1a1a"/>
+            <line x1="122" y1="65" x2="128" y2="82" stroke="#2a2a2a" stroke-width="3.5"/><circle cx="129" cy="85" r="6" fill="#1a1a1a"/>
+          </svg>
+        </div>
         <div class="home-content">
           <span class="home-live" id="home-live"><span class="dot"></span> Cerejeiras–RO</span>
           <h1 id="home-greet">Bem-vindo</h1>
@@ -1237,8 +1268,7 @@ function drawScene(cv){
   var ctx=cv.getContext('2d');
   if(cv.clientWidth && cv.clientWidth!==cv.width){ cv.width=cv.clientWidth; cv.height=cv.clientHeight; S.w=cv.width; S.h=cv.height; }
   var w=cv.width, h=cv.height, hz=h*0.72;
-  var now=new Date();
-  var hf=(S.forceHf!=null)?S.forceHf:(now.getHours()+now.getMinutes()/60);   // ?ceu=dia/tarde/amanhecer/noite força o horário
+  var hf=10.4;   // Início é sempre de dia (céu de manhã, claro)
   var sky=skyAt(hf), tn=performance.now();
   // céu
   var g=ctx.createLinearGradient(0,0,0,hz); g.addColorStop(0,rgb(sky.top)); g.addColorStop(1,rgb(sky.horizon));
@@ -1260,35 +1290,11 @@ function drawScene(cv){
   }
   // nuvens
   S.clouds.forEach(function(c){ c.x+=c.sp; if(c.x>w+130) c.x=-130*c.sc;
-    drawCloud(ctx, c.x, c.y/S.h*h, c.sc, mix(sky.horizon,'#ffffff',0.35), Math.max(0,(0.55-sky.night*0.4))); });
-  // De DIA o avião cruza pulverizando (avião agrícola não voa à noite)
-  var dia = sky.night < 0.35;
-  if(dia){
-    if(!S.plane && tn - S.lastPass > 11000){ S.plane={x:-90, y:h*0.28+Math.random()*h*0.10}; S.lastPass=tn; }
-    if(S.plane){
-      S.plane.x += w/470;
-      S.droplets.push({x:S.plane.x-14, y:S.plane.y+9, vy:0.4+Math.random()*0.8, life:1, r:1+Math.random()*1.4});
-      drawPlane(ctx, S.plane.x, S.plane.y, 0.9, false);
-      if(S.plane.x>w+95) S.plane=null;
-    }
-    for(var d=S.droplets.length-1;d>=0;d--){ var p=S.droplets[d]; p.y+=p.vy; p.life-=0.011;
-      if(p.life<=0){ S.droplets.splice(d,1); continue; }
-      ctx.fillStyle=rgba([206,226,242], p.life*0.45); ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill(); }
-  } else { S.plane=null; S.droplets.length=0; }
-  // campo (3 camadas)
+    drawCloud(ctx, c.x, c.y/S.h*h, c.sc, mix(sky.horizon,'#ffffff',0.35), 0.55); });
+  // campo (3 camadas) — o avião é o SVG colorido (.home-plane) voando por cima
   drawField(ctx,w,h,hz,      14,'#123a2a',0.0);
   drawField(ctx,w,h,h*0.82,  20,'#0c2a1e',2.1);
   drawField(ctx,w,h,h*0.93,  26,'#06170f',4.3);
-  // À NOITE: avião descansando, banhado pela luz quente do hangar (à direita, longe dos botões)
-  if(!dia){
-    var px=w*0.78, py=h*0.86, ps=1.6;
-    var hg=ctx.createRadialGradient(px+18,py-10,0,px+18,py-10,130);
-    hg.addColorStop(0,'rgba(255,181,96,0.34)'); hg.addColorStop(0.5,'rgba(255,150,70,0.11)'); hg.addColorStop(1,'rgba(255,150,70,0)');
-    ctx.fillStyle=hg; ctx.fillRect(px-130,py-130,270,175);
-    drawPlane(ctx, px, py, ps, true);
-    var bl=Math.sin(tn*0.005);
-    if(bl>0.7){ ctx.fillStyle='rgba(255,72,52,'+(0.55+0.4*bl)+')'; ctx.beginPath(); ctx.arc(px-41*ps, py-24*ps, 2.4, 0, 6.283); ctx.fill(); }
-  }
   // escurece embaixo pra leitura do texto
   var vg=ctx.createLinearGradient(0,h*0.45,0,h); vg.addColorStop(0,'rgba(4,10,18,0)'); vg.addColorStop(1,'rgba(4,10,18,0.6)');
   ctx.fillStyle=vg; ctx.fillRect(0,h*0.45,w,h*0.55);
