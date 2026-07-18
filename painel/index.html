@@ -1277,15 +1277,15 @@ function drawScene(cv){
   drawField(ctx,w,h,hz,      14,'#123a2a',0.0);
   drawField(ctx,w,h,h*0.82,  20,'#0c2a1e',2.1);
   drawField(ctx,w,h,h*0.93,  26,'#06170f',4.3);
-  // À NOITE: avião descansando, banhado pela luz quente do hangar
+  // À NOITE: avião descansando, banhado pela luz quente do hangar (à direita, longe dos botões)
   if(!dia){
-    var px=w*0.24, py=h*0.855;
-    var hg=ctx.createRadialGradient(px+16,py-8,0,px+16,py-8,105);
+    var px=w*0.78, py=h*0.86, ps=1.6;
+    var hg=ctx.createRadialGradient(px+18,py-10,0,px+18,py-10,130);
     hg.addColorStop(0,'rgba(255,181,96,0.34)'); hg.addColorStop(0.5,'rgba(255,150,70,0.11)'); hg.addColorStop(1,'rgba(255,150,70,0)');
-    ctx.fillStyle=hg; ctx.fillRect(px-115,py-115,240,155);
-    drawPlane(ctx, px, py, 1.35, true);
+    ctx.fillStyle=hg; ctx.fillRect(px-130,py-130,270,175);
+    drawPlane(ctx, px, py, ps, true);
     var bl=Math.sin(tn*0.005);
-    if(bl>0.7){ ctx.fillStyle='rgba(255,72,52,'+(0.55+0.4*bl)+')'; ctx.beginPath(); ctx.arc(px-55, py-32, 2.3, 0, 6.283); ctx.fill(); }
+    if(bl>0.7){ ctx.fillStyle='rgba(255,72,52,'+(0.55+0.4*bl)+')'; ctx.beginPath(); ctx.arc(px-41*ps, py-24*ps, 2.4, 0, 6.283); ctx.fill(); }
   }
   // escurece embaixo pra leitura do texto
   var vg=ctx.createLinearGradient(0,h*0.45,0,h); vg.addColorStop(0,'rgba(4,10,18,0)'); vg.addColorStop(1,'rgba(4,10,18,0.6)');
