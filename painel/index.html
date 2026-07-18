@@ -1291,6 +1291,18 @@ function drawScene(cv){
   // nuvens
   S.clouds.forEach(function(c){ c.x+=c.sp; if(c.x>w+130) c.x=-130*c.sc;
     drawCloud(ctx, c.x, c.y/S.h*h, c.sc, mix(sky.horizon,'#ffffff',0.35), 0.55); });
+  // pulverização: névoa saindo atrás do avião enquanto ele cruza o céu
+  var pl=document.querySelector('.home-plane');
+  if(pl){
+    var pr=pl.getBoundingClientRect(), cr=cv.getBoundingClientRect();
+    var axx=pr.left-cr.left+pr.width*0.42, ayy=pr.top-cr.top+pr.height*0.66;
+    if(axx>-40 && axx<w+40){
+      for(var k=0;k<3;k++) S.droplets.push({x:axx-Math.random()*24, y:ayy+Math.random()*4, vx:-0.3-Math.random()*0.5, vy:0.4+Math.random()*1.0, life:1, r:1+Math.random()*1.8});
+    }
+  }
+  for(var di=S.droplets.length-1;di>=0;di--){ var dp=S.droplets[di]; dp.x+=dp.vx; dp.y+=dp.vy; dp.vy+=0.018; dp.life-=0.011;
+    if(dp.life<=0){ S.droplets.splice(di,1); continue; }
+    ctx.fillStyle=rgba([206,229,216], Math.min(0.55,dp.life)*0.5); ctx.beginPath(); ctx.arc(dp.x,dp.y,dp.r,0,6.283); ctx.fill(); }
   // campo (3 camadas) — o avião é o SVG colorido (.home-plane) voando por cima
   drawField(ctx,w,h,hz,      14,'#123a2a',0.0);
   drawField(ctx,w,h,h*0.82,  20,'#0c2a1e',2.1);
