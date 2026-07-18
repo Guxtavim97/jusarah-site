@@ -1268,7 +1268,12 @@ function drawScene(cv){
   var ctx=cv.getContext('2d');
   if(cv.clientWidth && cv.clientWidth!==cv.width){ cv.width=cv.clientWidth; cv.height=cv.clientHeight; S.w=cv.width; S.h=cv.height; }
   var w=cv.width, h=cv.height, hz=h*0.72;
-  var hf=10.4;   // Início é sempre de dia (céu de manhã, claro)
+  // hora real de Cerejeiras (fuso America/Porto_Velho = UTC−4, sem horário de verão)
+  // — o céu passa por amanhecer/dia/anoitecer/noite conforme a hora do dia.
+  // ?ceu=dia/tarde/amanhecer/anoitecer/noite força um horário (prévia).
+  var hf;
+  if(S.forceHf!=null){ hf=S.forceHf; }
+  else { var _u=(Date.now()/3600000)%24; hf=(_u-4+24)%24; }
   var sky=skyAt(hf), tn=performance.now();
   // céu
   var g=ctx.createLinearGradient(0,0,0,hz); g.addColorStop(0,rgb(sky.top)); g.addColorStop(1,rgb(sky.horizon));
@@ -1291,9 +1296,12 @@ function drawScene(cv){
   // nuvens
   S.clouds.forEach(function(c){ c.x+=c.sp; if(c.x>w+130) c.x=-130*c.sc;
     drawCloud(ctx, c.x, c.y/S.h*h, c.sc, mix(sky.horizon,'#ffffff',0.35), 0.55); });
-  // pulverização: névoa saindo atrás do avião enquanto ele cruza o céu
+  // avião: voa de dia/tarde; à noite some (céu fica só com estrelas e lua)
+  var isDia = hf>=6 && hf<19;
   var pl=document.querySelector('.home-plane');
-  if(pl){
+  if(pl){ pl.style.display = isDia ? '' : 'none'; }
+  // pulverização: névoa saindo atrás do avião enquanto ele cruza o céu (só quando ele está voando)
+  if(pl && isDia){
     var pr=pl.getBoundingClientRect(), cr=cv.getBoundingClientRect();
     var axx=pr.left-cr.left+pr.width*0.42, ayy=pr.top-cr.top+pr.height*0.66;
     if(axx>-40 && axx<w+40){
