@@ -389,33 +389,33 @@
     .topbar{padding:12px 16px}
   }
 
-  /* ══════════ INÍCIO — a casa deles (entrada sobrenatural) ══════════ */
-  .home-hero{position:relative;overflow:hidden;border-radius:24px;min-height:560px;display:flex;align-items:center;
-    background:radial-gradient(130% 120% at 50% 130%, rgba(95,177,48,.34), transparent 56%),
-               radial-gradient(90% 80% at 85% 10%, rgba(46,134,193,.28), transparent 60%),
-               linear-gradient(180deg,#06121f 0%,#0b2a44 44%,#0e3a26 100%);
-    box-shadow:0 24px 60px rgba(6,18,31,.35)}
-  #home-fx{position:absolute;inset:0;width:100%;height:100%;z-index:1}
-  .home-glow{position:absolute;left:50%;bottom:-40%;width:120%;height:80%;transform:translateX(-50%);z-index:0;
-    background:radial-gradient(closest-side, rgba(255,214,102,.22), transparent 70%);pointer-events:none;animation:homeBreathe 7s ease-in-out infinite}
-  @keyframes homeBreathe{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.12)}}
-  .home-content{position:relative;z-index:2;padding:clamp(30px,5vw,66px);max-width:760px}
-  .home-eyebrow{font-family:var(--font);font-weight:800;font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;
-    color:#9be3b6;display:inline-flex;align-items:center;gap:8px}
-  .home-content h1{font-family:var(--font);font-size:clamp(2.1rem,5.6vw,3.6rem);font-weight:800;color:#fff;
-    margin:16px 0 12px;letter-spacing:-.02em;line-height:1.08;text-shadow:0 4px 30px rgba(0,0,0,.4);
-    animation:homeUp .9s cubic-bezier(.16,.84,.44,1) both}
-  .home-content h1 b{background:linear-gradient(90deg,#ffe08a,#9be3b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .home-sub{color:rgba(255,255,255,.88);font-size:clamp(1.05rem,2.2vw,1.28rem);max-width:46ch;line-height:1.6;
-    animation:homeUp .9s .12s cubic-bezier(.16,.84,.44,1) both}
-  @keyframes homeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-  .home-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;animation:homeUp .9s .24s cubic-bezier(.16,.84,.44,1) both}
-  .home-act{display:inline-flex;align-items:center;gap:11px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);
-    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:14px;padding:14px 20px;color:#fff;
-    font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;transition:transform .15s,background .15s,border-color .15s}
-  .home-act:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4);transform:translateY(-3px)}
-  .home-act .ic{font-size:1.35rem}
-  @media(prefers-reduced-motion:reduce){.home-glow,.home-content h1,.home-sub,.home-actions{animation:none}}
+  /* ══════════ INÍCIO — o primeiro voo do dia ══════════ */
+  .home-hero{position:relative;overflow:hidden;border-radius:22px;min-height:min(74vh,620px);
+    display:flex;align-items:flex-end;background:#0a1526;box-shadow:0 26px 64px rgba(6,18,31,.45)}
+  #home-fx{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
+  .home-content{position:relative;z-index:2;padding:clamp(26px,4.4vw,56px);max-width:780px;width:100%;
+    animation:homeUp 1s cubic-bezier(.16,.84,.44,1) both}
+  @keyframes homeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+  .home-live{display:inline-flex;align-items:center;gap:9px;font-family:var(--font);font-size:.82rem;font-weight:600;
+    color:rgba(255,255,255,.92);background:rgba(4,12,22,.34);border:1px solid rgba(255,255,255,.16);
+    border-radius:999px;padding:7px 15px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .home-live .dot{width:8px;height:8px;border-radius:50%;background:#7bd88f;box-shadow:0 0 10px #7bd88f;flex:none}
+  .home-live .dot.warn{background:#ffcf5c;box-shadow:0 0 10px #ffcf5c}
+  .home-live .dot.bad{background:#ff7a6b;box-shadow:0 0 10px #ff7a6b}
+  .home-content h1{font-family:var(--font);font-size:clamp(2.2rem,5.6vw,3.7rem);font-weight:800;color:#fff;
+    margin:16px 0 8px;letter-spacing:-.025em;line-height:1.04;text-shadow:0 3px 34px rgba(0,0,0,.5)}
+  .home-content h1 b{color:#ffdf9e;font-weight:800}
+  .home-sub{color:rgba(255,255,255,.84);font-size:clamp(1.05rem,2.2vw,1.26rem);max-width:38ch;line-height:1.5;
+    font-weight:500;text-shadow:0 1px 16px rgba(0,0,0,.45)}
+  .home-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:28px}
+  .home-act{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:13px 21px;
+    font-family:var(--font);font-weight:700;font-size:.98rem;cursor:pointer;text-decoration:none;
+    transition:transform .16s ease, background .16s, border-color .16s}
+  .home-act--primary{background:#fff;color:#0e3a24;border:1px solid #fff}
+  .home-act--primary:hover{transform:translateY(-2px);background:#eafaef}
+  .home-act--ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.34)}
+  .home-act--ghost:hover{transform:translateY(-2px);background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+  @media(prefers-reduced-motion:reduce){.home-content{animation:none}}
 
   .hidden{display:none!important}
 </style>
@@ -512,12 +512,11 @@
       <div class="home-hero">
         <canvas id="home-fx"></canvas>
         <div class="home-content">
-          <span class="home-eyebrow">✨ Seu espaço na Jusarah</span>
+          <span class="home-live" id="home-live"><span class="dot"></span> Cerejeiras–RO</span>
           <h1 id="home-greet">Bem-vindo</h1>
           <p class="home-sub" id="home-sub"></p>
           <div class="home-actions" id="home-actions"></div>
         </div>
-        <div class="home-glow"></div>
       </div>
     </section>
 
@@ -1116,65 +1115,151 @@ function fechaMenu(){ $("sidebar").classList.remove('open'); $("side-backdrop").
 $("side-toggle").addEventListener('click', function(){ $("sidebar").classList.toggle('open'); $("side-backdrop").classList.toggle('show'); });
 $("side-backdrop").addEventListener('click', fechaMenu);
 
-/* ===== INÍCIO — a casa deles ===== */
+/* ═══════════ INÍCIO — o primeiro voo do dia ═══════════ */
 function irAba(t){ var b = document.querySelector('.tab[data-tab="'+t+'"]'); if(b) b.click(); }
 function loadHome(){
   var h = new Date().getHours();
   var s = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
   var nome = (usuario && usuario.nome ? usuario.nome : '').split(' ')[0];
-  $("home-greet").innerHTML = s + ', <b>' + esc(nome) + '</b>';
+  $("home-greet").innerHTML = s + ', <b>' + esc(nome) + '</b>.';
   var subs = {
-    1:'Aqui você dá voz à Jusarah — conte as histórias e novidades que nascem no campo. 🌱',
-    2:'Suas propostas, seus clientes, sua safra de resultados. Bora fazer essa safra voar. ✈️',
-    3:'O comando da operação está nas suas mãos. Que hoje renda bons frutos. 🚀'
+    1:'As histórias da lavoura passam por aqui. Conte a próxima.',
+    2:'A safra fecha no detalhe. As suas propostas começam aqui.',
+    3:'Tudo o que voa começa numa decisão sua.'
   };
   $("home-sub").textContent = subs[usuario.nivel] || subs[1];
   var acts = [
-    { min:2, ic:'💰', t:'Nova proposta',       go:function(){ irAba('propostas'); setTimeout(function(){ var b=$("btn-nova-prop"); if(b) b.click(); }, 250); } },
-    { min:2, ic:'👥', t:'Clientes',            go:function(){ irAba('clientes'); } },
-    { min:3, ic:'📊', t:'Dashboard',           go:function(){ irAba('dashboard'); } },
-    { min:1, ic:'📰', t:'Publicar notícia',    go:function(){ irAba('posts'); } },
-    { min:1, ic:'🌱', t:'Semeando Esperança',  go:function(){ irAba('projeto'); } }
+    { min:2, t:'Nova proposta',      go:function(){ irAba('propostas'); setTimeout(function(){ var b=$("btn-nova-prop"); if(b) b.click(); }, 250); } },
+    { min:2, t:'Clientes',           go:function(){ irAba('clientes'); } },
+    { min:3, t:'Dashboard',          go:function(){ irAba('dashboard'); } },
+    { min:1, t:'Publicar notícia',   go:function(){ irAba('posts'); } },
+    { min:1, t:'Semeando Esperança', go:function(){ irAba('projeto'); } }
   ].filter(function(a){ return usuario.nivel >= a.min; });
   var box = $("home-actions"); box.innerHTML = '';
-  acts.forEach(function(a){
-    var el = document.createElement('button'); el.className = 'home-act';
-    el.innerHTML = '<span class="ic">' + a.ic + '</span> ' + a.t;
+  acts.forEach(function(a,i){
+    var el = document.createElement('button');
+    el.className = 'home-act ' + (i===0 ? 'home-act--primary' : 'home-act--ghost');
+    el.textContent = a.t + (i===0 ? '  →' : '');
     el.addEventListener('click', a.go); box.appendChild(el);
   });
+  carregaClima();
   homeFxStart();
 }
-/* partículas de luz subindo (sementes de esperança) */
-var homeFxOn = false, homeFxRAF = null;
-function homeNovaP(w,h){
-  var cols = ['95,177,48','46,134,193','255,214,102','255,255,255'];
-  return { x:Math.random()*w, y:h+Math.random()*h, vy:.25+Math.random()*.85, r:1+Math.random()*2.4,
-           ph:Math.random()*6.28, life:.35+Math.random()*.65, alpha:.5+Math.random()*.5, col:cols[(Math.random()*cols.length)|0] };
+
+/* Vento real de Cerejeiras — dado de satélite meteorológico (Open-Meteo, grátis, sem cadastro) */
+function dirBussola(deg){ return ['N','NE','L','SE','S','SO','O','NO'][Math.round(((deg||0)%360)/45)%8]; }
+function carregaClima(){
+  var el = $("home-live"); if(!el) return;
+  el.innerHTML = '<span class="dot"></span> lendo o céu de Cerejeiras…';
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=-13.19&longitude=-60.81&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=America%2FPorto_Velho', { cache:'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var c = d && d.current; if(!c) throw 0;
+      var t = Math.round(c.temperature_2m), w = Math.round(c.wind_speed_10m), dir = dirBussola(c.wind_direction_10m);
+      var cls = w<=10 ? '' : (w<=16 ? 'warn' : 'bad');
+      var msg = w<=10 ? 'bom pra voar' : (w<=16 ? 'atenção com o vento' : 'vento forte');
+      el.innerHTML = '<span class="dot '+cls+'"></span> Cerejeiras · '+t+'°C · vento '+w+' km/h '+dir+' · '+msg;
+    })
+    .catch(function(){ el.innerHTML = '<span class="dot"></span> Cerejeiras–RO · pronto pra decolar'; });
+}
+
+/* ---- A cena (céu que muda com a hora + campo + avião) ---- */
+var homeFxOn=false, homeFxRAF=null, homeScene=null;
+function hexRGB(h){ h=h.replace('#',''); return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]; }
+function mix(a,b,t){ var A=hexRGB(a),B=hexRGB(b); return [Math.round(A[0]+(B[0]-A[0])*t),Math.round(A[1]+(B[1]-A[1])*t),Math.round(A[2]+(B[2]-A[2])*t)]; }
+function rgb(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+function rgba(c,a){ return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+var SKY_KF=[
+  [0,'#05080f','#0a1220',-0.25,1],   [5,'#0c1c3e','#233052',-0.05,.72],
+  [6.5,'#1c3f74','#ff9a54',0.06,.1], [8,'#2f6fc2','#bfe2f6',0.34,0],
+  [12,'#1f80d8','#d9f1ff',0.95,0],   [16,'#2f6fc2','#ffddab',0.42,0],
+  [18,'#1b3d6f','#ff8748',0.05,.08], [19.5,'#152449','#5f3a63',-0.05,.5],
+  [21,'#070d1c','#0e1832',-0.22,1],  [24,'#05080f','#0a1220',-0.25,1]
+];
+function skyAt(hf){
+  var a=SKY_KF[0], b=SKY_KF[SKY_KF.length-1];
+  for(var i=0;i<SKY_KF.length-1;i++){ if(hf>=SKY_KF[i][0] && hf<=SKY_KF[i+1][0]){ a=SKY_KF[i]; b=SKY_KF[i+1]; break; } }
+  var t=(hf-a[0])/((b[0]-a[0])||1);
+  return { top:mix(a[1],b[1],t), horizon:mix(a[2],b[2],t), sun:a[3]+(b[3]-a[3])*t, night:a[4]+(b[4]-a[4])*t };
+}
+function drawField(ctx,w,h,baseY,amp,col,ph){
+  ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,h);
+  for(var x=0;x<=w;x+=14){ ctx.lineTo(x, baseY + Math.sin(x*0.02+ph)*amp*0.35 + Math.sin(x*0.006+ph*1.7)*amp*0.5); }
+  ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+}
+function drawCloud(ctx,x,y,sc,col,a){
+  ctx.fillStyle=rgba(col,a);
+  [[0,0,26],[22,4,20],[-20,5,18],[8,-6,17]].forEach(function(o){ ctx.beginPath(); ctx.ellipse(x+o[0]*sc,y+o[1]*sc,o[2]*sc,o[2]*sc*0.6,0,0,6.283); ctx.fill(); });
+}
+function drawPlane(ctx,x,y){
+  ctx.save(); ctx.translate(x,y); ctx.fillStyle='#0a1710';
+  ctx.beginPath(); ctx.moveTo(-22,0); ctx.quadraticCurveTo(-24,-5,-15,-5); ctx.lineTo(14,-4);
+    ctx.quadraticCurveTo(25,-3,29,0); ctx.quadraticCurveTo(25,3,14,4); ctx.lineTo(-15,5); ctx.quadraticCurveTo(-24,5,-22,0); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-20,-3); ctx.lineTo(-28,-13); ctx.lineTo(-15,-3); ctx.fill();   // leme
+  ctx.beginPath(); ctx.moveTo(-2,3); ctx.lineTo(-15,15); ctx.lineTo(7,4); ctx.fill();         // asa
+  ctx.beginPath(); ctx.moveTo(3,3); ctx.lineTo(14,15); ctx.lineTo(9,4); ctx.fill();
+  ctx.strokeStyle='rgba(205,225,245,.5)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(-13,9); ctx.lineTo(11,9); ctx.stroke();
+  ctx.restore();
+}
+function drawScene(cv){
+  var S=homeScene; if(!S) return;
+  var ctx=cv.getContext('2d');
+  if(cv.clientWidth && cv.clientWidth!==cv.width){ cv.width=cv.clientWidth; cv.height=cv.clientHeight; S.w=cv.width; S.h=cv.height; }
+  var w=cv.width, h=cv.height, hz=h*0.72;
+  var now=new Date(), hf=now.getHours()+now.getMinutes()/60, sky=skyAt(hf), tn=performance.now();
+  // céu
+  var g=ctx.createLinearGradient(0,0,0,hz); g.addColorStop(0,rgb(sky.top)); g.addColorStop(1,rgb(sky.horizon));
+  ctx.fillStyle=g; ctx.fillRect(0,0,w,hz+2);
+  // estrelas
+  if(sky.night>0.25){ for(var i=0;i<S.stars.length;i++){ var st=S.stars[i]; var tw=0.5+0.5*Math.sin(tn*0.002+st.ph);
+    ctx.fillStyle=rgba([255,255,255], sky.night*(0.25+0.6*st.s)*tw); ctx.fillRect(st.x/S.w*w, st.y/S.h*h, 1.6,1.6); } }
+  // sol / lua
+  var sunX=w*0.74, sunY=hz - sky.sun*(hz*0.92);
+  if(sky.sun>-0.02){
+    var near=Math.max(0,Math.min(1,1-sky.sun*1.5)), sc=mix('#fff4cf','#ffab4d',near);
+    var gl=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,180);
+    gl.addColorStop(0,rgba(sc,0.85)); gl.addColorStop(0.4,rgba(sc,0.2)); gl.addColorStop(1,rgba(sc,0));
+    ctx.fillStyle=gl; ctx.fillRect(0,0,w,hz);
+    ctx.fillStyle=rgb(sc); ctx.beginPath(); ctx.arc(sunX,sunY,25,0,6.283); ctx.fill();
+  } else if(sky.night>0.4){
+    ctx.fillStyle='rgba(232,238,255,.92)'; ctx.beginPath(); ctx.arc(sunX,hz*0.32,15,0,6.283); ctx.fill();
+    ctx.fillStyle=rgb(sky.top); ctx.beginPath(); ctx.arc(sunX+7,hz*0.32-4,14,0,6.283); ctx.fill();
+  }
+  // nuvens
+  S.clouds.forEach(function(c){ c.x+=c.sp; if(c.x>w+130) c.x=-130*c.sc;
+    drawCloud(ctx, c.x, c.y/S.h*h, c.sc, mix(sky.horizon,'#ffffff',0.35), Math.max(0,(0.55-sky.night*0.4))); });
+  // avião (passa de tempos em tempos)
+  if(!S.plane && tn - S.lastPass > 12000){ S.plane={x:-90, y:h*0.30+Math.random()*h*0.10}; S.lastPass=tn; }
+  if(S.plane){
+    S.plane.x += w/430;
+    S.droplets.push({x:S.plane.x-15, y:S.plane.y+8, vy:0.4+Math.random()*0.8, life:1, r:1+Math.random()*1.4});
+    drawPlane(ctx, S.plane.x, S.plane.y);
+    if(S.plane.x>w+95) S.plane=null;
+  }
+  for(var d=S.droplets.length-1;d>=0;d--){ var p=S.droplets[d]; p.y+=p.vy; p.life-=0.011;
+    if(p.life<=0){ S.droplets.splice(d,1); continue; }
+    ctx.fillStyle=rgba([206,226,242], p.life*0.45); ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill(); }
+  // campo (3 camadas)
+  drawField(ctx,w,h,hz,      14,'#123a2a',0.0);
+  drawField(ctx,w,h,h*0.82,  20,'#0c2a1e',2.1);
+  drawField(ctx,w,h,h*0.93,  26,'#06170f',4.3);
+  // escurece embaixo pra leitura do texto
+  var vg=ctx.createLinearGradient(0,h*0.45,0,h); vg.addColorStop(0,'rgba(4,10,18,0)'); vg.addColorStop(1,'rgba(4,10,18,0.6)');
+  ctx.fillStyle=vg; ctx.fillRect(0,h*0.45,w,h*0.55);
 }
 function homeFxStart(){
-  var cv = $("home-fx"); if(!cv) return;
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cv=$("home-fx"); if(!cv) return;
   homeFxStop();
-  var ctx = cv.getContext('2d');
-  cv.width = cv.clientWidth || 900; cv.height = cv.clientHeight || 560;
-  var ps = []; for(var i=0;i<52;i++){ var p=homeNovaP(cv.width,cv.height); p.y=Math.random()*cv.height; ps.push(p); }
-  homeFxOn = true;
-  (function loop(){
-    if(!homeFxOn) return;
-    var w=cv.width, hh=cv.height;
-    ctx.clearRect(0,0,w,hh);
-    ps.forEach(function(p){
-      p.y -= p.vy; p.x += Math.sin(p.y*0.012 + p.ph)*0.5; p.life -= 0.0035;
-      if(p.y < -12 || p.life <= 0){ var n=homeNovaP(w,hh); for(var k in n) p[k]=n[k]; }
-      var a = Math.max(0, Math.min(1, p.life)) * p.alpha;
-      var g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4.2);
-      g.addColorStop(0,'rgba('+p.col+','+a+')'); g.addColorStop(1,'rgba('+p.col+',0)');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*4.2,0,6.283); ctx.fill();
-    });
-    homeFxRAF = requestAnimationFrame(loop);
-  })();
+  var w=cv.clientWidth||960, h=cv.clientHeight||600; cv.width=w; cv.height=h;
+  var stars=[], clouds=[];
+  for(var i=0;i<70;i++) stars.push({x:Math.random()*w, y:Math.random()*h*0.6, ph:Math.random()*6.3, s:Math.random()});
+  for(var j=0;j<5;j++) clouds.push({x:Math.random()*w, y:h*(0.1+Math.random()*0.34), sc:0.6+Math.random()*1.2, sp:0.1+Math.random()*0.22});
+  homeScene={w:w,h:h,stars:stars,clouds:clouds,droplets:[],plane:null,lastPass:performance.now()-9000};
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){ drawScene(cv); return; }
+  homeFxOn=true;
+  (function loop(){ if(!homeFxOn) return; drawScene(cv); homeFxRAF=requestAnimationFrame(loop); })();
 }
-function homeFxStop(){ homeFxOn = false; if(homeFxRAF){ cancelAnimationFrame(homeFxRAF); homeFxRAF=null; } }
+function homeFxStop(){ homeFxOn=false; if(homeFxRAF){ cancelAnimationFrame(homeFxRAF); homeFxRAF=null; } }
 
 document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach((x) => x.classList.remove("is-active"));
