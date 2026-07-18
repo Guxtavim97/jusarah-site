@@ -30,6 +30,11 @@
 </head>
 <body>
 
+  <!-- ==================== ABERTURA DE MARCA (bem-vindo) ==================== -->
+  <div id="brand-intro" role="presentation">
+    <img src="assets/img/logo-branca.png" alt="Jusarah Agro Aérea">
+  </div>
+
   <!-- ==================== HEADER ==================== -->
   <header class="header">
     <div class="container header__inner">
@@ -56,7 +61,6 @@
   <!-- ==================== HERO ==================== -->
   <section class="hero">
     <div class="hero__bg"></div>
-    <img class="hero__seal" src="assets/img/logo.png" alt="" aria-hidden="true">
     <div class="container hero__inner">
       <span class="tag">Aviação Agrícola · Cerejeiras–RO</span>
       <h1>Tecnologia que voa pela sua lavoura</h1>
@@ -324,5 +328,20 @@
   </a>
 
   <script src="assets/js/main.js"></script>
+  <script>
+    /* Abertura de marca: toca uma vez por visita (aba). Se já viu nesta sessão,
+       remove na hora. A animação em si é 100% CSS (funciona mesmo sem este JS). */
+    (function(){
+      var intro = document.getElementById('brand-intro');
+      if(!intro) return;
+      try{
+        if(sessionStorage.getItem('jusarah_intro_visto')){ intro.remove(); return; }
+        sessionStorage.setItem('jusarah_intro_visto','1');
+      }catch(e){}
+      intro.addEventListener('animationend', function(ev){
+        if(ev.animationName === 'introOut') intro.remove();
+      });
+    })();
+  </script>
 </body>
 </html>

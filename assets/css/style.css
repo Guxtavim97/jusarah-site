@@ -177,14 +177,28 @@ p { margin: 0 0 1rem; }
 }
 /* silhueta sutil de avião/curva de pulverização */
 .hero__plane { position: absolute; right: -4%; top: 14%; width: min(52%, 620px); opacity: .16; }
-/* selo da marca — brasão colorido INTEIRO à direita do hero */
-.hero__seal {
-  position: absolute; right: 3.5%; top: 50%; transform: translateY(-50%);
-  width: min(40%, 430px); pointer-events: none; z-index: 0;
-  filter: drop-shadow(0 10px 26px rgba(0,0,0,.35));
+/* ==========================================================================
+   ABERTURA DE MARCA (bem-vindo) — overlay que aparece no load e revela o site
+   ========================================================================== */
+#brand-intro {
+  position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center;
+  background:
+    radial-gradient(120% 120% at 50% 35%, rgba(46,158,91,.35), transparent 60%),
+    linear-gradient(135deg, var(--green-900), var(--blue-900));
+  animation: introOut .8s cubic-bezier(.5,0,.2,1) 1.5s forwards;
 }
-/* em telas onde o selo encostaria no texto, esconde (a marca continua no cabeçalho) */
-@media (max-width: 1080px) { .hero__seal { display: none; } }
+#brand-intro img {
+  width: min(64vw, 280px); opacity: 0;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,.4));
+  animation: introLogo 1.05s cubic-bezier(.2,.7,.2,1) .12s forwards;
+}
+@keyframes introLogo { from { opacity: 0; transform: translateY(18px) scale(.82); }
+                       to   { opacity: 1; transform: none; } }
+@keyframes introOut  { to   { opacity: 0; transform: scale(1.05); visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  #brand-intro { animation: introOut .3s ease .4s forwards; }
+  #brand-intro img { animation: introLogo .3s ease forwards; }
+}
 .hero__inner { position: relative; padding: clamp(70px, 12vh, 150px) 0 clamp(80px, 12vh, 140px); max-width: 760px; }
 .hero .tag {
   display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.14);
