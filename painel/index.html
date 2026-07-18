@@ -1192,44 +1192,44 @@ function drawCloud(ctx,x,y,sc,col,a){
   ctx.fillStyle=rgba(col,a);
   [[0,0,26],[22,4,20],[-20,5,18],[8,-6,17]].forEach(function(o){ ctx.beginPath(); ctx.ellipse(x+o[0]*sc,y+o[1]*sc,o[2]*sc,o[2]*sc*0.6,0,0,6.283); ctx.fill(); });
 }
-/* Avião AGRÍCOLA (perfil): motor grande, corcova do hopper, canopy recuado, asa baixa e barra de pulverização */
+/* Avião AGRÍCOLA estilo Air Tractor (perfil, nariz à direita) */
 function drawPlane(ctx,x,y,s,chao){
-  s=s||1; ctx.save(); ctx.translate(x,y); ctx.scale(s,s); if(chao) ctx.rotate(-0.07);
-  ctx.fillStyle='#0a1710';
-  // fuselagem + corcova (hopper) + canopy
+  s=s||1; ctx.save(); ctx.translate(x,y); ctx.scale(s,s);
+  var C='#0b1a12'; ctx.fillStyle=C; ctx.strokeStyle=C;
+  // fuselagem: motor → corcova do hopper → cabine bolha → cone de cauda
   ctx.beginPath();
-  ctx.moveTo(-27,2);                    // cauda (baixo)
-  ctx.lineTo(20,3);                     // barriga
-  ctx.quadraticCurveTo(30,3,31,-1);     // ponta do motor
-  ctx.lineTo(23,-4);                    // topo da capota do motor
-  ctx.lineTo(15,-5);                    // início da corcova
-  ctx.quadraticCurveTo(11,-12,4,-11);   // topo do hopper
-  ctx.lineTo(0,-10);                    // parabrisa
-  ctx.quadraticCurveTo(-3,-12,-9,-10);  // teto do canopy
-  ctx.lineTo(-13,-4);                   // atrás do canopy
-  ctx.lineTo(-27,-2);                   // até a cauda
-  ctx.closePath(); ctx.fill();
-  // leme (deriva)
-  ctx.beginPath(); ctx.moveTo(-25,-3); ctx.lineTo(-31,-15); ctx.lineTo(-19,-3); ctx.closePath(); ctx.fill();
+  ctx.moveTo(44,-1);
+  ctx.lineTo(38,-6); ctx.lineTo(29,-7);                 // capota do motor
+  ctx.quadraticCurveTo(25,-15,19,-14);                  // corcova do hopper
+  ctx.lineTo(14,-12);
+  ctx.quadraticCurveTo(10,-19,2,-18); ctx.lineTo(-5,-18);// cabine bolha
+  ctx.quadraticCurveTo(-9,-16,-12,-10);                 // atrás da cabine
+  ctx.lineTo(-30,-6); ctx.lineTo(-42,-5); ctx.lineTo(-44,-1); // cone de cauda
+  ctx.lineTo(-30,3); ctx.lineTo(18,5); ctx.lineTo(38,4);
+  ctx.quadraticCurveTo(44,3,44,-1); ctx.closePath(); ctx.fill();
+  // deriva alta e enflechada
+  ctx.beginPath(); ctx.moveTo(-29,-6); ctx.lineTo(-39,-23); ctx.quadraticCurveTo(-41,-25,-43,-23); ctx.lineTo(-42,-5); ctx.closePath(); ctx.fill();
   // estabilizador horizontal
-  ctx.beginPath(); ctx.moveTo(-27,-1); ctx.lineTo(-34,-2); ctx.lineTo(-26,1); ctx.closePath(); ctx.fill();
-  // asa baixa (pra frente/baixo)
-  ctx.beginPath(); ctx.moveTo(1,4); ctx.lineTo(-17,15); ctx.lineTo(9,5); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-42,-3); ctx.lineTo(-51,-4); ctx.lineTo(-51,-2); ctx.lineTo(-42,0); ctx.closePath(); ctx.fill();
+  // asa baixa longa (edge-on)
+  ctx.beginPath(); ctx.moveTo(28,4); ctx.lineTo(-16,5); ctx.lineTo(-16,8); ctx.lineTo(28,7); ctx.closePath(); ctx.fill();
   // barra de pulverização sob a asa
-  ctx.strokeStyle='rgba(205,225,245,.55)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(-16,11); ctx.lineTo(11,11); ctx.stroke();
-  if(chao){
-    // trem de pouso + bequilha (parado)
-    ctx.strokeStyle='#0a1710'; ctx.lineWidth=2.4;
-    ctx.beginPath(); ctx.moveTo(4,5); ctx.lineTo(2,17); ctx.stroke();      // perna
-    ctx.fillStyle='#0a1710'; ctx.beginPath(); ctx.arc(2,18,3,0,6.283); ctx.fill();  // roda
-    ctx.beginPath(); ctx.moveTo(-25,2); ctx.lineTo(-26,9); ctx.stroke();  // bequilha
-    ctx.beginPath(); ctx.arc(-26,10,1.6,0,6.283); ctx.fill();
-  } else {
-    // disco da hélice (em voo)
-    ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=1.6;
-    ctx.beginPath(); ctx.moveTo(32,-9); ctx.lineTo(32,9); ctx.stroke();
-  }
+  ctx.strokeStyle='rgba(205,225,245,.5)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(-14,10); ctx.lineTo(24,10); ctx.stroke();
+  // trem taildragger (fixo)
+  ctx.strokeStyle=C; ctx.fillStyle=C;
+  ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(16,6); ctx.lineTo(12,19); ctx.stroke();
+  ctx.beginPath(); ctx.arc(11,20,3.4,0,6.283); ctx.fill();
+  ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(-42,1); ctx.lineTo(-44,8); ctx.stroke();
+  ctx.beginPath(); ctx.arc(-44,9,1.8,0,6.283); ctx.fill();
+  // spinner + hélice
+  ctx.beginPath(); ctx.moveTo(44,-2); ctx.lineTo(50,0); ctx.lineTo(44,2); ctx.closePath(); ctx.fill();
+  if(chao){ ctx.strokeStyle=C; ctx.lineWidth=1.7;
+    ctx.beginPath(); ctx.moveTo(49,0); ctx.lineTo(49,-16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(49,0); ctx.lineTo(49,16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(49,0); ctx.lineTo(43,9); ctx.stroke();
+  } else { ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.ellipse(50,0,2.5,16,0,0,6.283); ctx.stroke(); }
   ctx.restore();
 }
 function drawScene(cv){
@@ -1264,9 +1264,9 @@ function drawScene(cv){
   if(dia){
     if(!S.plane && tn - S.lastPass > 11000){ S.plane={x:-90, y:h*0.28+Math.random()*h*0.10}; S.lastPass=tn; }
     if(S.plane){
-      S.plane.x += w/460;
-      S.droplets.push({x:S.plane.x-16, y:S.plane.y+9, vy:0.4+Math.random()*0.8, life:1, r:1+Math.random()*1.4});
-      drawPlane(ctx, S.plane.x, S.plane.y, 1, false);
+      S.plane.x += w/470;
+      S.droplets.push({x:S.plane.x-14, y:S.plane.y+9, vy:0.4+Math.random()*0.8, life:1, r:1+Math.random()*1.4});
+      drawPlane(ctx, S.plane.x, S.plane.y, 0.9, false);
       if(S.plane.x>w+95) S.plane=null;
     }
     for(var d=S.droplets.length-1;d>=0;d--){ var p=S.droplets[d]; p.y+=p.vy; p.life-=0.011;
@@ -1282,10 +1282,10 @@ function drawScene(cv){
     var px=w*0.24, py=h*0.855;
     var hg=ctx.createRadialGradient(px+16,py-8,0,px+16,py-8,105);
     hg.addColorStop(0,'rgba(255,181,96,0.34)'); hg.addColorStop(0.5,'rgba(255,150,70,0.11)'); hg.addColorStop(1,'rgba(255,150,70,0)');
-    ctx.fillStyle=hg; ctx.fillRect(px-105,py-105,220,150);
-    drawPlane(ctx, px, py, 1.7, true);
+    ctx.fillStyle=hg; ctx.fillRect(px-115,py-115,240,155);
+    drawPlane(ctx, px, py, 1.35, true);
     var bl=Math.sin(tn*0.005);
-    if(bl>0.7){ ctx.fillStyle='rgba(255,72,52,'+(0.55+0.4*bl)+')'; ctx.beginPath(); ctx.arc(px-52, py-26, 2.3, 0, 6.283); ctx.fill(); }
+    if(bl>0.7){ ctx.fillStyle='rgba(255,72,52,'+(0.55+0.4*bl)+')'; ctx.beginPath(); ctx.arc(px-55, py-32, 2.3, 0, 6.283); ctx.fill(); }
   }
   // escurece embaixo pra leitura do texto
   var vg=ctx.createLinearGradient(0,h*0.45,0,h); vg.addColorStop(0,'rgba(4,10,18,0)'); vg.addColorStop(1,'rgba(4,10,18,0.6)');
