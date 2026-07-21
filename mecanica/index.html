@@ -1084,6 +1084,14 @@ function toast(msg, tipo){
 function dt(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
+/* conta separando foto de vídeo: "2 fotos", "1 vídeo", "2 fotos · 1 vídeo" */
+function contaMidia(lista){
+  var v = lista.filter(function(x){ return x.midia === 'video'; }).length;
+  var f = lista.length - v, p = [];
+  if(f) p.push(f + (f > 1 ? ' fotos' : ' foto'));
+  if(v) p.push(v + (v > 1 ? ' vídeos' : ' vídeo'));
+  return p.length ? p.join(' · ') : '0';
+}
 function temPapel(p){ return !!(PERFIL && PERFIL.papeis && PERFIL.papeis.indexOf(p)>=0); }
 function ehAdmin(){ return PERFIL && PERFIL.nivel >= 3; }
 
@@ -2023,7 +2031,7 @@ async function abreOS(id, scrollRestaurar){
     return '<section class="gal-g">'+
       '<header class="gal-h '+m.cls+'"><span class="gal-n">'+m.n+'</span>'+
         '<div class="gal-tt"><b>'+m.lbl+'</b><i>'+m.sub+'</i></div>'+
-        '<span class="gal-c">'+fs.length+(fs.length>1?' fotos':' foto')+'</span></header>'+
+        '<span class="gal-c">'+contaMidia(fs)+'</span></header>'+
       '<div class="gal">'+ fs.map(function(f){
         var vai = f.compartilhada !== false;
         var eVideo = f.midia === 'video';
@@ -2047,8 +2055,9 @@ async function abreOS(id, scrollRestaurar){
           '</figure>';
       }).join('') +'</div></section>';
   }).join('');
-  if(!fotos.length) galeria = '<div class="gal-vazio"><b>📷</b>Nenhuma foto registrada.<br>'+
-    '<span>O antes e o depois é o que o proprietário mais valoriza no relatório — e o que protege a oficina.</span></div>';
+  if(!fotos.length) galeria = '<div class="gal-vazio"><b>🎞️</b>Nenhum registro ainda.<br>'+
+    '<span>O antes e o depois é o que o proprietário mais valoriza — e o que protege a oficina. '+
+    'Use vídeo quando o sintoma for som: motor batendo, vibração, ruído de vazamento.</span></div>';
 
   var html =
    '<div class="ov" id="ov"><div class="sheet"><div class="sheet__h">'+
@@ -2069,8 +2078,8 @@ async function abreOS(id, scrollRestaurar){
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
-     '<div class="box"><h3>📷 Fotos <span class="c">'+fotos.length+'</span>'+
-       (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Foto</button>')+
+     '<div class="box"><h3>🎞️ Registro do serviço <span class="c">'+contaMidia(fotos)+'</span>'+
+       (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Registrar</button>')+
        '</h3>'+galeria+'</div>'+
      '<div class="box"><h3>✍️ Assinaturas <span class="c">'+assins.length+'</span></h3>'+asHtml+
        '<div class="no" style="margin-top:10px">Assinatura registrada não pode ser apagada nem editada.</div></div>'+
