@@ -2066,6 +2066,7 @@ async function abreOS(id, scrollRestaurar){
     (o.clientes&&o.clientes.nome?' · '+esc(o.clientes.nome):'')+
     (encerrada?' · <b style="color:var(--green-d)">ENCERRADA em '+dt(o.encerrada_em)+'</b>':'')+'</div></div>'+
     '<div class="spacer"></div>'+
+    '<button class="btn btn--ghost btn--sm" id="bt-link">🔗 Link do proprietário</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
@@ -2106,6 +2107,26 @@ async function abreOS(id, scrollRestaurar){
   };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  $("bt-link").onclick = function(){
+    if(!o.token){ toast('Esta OS ainda não tem link. Recarregue a página.','err'); return; }
+    var url = 'https://jusarah.com.br/os/' + o.token;
+    var libs = fotos.filter(function(f){ return f.compartilhada !== false && f.caminho_pub; }).length;
+    abreModal('Link do proprietário',
+      '<div class="no" style="margin-bottom:12px">Mande este endereço para o dono da aeronave. '+
+      'Ele acompanha o serviço pelo celular — <b>sem senha e sem instalar nada</b> — e '+
+      '<b>assiste aos vídeos com som</b>.</div>'+
+      '<label class="blk">Endereço</label>'+
+      '<input class="in" id="lk-url" value="'+esc(url)+'" readonly onclick="this.select()">'+
+      '<div class="no" style="margin-top:10px">🎞️ <b>'+libs+'</b> mídia(s) liberada(s) para ele. '+
+      'O que estiver marcado como <b>“Não enviar”</b> não aparece no link.</div>'+
+      '<div class="no" style="margin-top:8px">🔒 O endereço tem um código único e não sequencial — '+
+      'ninguém chega na OS de outro cliente trocando números.</div>',
+      'Copiar link', async function(){
+        try{ await navigator.clipboard.writeText(url); toast('Link copiado.','ok'); }
+        catch(e){ $("lk-url").select(); document.execCommand('copy'); toast('Link copiado.','ok'); }
+        return true;
+      });
+  };
   $("bt-rel").onclick = function(){
     montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
     setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
@@ -2127,23 +2148,46 @@ async function abreOS(id, scrollRestaurar){
       if(f && f._url) window.open(f._url, '_blank');
     };
   });
-  /* escolha explícita: Enviar / Não enviar (vale pro PDF e pro link) */
+  /* Enviar / Não enviar — além de marcar, COPIA o arquivo pra área pública
+     (o proprietário não tem login; só sai do privado o que foi liberado). */
   document.querySelectorAll('.ft__sel').forEach(function(sel){
     var fid = sel.dataset.fid;
     sel.querySelectorAll('button').forEach(function(b){
       b.onclick = async function(ev){
-        ev.stopPropagation();                     // não abrir a foto ao clicar aqui
+        ev.stopPropagation();                     // não abrir a mídia ao clicar aqui
         var novo = b.dataset.sh === '1';
         var f = fotos.filter(function(x){ return x.id===fid; })[0];
-        if(f && f.compartilhada === novo) return; // já está nessa opção
+        if(!f || f.compartilhada === novo) return;
         sel.querySelectorAll('button').forEach(function(x){ x.disabled = true; });
-        var r = await sb.from('manut_os_fotos').update({compartilhada:novo}).eq('id', fid);
+        var pub = null;
+        try{
+          if(novo){
+            toast('Liberando para o proprietário…');
+            if(f.caminho_pub){ pub = f.caminho_pub; }
+            else{
+              var dl = await sb.storage.from('manutencao').download(f.caminho);
+              if(dl.error) throw new Error('não consegui ler o arquivo: '+dl.error.message);
+              var up = await sb.storage.from('manutencao-pub')
+                         .upload(f.caminho, dl.data, {upsert:true});
+              if(up.error) throw new Error('não consegui publicar: '+up.error.message);
+              pub = f.caminho;
+            }
+          } else if(f.caminho_pub){
+            await sb.storage.from('manutencao-pub').remove([f.caminho_pub]);
+          }
+        }catch(e){
+          sel.querySelectorAll('button').forEach(function(x){ x.disabled = false; });
+          toast('Erro: '+e.message,'err'); return;
+        }
+        var r = await sb.from('manut_os_fotos')
+                  .update({compartilhada:novo, caminho_pub:pub}).eq('id', fid);
         sel.querySelectorAll('button').forEach(function(x){ x.disabled = false; });
         if(r.error){ toast(r.error.message,'err'); return; }
         sel.querySelector('[data-sh="1"]').className = novo ? 'on' : '';
         sel.querySelector('[data-sh="0"]').className = novo ? '' : 'off';
-        if(f) f.compartilhada = novo;             // reflete no relatório sem recarregar
-        toast(novo ? 'Foto entra no relatório.' : 'Foto fica só interna.', 'ok');
+        f.compartilhada = novo; f.caminho_pub = pub;
+        sel.closest('.ft').classList.toggle('ft--off', !novo);
+        toast(novo ? 'Liberado para o proprietário.' : 'Removido do que o proprietário vê.', 'ok');
       };
     });
   });

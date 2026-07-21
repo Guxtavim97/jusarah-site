@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/p/:codigo", "destination": "/proposta.html?p=:codigo" },
     { "source": "/docs/:t", "destination": "/docs.html?t=:t" },
+    { "source": "/os/:token", "destination": "/os.html?t=:token" },
+    { "source": "/verificar", "destination": "/os.html" },
     { "source": "/orcamento", "destination": "/orcamento.html" },
     { "source": "/orcar", "destination": "/orcamento.html" }
   ]

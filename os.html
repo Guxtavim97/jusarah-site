@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Acompanhe sua aeronave · Jusarah Manutenção</title>
+<base href="/">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --blue:#1B3F8F; --blue-d:#122a5f; --green:#2f9e44; --green-d:#1B6E3B; --amber:#c8890a;
+    --ink:#12212e; --muted:#5b6b78; --line:#e4e9ee; --paper:#f6f8fa; --bg:#eef2f5;
+    --mono:'Consolas','SF Mono','Roboto Mono',ui-monospace,monospace;
+    --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.5}
+  img{max-width:100%;display:block}
+  .wrap{max-width:900px;margin:0 auto;padding:0 18px 70px}
+
+  /* topo com a marca */
+  .topo{background:linear-gradient(155deg,#0f2350 0%,#123f52 55%,#14512a 100%);
+    color:#fff;padding:26px 0 30px;position:relative;overflow:hidden;margin-bottom:-34px}
+  .topo::before{content:"";position:absolute;inset:0;
+    background:url('assets/img/hero-aviao-decolagem.jpg') center/cover;opacity:.15}
+  .topo__in{position:relative;max-width:900px;margin:0 auto;padding:0 18px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topo img{height:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
+  .topo__t{font-weight:800;font-size:1.05rem;line-height:1.15}
+  .topo__t small{display:block;font-size:.68rem;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;opacity:.8}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;
+    box-shadow:0 12px 34px rgba(18,33,46,.10);margin-bottom:16px}
+  .card h2{margin:0 0 14px;font-size:1.05rem;display:flex;align-items:center;gap:9px}
+  .card h2 .c{margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted)}
+
+  /* cabeçalho da aeronave */
+  .aer{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+  .aer__pref{font-family:var(--mono);font-size:2rem;font-weight:700;letter-spacing:.04em;line-height:1}
+  .aer__mod{color:var(--muted);font-size:.95rem}
+  .aer__os{margin-left:auto;text-align:right}
+  .aer__os small{display:block;font-size:.66rem;font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+  .aer__os b{font-family:var(--mono);font-size:1.1rem;color:var(--blue)}
+
+  .selo{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:9px 18px;
+    font-weight:800;font-size:.92rem;margin-top:14px}
+  .selo .pt{width:9px;height:9px;border-radius:50%;background:currentColor;
+    animation:bate 1.8s ease-in-out infinite}
+  @keyframes bate{0%,100%{opacity:1}50%{opacity:.3}}
+  .s-and{background:#fff6e6;color:#8a6100}
+  .s-lib{background:#e9f6ed;color:var(--green-d)}
+
+  /* linha do tempo simples */
+  .passos{display:flex;gap:6px;margin-top:16px}
+  .passos i{flex:1;height:7px;border-radius:4px;background:var(--line)}
+  .passos i.on{background:var(--blue)}
+  .passos i.fim{background:var(--green)}
+  .passos-l{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:6px}
+
+  /* serviços */
+  .sv{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .sv:last-child{border:0}
+  .sv__ic{width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:grid;place-items:center;
+    font-size:.8rem;font-weight:800;background:var(--paper);color:var(--muted)}
+  .sv__ic.ok{background:#e9f6ed;color:var(--green-d)}
+  .sv__t{font-weight:600}
+  .sv__s{font-size:.82rem;color:var(--muted)}
+
+  /* mídias */
+  .gh{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;margin:18px 0 12px}
+  .gh b{font-size:.9rem;font-weight:800}
+  .gh i{font-style:normal;font-size:.78rem;opacity:.8}
+  .g-a{background:#fdecec;color:#a83232} .g-d{background:#e9f5ed;color:var(--green-d)}
+  .mid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .mi{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .mi img,.mi video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#0e1a26;display:block}
+  .mi video{cursor:pointer}
+  .mi__c{padding:10px 12px}
+  .mi__l{font-weight:700;font-size:.9rem;line-height:1.3}
+  .mi__d{font-size:.74rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+  .mi__tag{font-size:.66rem;font-weight:800;color:var(--blue);background:#eaf0fa;
+    border-radius:999px;padding:2px 8px;display:inline-block;margin-bottom:4px}
+
+  .dl{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:.93rem}
+  .dl dt{color:var(--muted)} .dl dd{margin:0;font-weight:600}
+
+  .verif{background:var(--paper);border:1px dashed #b9c3cc;border-radius:14px;padding:16px 18px;text-align:center}
+  .verif small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+  .verif b{font-family:var(--mono);font-size:1.5rem;letter-spacing:.16em;color:var(--blue);display:block;margin:4px 0}
+  .verif span{font-size:.8rem;color:var(--muted)}
+
+  .rod{text-align:center;color:var(--muted);font-size:.82rem;padding:24px 0 0;line-height:1.6}
+  .carregando,.erro{text-align:center;padding:70px 20px;color:var(--muted)}
+  .erro b{display:block;font-size:2rem;margin-bottom:8px}
+  @media(max-width:560px){ .aer__os{margin-left:0;text-align:left} }
+</style>
+</head>
+<body>
+
+<div class="topo"><div class="topo__in">
+  <img src="assets/img/logo-branca.png" alt="Jusarah">
+  <div class="topo__t">Jusarah Manutenção<small>Acompanhamento de serviço</small></div>
+</div></div>
+
+<div class="wrap">
+  <div id="conteudo"><div class="carregando">Carregando…</div></div>
+</div>
+
+<script>
+var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+var PUB = SB_URL + '/storage/v1/object/public/manutencao-pub/';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
+function dtBR(s){ if(!s) return '—'; var d=new Date(s);
+  return d.toLocaleDateString('pt-BR')+' às '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+/* o token vem de /os/TOKEN (rewrite) ou de ?t= */
+function pegaToken(){
+  var m = location.pathname.match(/\/os\/([^\/?#]+)/);
+  if(m) return decodeURIComponent(m[1]);
+  return new URLSearchParams(location.search).get('t') || '';
+}
+
+var ETAPAS = ['Recebimento','Pré-OS','Priorização','Aguardando fila','Entrada',
+  'Planejamento','Execução','Pendências','Conclusão','Conferência','Encerramento'];
+
+async function carrega(){
+  var token = pegaToken();
+  if(!token){ erro('Link incompleto', 'Confira se o endereço foi copiado por inteiro.'); return; }
+  var r = await sb.rpc('os_publica', {p_token: token});
+  if(r.error || !r.data){
+    erro('Ordem de serviço não encontrada',
+      'O link pode estar incorreto ou ter sido substituído. Fale com a Jusarah Manutenção.');
+    return;
+  }
+  desenha(r.data);
+}
+function erro(t, s){
+  document.getElementById('conteudo').innerHTML =
+    '<div class="card erro"><b>🔍</b><h2 style="justify-content:center">'+esc(t)+'</h2><p>'+esc(s)+'</p></div>';
+}
+
+function desenha(d){
+  var o = d.os, a = d.aeronave, sv = d.servicos || [], md = d.midias || [];
+  var fim = !!o.encerrada_em;
+
+  /* progresso */
+  var passos = '<div class="passos">';
+  for(var i=1;i<=11;i++) passos += '<i class="'+(i<=o.etapa ? (fim?'fim':'on') : '')+'"></i>';
+  passos += '</div><div class="passos-l"><span>Recebimento</span><span>'+
+    (fim ? 'Liberada ✓' : 'Etapa '+o.etapa+' · '+esc(ETAPAS[o.etapa-1]||''))+'</span></div>';
+
+  /* serviços */
+  var svHtml = sv.length ? sv.map(function(t){
+    var ok = !!t.conferido_em;
+    return '<div class="sv"><div class="sv__ic'+(ok?' ok':'')+'">'+(ok?'✓':'·')+'</div>'+
+      '<div><div class="sv__t">'+esc(t.descricao)+'</div>'+
+      '<div class="sv__s">'+(ok ? 'executado e conferido por uma segunda pessoa'
+                                : 'em andamento')+'</div></div></div>';
+  }).join('') : '<div class="sv__s">Os serviços aparecem aqui conforme são executados.</div>';
+
+  /* mídias por momento */
+  function grupo(t, cls, lbl, sub){
+    var g = md.filter(function(m){ return m.tipo===t; });
+    if(!g.length) return '';
+    return '<div class="gh '+cls+'"><b>'+lbl+'</b><i>'+sub+'</i></div><div class="mid">'+
+      g.map(function(m){
+        var url = PUB + m.caminho;
+        return '<figure class="mi" style="margin:0">'+
+          (m.midia==='video'
+            ? '<video controls preload="metadata" playsinline src="'+esc(url)+'"></video>'
+            : '<img src="'+esc(url)+'" loading="lazy" alt="'+esc(m.legenda||'')+'">')+
+          '<figcaption class="mi__c">'+
+            (m.midia==='video'?'<span class="mi__tag">🎥 com som</span>':'')+
+            '<div class="mi__l">'+esc(m.legenda||'')+'</div>'+
+            '<div class="mi__d">'+dataBR(m.quando)+'</div>'+
+          '</figcaption></figure>';
+      }).join('')+'</div>';
+  }
+  var midHtml = md.length
+    ? grupo('antes','g-a','ANTES','como a aeronave chegou') +
+      grupo('depois','g-d','DEPOIS','o serviço executado')
+    : '<div class="sv__s">As fotos e vídeos aparecem aqui conforme o serviço avança.</div>';
+
+  document.getElementById('conteudo').innerHTML =
+    '<div class="card">'+
+      '<div class="aer"><div>'+
+        '<div class="aer__pref">'+esc(a.prefixo)+'</div>'+
+        '<div class="aer__mod">'+esc(a.modelo||'')+(d.proprietario?' · '+esc(d.proprietario):'')+'</div>'+
+      '</div><div class="aer__os"><small>Ordem de serviço</small><b>'+esc(o.codigo||'—')+'</b></div></div>'+
+      '<div class="selo '+(fim?'s-lib':'s-and')+'"><span class="pt"></span>'+
+        (fim ? 'Liberada para o serviço em '+dataBR(o.encerrada_em)
+             : 'Em manutenção · etapa '+o.etapa+' de 11')+'</div>'+
+      passos+
+      (o.tipo||o.descricao
+        ? '<div style="margin-top:16px"><b>'+esc(o.tipo||'Serviço')+'</b>'+
+          (o.descricao?'<div class="sv__s">'+esc(o.descricao)+'</div>':'')+'</div>' : '')+
+    '</div>'+
+
+    '<div class="card"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+svHtml+
+      '<div class="sv__s" style="margin-top:14px">Todo serviço é executado por um profissional e '+
+      '<b>conferido por uma segunda pessoa</b> antes de a aeronave ser liberada.</div></div>'+
+
+    '<div class="card"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
+
+    '<div class="card"><h2>🛬 Entrada e saída</h2><dl class="dl">'+
+      '<dt>Entregue por</dt><dd>'+esc(o.entrega_nome||'—')+
+        (o.entrega_em?' <span class="sv__s">em '+dtBR(o.entrega_em)+'</span>':'')+'</dd>'+
+      '<dt>Retirada por</dt><dd>'+esc(o.retirada_nome||'ainda na oficina')+
+        (o.retirada_em?' <span class="sv__s">em '+dtBR(o.retirada_em)+'</span>':'')+'</dd>'+
+    '</dl></div>'+
+
+    '<div class="card verif"><small>Código de autenticidade</small><b>'+esc(o.verificacao||'—')+'</b>'+
+      '<span>Este código confirma que o relatório desta ordem de serviço foi emitido pela Jusarah Manutenção.</span></div>'+
+
+    '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+      'Dúvidas sobre este serviço? Fale com a oficina.</div>';
+}
+carrega();
+</script>
+</body>
+</html>
