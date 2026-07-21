@@ -422,6 +422,57 @@
   .ft__img{width:132px;height:99px;border-radius:9px;background:var(--paper) center/cover no-repeat;
     border:1px solid var(--line)}
   .ft__l{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.25}
+
+  /* ============================================================
+     RELATÓRIO DE SERVIÇO — documento A4. Invisível na tela,
+     aparece só na impressão (Ctrl+P → Salvar como PDF).
+     ============================================================ */
+  #doc{display:none}
+  @media print{
+    body{background:#fff}
+    body > *{display:none!important}
+    #doc{display:block!important}
+    @page{size:A4;margin:14mm 13mm}
+    .rp{font-family:Georgia,'Times New Roman',serif;color:#12212e;font-size:10.5pt;line-height:1.45}
+    .rp-cab{display:flex;align-items:flex-start;gap:16px;padding-bottom:12px;
+      border-bottom:2.5px solid #1B3F8F;margin-bottom:3px}
+    .rp-cab img{height:62px}
+    .rp-cab .emp{flex:1}
+    .rp-cab .emp b{display:block;font-size:15pt;letter-spacing:.02em;color:#1B3F8F}
+    .rp-cab .emp span{font-size:8.5pt;letter-spacing:.18em;text-transform:uppercase;color:#5b6b78}
+    .rp-cab .num{text-align:right}
+    .rp-cab .num small{display:block;font-size:7.5pt;letter-spacing:.18em;text-transform:uppercase;color:#5b6b78}
+    .rp-cab .num b{font-size:20pt;font-family:Consolas,monospace;color:#1B3F8F}
+    .rp-fina{height:2px;background:#1B6E3B;margin-bottom:16px}
+    .rp h1{font-size:13pt;letter-spacing:.06em;text-transform:uppercase;text-align:center;
+      margin:0 0 16px;font-weight:normal;color:#0f3d24}
+    .rp h2{font-size:9pt;letter-spacing:.16em;text-transform:uppercase;color:#1B3F8F;
+      border-bottom:1px solid #c9d3da;padding-bottom:3px;margin:16px 0 8px;font-weight:bold}
+    /* bloco de identificação, estilo carimbo de prancha */
+    .rp-id{display:grid;grid-template-columns:1fr 1fr;border:1px solid #9aa6ae}
+    .rp-id div{padding:6px 9px;border-right:1px solid #c9d3da;border-bottom:1px solid #c9d3da}
+    .rp-id div:nth-child(2n){border-right:0}
+    .rp-id dt{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
+    .rp-id dd{margin:1px 0 0;font-weight:bold;font-size:11pt}
+    table.rp-t{width:100%;border-collapse:collapse;font-size:9.5pt}
+    table.rp-t th{text-align:left;font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;
+      color:#5b6b78;border-bottom:1.5px solid #9aa6ae;padding:5px 6px}
+    table.rp-t td{padding:6px;border-bottom:1px solid #dde3e9;vertical-align:top}
+    table.rp-t .n{font-family:Consolas,monospace;font-weight:bold;color:#1B3F8F;width:22px}
+    .rp-sig{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+    .rp-sig div{border:1px solid #c9d3da;border-left:3px solid #1B6E3B;padding:8px 11px}
+    .rp-sig .q{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
+    .rp-sig .n{font-weight:bold;font-size:11pt}
+    .rp-sig .d{font-size:8.5pt;color:#5b6b78;font-family:Consolas,monospace}
+    .rp-fotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+    .rp-fotos figure{margin:0;break-inside:avoid}
+    .rp-fotos img{width:100%;height:52mm;object-fit:cover;border:1px solid #c9d3da}
+    .rp-fotos figcaption{font-size:8pt;color:#5b6b78;margin-top:2px;line-height:1.25}
+    .rp-nota{margin-top:16px;padding:9px 12px;background:#f6f8fa;border-left:3px solid #1B3F8F;font-size:8.5pt}
+    .rp-rod{margin-top:20px;padding-top:9px;border-top:1px solid #c9d3da;
+      font-size:8pt;color:#5b6b78;text-align:center;line-height:1.5}
+    .rp-quebra{break-before:page}
+  }
 </style>
 </head>
 <body>
@@ -583,6 +634,9 @@
 </div>
 
 <div id="modal"></div>
+
+<!-- ===== RELATÓRIO DE SERVIÇO (só existe na impressão / PDF) ===== -->
+<div id="doc"></div>
 
 <script>
 /* ============================================================
@@ -770,6 +824,110 @@ function comprimeImagem(file, max){
     img.onerror = function(){ URL.revokeObjectURL(url); res(file); };
     img.src = url;
   });
+}
+
+/* ============================================================
+   RELATÓRIO DE SERVIÇO — o documento que vai pro proprietário
+   ============================================================ */
+function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
+  var c = CATS[a.categoria] || CATS['agricola'];
+  var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
+  var pDono = a.proprietario_id ? PROPMAP[a.proprietario_id] : null;
+  var dias = o.encerrada_em
+    ? Math.max(1, Math.round((new Date(o.encerrada_em) - new Date(o.aberta_em))/86400000))
+    : Math.max(1, Math.round((Date.now() - new Date(o.aberta_em))/86400000));
+
+  var linhas = tarefas.map(function(t, i){
+    return '<tr><td class="n">'+(i+1)+'</td>'+
+      '<td><b>'+esc(t.descricao)+'</b>'+
+        (t.zona?'<br><span style="font-size:8.5pt;color:#5b6b78">Zona: '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
+        (t.referencia_manual?'<br><span style="font-size:8.5pt;color:#5b6b78">Ref.: '+esc(t.referencia_manual)+'</span>':'')+
+      '</td>'+
+      '<td>'+(t.executado_em ? esc(nome(t.executor_id))+'<br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.executado_em)+'</span>' : '—')+'</td>'+
+      '<td>'+(t.conferido_em ? esc(nome(t.conferente_id))+'<br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.conferido_em)+'</span>' : '—')+'</td></tr>';
+  }).join('');
+
+  var pendFeitas = pend.filter(function(p){ return p.resolvida_em; });
+  var pendHtml = pendFeitas.length
+    ? '<h2>Pendências enfrentadas e resolvidas</h2><table class="rp-t"><tbody>'+
+      pendFeitas.map(function(p){
+        return '<tr><td><b>'+esc(p.descricao)+'</b>'+(p.motivo?' — '+esc(p.motivo):'')+'</td>'+
+          '<td style="text-align:right;white-space:nowrap">resolvida '+dataBR(p.resolvida_em)+'</td></tr>';
+      }).join('')+'</tbody></table>' : '';
+
+  function assinBloco(tipo, rot){
+    var s = assins.filter(function(x){ return x.tipo===tipo; })[0];
+    if(!s) return '';
+    var quem = s.quem_nome ? esc(s.quem_nome)+(s.quem_doc?' · '+esc(s.quem_doc):'') : esc(nome(s.quem));
+    return '<div><div class="q">'+rot+'</div><div class="n">'+quem+'</div>'+
+      '<div class="d">'+dt(s.quando)+'</div></div>';
+  }
+  var aEtapa = assins.filter(function(x){ return x.tipo==='etapa'; });
+  var sigGate = aEtapa.filter(function(x){ return x.para_etapa===7; })[0];
+  var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===11; })[0];
+  var sigHtml =
+    (sigGate ? '<div><div class="q">Liberação do planejamento (Gate)</div><div class="n">'+
+        esc(nome(sigGate.quem))+'</div><div class="d">'+dt(sigGate.quando)+'</div></div>' : '')+
+    (sigFim ? '<div><div class="q">Aprovação para retorno ao serviço</div><div class="n">'+
+        esc(nome(sigFim.quem))+'</div><div class="d">'+dt(sigFim.quando)+'</div></div>' : '')+
+    assinBloco('entrega','Aeronave entregue na oficina por')+
+    assinBloco('retirada','Aeronave retirada por');
+
+  var FT = {recebimento:'Recebimento', problema:'Problema encontrado', resolucao:'Serviço executado', entrega:'Entrega'};
+  var comFoto = fotos.filter(function(f){ return f._url; });
+  var fotosHtml = comFoto.length
+    ? '<div class="rp-quebra"></div><h2>Registro fotográfico</h2><div class="rp-fotos">'+
+      comFoto.map(function(f){
+        return '<figure><img src="'+f._url+'"><figcaption><b>'+(FT[f.tipo]||f.tipo)+'</b>'+
+          (f.legenda?'<br>'+esc(f.legenda):'')+'</figcaption></figure>';
+      }).join('')+'</div>' : '';
+
+  $("doc").innerHTML =
+   '<div class="rp">'+
+    '<div class="rp-cab">'+
+      '<img src="../assets/img/logo.png" alt="">'+
+      '<div class="emp"><b>Jusarah Manutenção</b><span>Manutenção Aeronáutica · Cerejeiras–RO</span></div>'+
+      '<div class="num"><small>Ordem de Serviço</small><b>'+o.numero+'</b></div>'+
+    '</div><div class="rp-fina"></div>'+
+    '<h1>Relatório de Serviço</h1>'+
+
+    '<div class="rp-id">'+
+      '<div><dt>Matrícula</dt><dd>'+esc(a.prefixo||'—')+'</dd></div>'+
+      '<div><dt>Modelo</dt><dd>'+esc(a.modelo||c.nome)+'</dd></div>'+
+      '<div><dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd></div>'+
+      '<div><dt>Categoria</dt><dd>'+esc(c.nome)+'</dd></div>'+
+      '<div><dt>Proprietário</dt><dd>'+esc(dono||'—')+
+        (pDono && pDono.doc ? '<br><span style="font-size:8.5pt;font-weight:normal;color:#5b6b78">'+esc(pDono.doc)+'</span>' : '')+'</dd></div>'+
+      '<div><dt>Operador</dt><dd>'+esc(oper || dono || '—')+'</dd></div>'+
+      '<div><dt>Entrada na oficina</dt><dd>'+dataBR(o.aberta_em)+'</dd></div>'+
+      '<div><dt>'+(o.encerrada_em?'Retorno ao serviço':'Situação')+'</dt><dd>'+
+        (o.encerrada_em ? dataBR(o.encerrada_em) : 'Em andamento · etapa '+o.etapa+' de 11')+'</dd></div>'+
+    '</div>'+
+    '<div style="font-size:8.5pt;color:#5b6b78;margin-top:5px">Permanência na oficina: <b>'+dias+' dia(s)</b>'+
+      (o.tipo?' · Serviço: <b>'+esc(o.tipo)+'</b>':'')+'</div>'+
+
+    (o.descricao ? '<h2>Objeto do serviço</h2><div>'+esc(o.descricao)+'</div>' : '')+
+
+    '<h2>Serviços executados e conferidos</h2>'+
+    (tarefas.length
+      ? '<table class="rp-t"><thead><tr><th></th><th>Serviço</th><th>Executado por</th>'+
+        '<th>Conferido por (cross check)</th></tr></thead><tbody>'+linhas+'</tbody></table>'
+      : '<div style="color:#5b6b78">Nenhum serviço registrado.</div>')+
+
+    pendHtml+
+
+    (sigHtml ? '<h2>Assinaturas</h2><div class="rp-sig">'+sigHtml+'</div>' : '')+
+
+    '<div class="rp-nota"><b>Cross check:</b> todo serviço registrado neste relatório foi executado por um profissional '+
+      'e conferido por uma <b>segunda pessoa</b>, conforme o procedimento da oficina. As assinaturas acima são '+
+      'eletrônicas, registradas com identificação do signatário, data e hora, e não podem ser alteradas.</div>'+
+
+    fotosHtml+
+
+    '<div class="rp-rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+      'Documento gerado pelo sistema em '+dt(new Date().toISOString())+' · OS '+o.numero+' · '+esc(a.prefixo||'')+
+      '</div>'+
+   '</div>';
 }
 
 /* mede cada traço pra ele se desenhar sozinho */
@@ -1537,6 +1695,11 @@ async function abreOS(id, scrollRestaurar){
   var hist    = (await sb.from('manut_os_historico').select('*').eq('os_id',id).order('quando',{ascending:false})).data||[];
   var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
+  /* URL assinada de cada foto — serve pra galeria E pro relatório */
+  for(var fi=0; fi<fotos.length; fi++){
+    var sr = await sb.storage.from('manutencao').createSignedUrl(fotos[fi].caminho, 3600);
+    fotos[fi]._url = (sr.data && sr.data.signedUrl) || null;
+  }
   var itens=[], resp={};
   if(o.gate_checklist_id){
     itens = (await sb.from('manut_checklist_itens').select('*').eq('checklist_id',o.gate_checklist_id).order('ordem')).data||[];
@@ -1702,7 +1865,9 @@ async function abreOS(id, scrollRestaurar){
     '<div class="sub">'+esc(a.modelo||'')+' · '+(o.terceiro?'Aeronave de terceiro':'Frota própria')+
     (o.clientes&&o.clientes.nome?' · '+esc(o.clientes.nome):'')+
     (encerrada?' · <b style="color:var(--green-d)">ENCERRADA em '+dt(o.encerrada_em)+'</b>':'')+'</div></div>'+
-    '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
+    '<div class="spacer"></div>'+
+    '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
+    '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      prancheta(a, tarefas, o)+
      '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 11')+'</span></h3>'+
@@ -1741,17 +1906,20 @@ async function abreOS(id, scrollRestaurar){
   };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  $("bt-rel").onclick = function(){
+    montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
+    setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
+  };
 
   /* --- fotos: carrega as miniaturas por URL assinada (bucket é privado) --- */
-  fotos.forEach(async function(f){
-    var el = $("ft-"+f.id); if(!el) return;
-    var r = await sb.storage.from('manutencao').createSignedUrl(f.caminho, 3600);
-    if(r.data && r.data.signedUrl) el.style.backgroundImage = 'url("'+r.data.signedUrl+'")';
+  fotos.forEach(function(f){
+    var el = $("ft-"+f.id);
+    if(el && f._url) el.style.backgroundImage = 'url("'+f._url+'")';
   });
   document.querySelectorAll('[data-ft]').forEach(function(el){
-    el.onclick = async function(){
-      var r = await sb.storage.from('manutencao').createSignedUrl(el.dataset.ft, 3600);
-      if(r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
+    el.onclick = function(){
+      var f = fotos.filter(function(x){ return x.caminho===el.dataset.ft; })[0];
+      if(f && f._url) window.open(f._url, '_blank');
     };
   });
   if($("add-foto")) $("add-foto").onclick = function(){
