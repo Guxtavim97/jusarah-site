@@ -4,299 +4,394 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#071228">
 <title>Acompanhe sua aeronave · Jusarah Manutenção</title>
 <base href="/">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
-    --blue:#1B3F8F; --blue-d:#122a5f; --green:#2f9e44; --green-d:#1B6E3B; --amber:#c8890a;
+    --bp:#071228; --bp2:#0b1e42; --linha:#7fd4ff; --linha2:#4a9fd4;
+    --blue:#1B3F8F; --green:#2f9e44; --green-d:#1B6E3B; --amber:#c8890a; --ok:#4fe08a;
     --ink:#12212e; --muted:#5b6b78; --line:#e4e9ee; --paper:#f6f8fa; --bg:#eef2f5;
     --mono:'Consolas','SF Mono','Roboto Mono',ui-monospace,monospace;
     --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.5}
+  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.5;
+    overflow-x:hidden}
   img{max-width:100%;display:block}
-  .wrap{max-width:900px;margin:0 auto;padding:0 18px 70px}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 60px}
 
-  /* topo com a marca */
-  .topo{background:linear-gradient(155deg,#0f2350 0%,#123f52 55%,#14512a 100%);
-    color:#fff;padding:26px 0 30px;position:relative;overflow:hidden;margin-bottom:-34px}
-  .topo::before{content:"";position:absolute;inset:0;
-    background:url('assets/img/hero-aviao-decolagem.jpg') center/cover;opacity:.15}
-  .topo__in{position:relative;max-width:900px;margin:0 auto;padding:0 18px;
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .topo img{height:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
-  .topo__t{font-weight:800;font-size:1.05rem;line-height:1.15}
-  .topo__t small{display:block;font-size:.68rem;font-weight:700;letter-spacing:.16em;
-    text-transform:uppercase;opacity:.8}
+  /* entrada suave dos blocos */
+  .sobe{opacity:0;transform:translateY(22px);animation:sobe .7s cubic-bezier(.16,.84,.44,1) forwards}
+  @keyframes sobe{to{opacity:1;transform:none}}
 
-  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;
-    box-shadow:0 12px 34px rgba(18,33,46,.10);margin-bottom:16px}
-  .card h2{margin:0 0 14px;font-size:1.05rem;display:flex;align-items:center;gap:9px}
-  .card h2 .c{margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted)}
+  /* ===================== HERO: a aeronave se desenha ===================== */
+  .hero{position:relative;overflow:hidden;color:#fff;padding:22px 0 0;
+    background:
+      repeating-linear-gradient(0deg,rgba(127,212,255,.05) 0 1px,transparent 1px 30px),
+      repeating-linear-gradient(90deg,rgba(127,212,255,.05) 0 1px,transparent 1px 30px),
+      radial-gradient(130% 110% at 50% 0%, var(--bp2) 0%, var(--bp) 65%)}
+  .hero__in{max-width:860px;margin:0 auto;padding:0 16px}
+  .marca{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .marca img{height:44px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+  .marca div{font-weight:800;font-size:.98rem;line-height:1.15}
+  .marca small{display:block;font-size:.62rem;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;opacity:.65}
 
-  /* cabeçalho da aeronave */
-  .aer{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
-  .aer__pref{font-family:var(--mono);font-size:2rem;font-weight:700;letter-spacing:.04em;line-height:1}
-  .aer__mod{color:var(--muted);font-size:.95rem}
-  .aer__os{margin-left:auto;text-align:right}
-  .aer__os small{display:block;font-size:.66rem;font-weight:800;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--muted)}
-  .aer__os b{font-family:var(--mono);font-size:1.1rem;color:var(--blue)}
+  .id{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .id__pref{font-family:var(--mono);font-size:clamp(2.2rem,9vw,3.2rem);font-weight:700;
+    letter-spacing:.04em;line-height:1;text-shadow:0 4px 24px rgba(0,0,0,.4)}
+  .id__mod{color:#8fb4d6;font-size:.95rem;margin-bottom:5px}
+  .id__os{margin-left:auto;text-align:right;font-family:var(--mono)}
+  .id__os small{display:block;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#6f8db0}
+  .id__os b{font-size:1rem;color:#a9c8e6}
 
-  .selo{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:9px 18px;
-    font-weight:800;font-size:.92rem;margin-top:14px}
-  .selo .pt{width:9px;height:9px;border-radius:50%;background:currentColor;
-    animation:bate 1.8s ease-in-out infinite}
-  @keyframes bate{0%,100%{opacity:1}50%{opacity:.3}}
-  .s-and{background:#fff6e6;color:#8a6100}
-  .s-lib{background:#e9f6ed;color:var(--green-d)}
+  .desenho{position:relative;margin:0 -16px}
+  .dw{display:block;width:100%;height:auto}
+  .dw .ln{fill:none;stroke:var(--linha);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
+    stroke-dasharray:var(--L);stroke-dashoffset:var(--L);animation:desenha 2.4s cubic-bezier(.4,0,.2,1) forwards}
+  .dw .fina{stroke:var(--linha2);stroke-width:1}
+  .dw .eixo{stroke:rgba(127,212,255,.28);stroke-width:1;stroke-dasharray:16 5 3 5;fill:none}
+  @keyframes desenha{to{stroke-dashoffset:0}}
+  .helice{transform-box:fill-box;transform-origin:center}
+  .vivo .helice{animation:gira 1.1s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  .dw .pin{opacity:0;transition:opacity 1.4s ease}
+  .vivo .dw .pin{opacity:1}
+  .vivo .dw .ln{stroke:rgba(190,225,255,.5)}
 
-  /* linha do tempo simples */
-  .passos{display:flex;gap:6px;margin-top:16px}
-  .passos i{flex:1;height:7px;border-radius:4px;background:var(--line)}
-  .passos i.on{background:var(--blue)}
-  .passos i.fim{background:var(--green)}
-  .passos-l{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:6px}
+  /* ===================== SITUAÇÃO ===================== */
+  .sit{position:relative;margin:-6px 0 0;padding:0 0 26px}
+  .selo{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:10px 20px;
+    font-weight:800;font-size:.95rem;backdrop-filter:blur(6px)}
+  .selo .pt{width:9px;height:9px;border-radius:50%;background:currentColor}
+  .selo .pt::after{content:"";display:block;width:9px;height:9px;border-radius:50%;
+    background:currentColor;animation:onda 2s ease-out infinite}
+  @keyframes onda{0%{transform:scale(1);opacity:.7}100%{transform:scale(3.2);opacity:0}}
+  .s-and{background:rgba(255,196,77,.16);color:#ffd47a;border:1px solid rgba(255,196,77,.4)}
+  .s-lib{background:rgba(79,224,138,.16);color:var(--ok);border:1px solid rgba(79,224,138,.45)}
+  .agora{margin-top:14px;font-size:1.05rem;line-height:1.5;color:#dce8f5;max-width:560px}
+  .agora b{color:#fff}
 
-  /* serviços */
-  .sv{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
-  .sv:last-child{border:0}
-  .sv__ic{width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:grid;place-items:center;
-    font-size:.8rem;font-weight:800;background:var(--paper);color:var(--muted)}
+  /* trilha das etapas */
+  .trilha{display:flex;gap:4px;margin-top:20px}
+  .trilha i{flex:1;height:6px;border-radius:3px;background:rgba(127,212,255,.16);
+    transform:scaleX(0);transform-origin:left;animation:cresce .5s ease forwards}
+  @keyframes cresce{to{transform:scaleX(1)}}
+  .trilha i.on{background:var(--linha)}
+  .trilha i.fim{background:var(--ok)}
+  .trilha-l{display:flex;justify-content:space-between;font-size:.72rem;color:#6f8db0;margin-top:8px;
+    font-family:var(--mono)}
+
+  /* ===================== CARDS ===================== */
+  .card{background:#fff;border-radius:20px;padding:22px 22px;margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(18,33,46,.09)}
+  .card h2{margin:0 0 16px;font-size:1.02rem;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+  .card h2 .c{margin-left:auto;font-size:.74rem;font-weight:700;color:var(--muted);
+    background:var(--paper);border-radius:999px;padding:3px 10px}
+
+  .sv{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .sv:last-of-type{border:0}
+  .sv__ic{width:28px;height:28px;flex:0 0 28px;border-radius:50%;display:grid;place-items:center;
+    font-size:.82rem;font-weight:800;background:var(--paper);color:#9aa6ae}
   .sv__ic.ok{background:#e9f6ed;color:var(--green-d)}
   .sv__t{font-weight:600}
-  .sv__s{font-size:.82rem;color:var(--muted)}
+  .sv__s{font-size:.83rem;color:var(--muted)}
+  .nota{background:var(--paper);border-radius:12px;padding:13px 15px;font-size:.88rem;
+    color:var(--muted);margin-top:14px;line-height:1.5}
+  .nota b{color:var(--ink)}
 
   /* mídias */
-  .gh{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;margin:18px 0 12px}
-  .gh b{font-size:.9rem;font-weight:800}
-  .gh i{font-style:normal;font-size:.78rem;opacity:.8}
+  .gh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:11px;margin:16px 0 12px}
+  .gh b{font-size:.9rem;font-weight:800} .gh i{font-style:normal;font-size:.78rem;opacity:.8}
   .g-a{background:#fdecec;color:#a83232} .g-d{background:#e9f5ed;color:var(--green-d)}
-  .mid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-  .mi{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
-  .mi img,.mi video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#0e1a26;display:block}
-  .mi video{cursor:pointer}
-  .mi__c{padding:10px 12px}
-  .mi__l{font-weight:700;font-size:.9rem;line-height:1.3}
-  .mi__d{font-size:.74rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
-  .mi__tag{font-size:.66rem;font-weight:800;color:var(--blue);background:#eaf0fa;
-    border-radius:999px;padding:2px 8px;display:inline-block;margin-bottom:4px}
+  .mid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .mi{border-radius:14px;overflow:hidden;background:#0e1a26;position:relative;cursor:pointer;
+    box-shadow:0 4px 14px rgba(18,33,46,.14);transition:transform .16s}
+  .mi:hover{transform:translateY(-3px)}
+  .mi img,.mi video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+  .mi__c{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;color:#fff;
+    background:linear-gradient(transparent,rgba(6,14,28,.9))}
+  .mi__l{font-weight:700;font-size:.88rem;line-height:1.25}
+  .mi__d{font-size:.7rem;opacity:.75;font-family:var(--mono)}
+  .mi__play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+  .mi__play span{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.92);
+    display:grid;place-items:center;font-size:1.1rem;color:#12212e;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .vazio-m{color:var(--muted);font-size:.9rem;text-align:center;padding:22px 10px}
 
-  .dl{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:.93rem}
+  .dl{display:grid;grid-template-columns:auto 1fr;gap:9px 16px;font-size:.94rem}
   .dl dt{color:var(--muted)} .dl dd{margin:0;font-weight:600}
 
-  .verif{background:var(--paper);border:1px dashed #b9c3cc;border-radius:14px;padding:16px 18px;text-align:center}
-  .verif small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--muted)}
-  .verif b{font-family:var(--mono);font-size:1.5rem;letter-spacing:.16em;color:var(--blue);display:block;margin:4px 0}
-  .verif span{font-size:.8rem;color:var(--muted)}
+  .verif{background:linear-gradient(150deg,#0f2350,#123f52);color:#fff;border-radius:20px;
+    padding:22px;text-align:center;margin-bottom:14px}
+  .verif small{display:block;font-size:.66rem;font-weight:800;letter-spacing:.16em;
+    text-transform:uppercase;opacity:.6}
+  .verif b{font-family:var(--mono);font-size:1.7rem;letter-spacing:.2em;display:block;margin:6px 0 4px}
+  .verif span{font-size:.8rem;opacity:.8}
 
-  /* verificação de autenticidade */
+  .rod{text-align:center;color:var(--muted);font-size:.82rem;padding:18px 0 0;line-height:1.7}
+
+  /* lightbox */
+  .lb{position:fixed;inset:0;background:rgba(5,12,22,.94);z-index:99;display:grid;place-items:center;
+    padding:18px;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0}}
+  .lb img,.lb video{max-width:100%;max-height:80vh;border-radius:12px}
+  .lb__l{color:#fff;text-align:center;margin-top:14px;font-weight:600}
+  .lb__x{position:absolute;top:16px;right:18px;color:#fff;font-size:1.6rem;cursor:pointer;
+    background:rgba(255,255,255,.12);width:42px;height:42px;border-radius:50%;display:grid;place-items:center}
+
+  /* verificação */
   .vf{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
   @media(max-width:520px){ .vf{grid-template-columns:1fr} }
-  .vf label{display:block;font-size:.78rem;font-weight:800;letter-spacing:.06em;
+  .vf label{display:block;font-size:.76rem;font-weight:800;letter-spacing:.06em;
     text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .vf input{width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:12px;
-    font-size:1.05rem;font-weight:600;background:#fff}
+    font-size:1.05rem;font-weight:600;background:#fff;font-family:inherit}
   .vf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(27,63,143,.1)}
   .btn-vf{width:100%;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:800;
     background:var(--blue);color:#fff;cursor:pointer;font-family:inherit}
-  .btn-vf:hover{filter:brightness(1.08)}
   .btn-vf[disabled]{opacity:.6}
   .vf-msg{margin-top:18px;padding:15px 17px;border-radius:12px;font-size:.93rem;line-height:1.5}
   .vf-msg b{display:block;font-size:1.05rem;margin-bottom:3px}
   .vf-sim{background:#e9f6ed;color:var(--green-d);border-left:4px solid var(--green)}
   .vf-nao{background:#fdecec;color:#8a2727;border-left:4px solid #b03030}
-  .rod{text-align:center;color:var(--muted);font-size:.82rem;padding:24px 0 0;line-height:1.6}
-  .carregando,.erro{text-align:center;padding:70px 20px;color:var(--muted)}
-  .erro b{display:block;font-size:2rem;margin-bottom:8px}
-  @media(max-width:560px){ .aer__os{margin-left:0;text-align:left} }
+  .carregando{text-align:center;padding:80px 20px;color:var(--muted)}
 </style>
 </head>
 <body>
-
-<div class="topo"><div class="topo__in">
-  <img src="assets/img/logo-branca.png" alt="Jusarah">
-  <div class="topo__t">Jusarah Manutenção<small>Acompanhamento de serviço</small></div>
-</div></div>
-
-<div class="wrap">
-  <div id="conteudo"><div class="carregando">Carregando…</div></div>
-</div>
+<div id="tudo"><div class="carregando">Carregando…</div></div>
 
 <script>
 var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
 var sb = window.supabase.createClient(SB_URL, SB_KEY);
 var PUB = SB_URL + '/storage/v1/object/public/manutencao-pub/';
+var MID = [];
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
 function dtBR(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' às '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
-
-/* o token vem de /os/TOKEN (rewrite) ou de ?t= */
 function pegaToken(){
   var m = location.pathname.match(/\/os\/([^\/?#]+)/);
-  if(m) return decodeURIComponent(m[1]);
-  return new URLSearchParams(location.search).get('t') || '';
+  return m ? decodeURIComponent(m[1]) : (new URLSearchParams(location.search).get('t') || '');
 }
 
-var ETAPAS = ['Recebimento','Pré-OS','Priorização','Aguardando fila','Entrada',
-  'Planejamento','Execução','Pendências','Conclusão','Conferência','Encerramento'];
+/* o que está acontecendo agora, em português de gente */
+var ETAPA = [
+  {n:'Recebimento',  d:'Sua aeronave chegou à oficina e foi registrada com fotos do estado em que chegou.'},
+  {n:'Documentação', d:'Estamos conferindo a documentação e o histórico da aeronave.'},
+  {n:'Priorização',  d:'Definindo a ordem de atendimento junto às outras aeronaves na oficina.'},
+  {n:'Fila',         d:'Na fila, aguardando uma baia livre no hangar.'},
+  {n:'Entrada',      d:'Sua aeronave entrou no hangar.'},
+  {n:'Planejamento', d:'Planejando o serviço: separando as peças, o ferramental calibrado e definindo quem executa.'},
+  {n:'Execução',     d:'Serviço em execução pelos nossos mecânicos.'},
+  {n:'Pendências',   d:'Resolvendo uma pendência antes de poder concluir — assim que liberar, seguimos.'},
+  {n:'Conclusão',    d:'Serviço concluído. Seguindo para a conferência final.'},
+  {n:'Conferência',  d:'Uma segunda pessoa está conferindo todo o serviço, item por item.'},
+  {n:'Liberação',    d:'Tudo conferido e assinado. Sua aeronave está liberada para voltar a voar.'}
+];
+
+/* silhuetas (as mesmas do desenho técnico da oficina) */
+var SIL = {
+ 'asa-alta':{t:['M404 52 Q404 44 414 44 L480 44 Q490 44 490 52 L490 448 Q490 456 480 456 L414 456 Q404 456 404 448 Z','M436 268 L462 356 M436 232 L462 144','M156 234 L630 224 Q694 230 712 250 Q694 270 630 276 L156 266 Q146 250 156 234 Z','M162 196 L250 208 L250 292 L162 304 Q152 250 162 196 Z','M498 250 m-52 0 a52 22 0 1 0 104 0 a52 22 0 1 0 -104 0'],h:{cx:722,cy:250,r:86},
+   p:['M404 52 L490 52 L490 448 L404 448 Z','M156 234 L630 224 Q694 230 712 250 Q694 270 630 276 L156 266 Q146 250 156 234 Z']},
+ 'asa-baixa':{t:['M418 62 L458 62 L492 230 L492 270 L458 438 L418 438 L384 270 L384 230 Z','M384 230 L492 230 M384 270 L492 270','M158 236 L640 226 Q700 232 716 250 Q700 268 640 274 L158 264 Q148 250 158 236 Z','M166 206 L246 216 L246 284 L166 294 Q156 250 166 206 Z','M520 250 m-48 0 a48 21 0 1 0 96 0 a48 21 0 1 0 -96 0'],h:{cx:726,cy:250,r:84},
+   p:['M418 62 L458 62 L492 230 L492 270 L458 438 L418 438 L384 270 L384 230 Z','M158 236 L640 226 Q700 232 716 250 Q700 268 640 274 L158 264 Q148 250 158 236 Z']},
+ 'agricola':{t:['M396 56 L456 56 L470 232 L470 268 L456 444 L396 444 L410 268 L410 232 Z','M410 232 L470 232 M410 268 L470 268','M152 232 L250 236 L250 264 L152 268 Q142 250 152 232 Z','M152 226 L716 224 Q744 232 750 250 Q744 268 716 276 L152 274 Q140 250 152 226 Z','M556 250 m-42 0 a42 22 0 1 0 84 0 a42 22 0 1 0 -84 0','M430 228 L510 228 Q516 228 516 234 L516 266 Q516 272 510 272 L430 272 Q424 272 424 266 L424 234 Q424 228 430 228 Z','M332 96 L332 404 M362 96 L302 96 M362 404 L302 404'],h:{cx:754,cy:250,r:92},
+   p:['M396 56 L456 56 L470 232 L470 268 L456 444 L396 444 L410 268 L410 232 Z','M152 226 L716 224 Q744 232 750 250 Q744 268 716 276 L152 274 Q140 250 152 226 Z']},
+ 'bimotor':{t:['M414 64 L456 64 L496 228 L496 272 L456 436 L414 436 L376 272 L376 228 Z','M376 228 L496 228 M376 272 L496 272','M406 128 L470 122 Q492 126 498 140 Q492 154 470 158 L406 152 Q398 140 406 128 Z','M406 372 L470 366 Q492 370 498 384 Q492 398 470 402 L406 396 Q398 384 406 372 Z','M156 232 L620 222 Q690 228 708 250 Q690 272 620 278 L156 268 Q144 250 156 232 Z','M164 200 L252 212 L252 288 L164 300 Q154 250 164 200 Z','M516 250 m-50 0 a50 22 0 1 0 100 0 a50 22 0 1 0 -100 0'],hh:[{cx:508,cy:140,r:66},{cx:508,cy:384,r:66}],
+   p:['M414 64 L456 64 L496 228 L496 272 L456 436 L414 436 L376 272 L376 228 Z','M156 232 L620 222 Q690 228 708 250 Q690 272 620 278 L156 268 Q144 250 156 232 Z']},
+ 'turbo':{t:['M400 40 Q400 32 410 32 L484 32 Q494 32 494 40 L494 460 Q494 468 484 468 L410 468 Q400 468 400 460 Z','M432 268 L458 366 M432 232 L458 134','M150 228 L648 218 Q712 226 730 250 Q712 274 648 282 L150 272 Q138 250 150 228 Z','M330 274 L520 272 Q532 280 530 292 L336 294 Q326 286 330 274 Z','M160 190 L256 204 L256 296 L160 310 Q150 250 160 190 Z','M540 250 m-54 0 a54 23 0 1 0 108 0 a54 23 0 1 0 -108 0'],h:{cx:742,cy:250,r:96},
+   p:['M400 40 L494 40 L494 460 L400 460 Z','M150 228 L648 218 Q712 226 730 250 Q712 274 648 282 L150 272 Q138 250 150 228 Z']}
+};
+function svgAeronave(cat){
+  var c = SIL[cat] || SIL['agricola'];
+  var s = '<svg class="dw" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">'+
+          '<line class="eixo" x1="70" y1="250" x2="850" y2="250"/>'+
+          '<g class="pin">'+ c.p.map(function(d,i){
+            return '<path d="'+d+'" fill="'+(i===0?'#1B3F8F':'#16357a')+'"/>'; }).join('') +'</g>';
+  c.t.forEach(function(d,i){ s += '<path class="ln'+(i>1?' fina':'')+'" d="'+d+'"/>'; });
+  function hel(h){ return '<g class="helice">'+
+    '<circle class="ln fina" cx="'+h.cx+'" cy="'+h.cy+'" r="'+h.r+'" stroke-dasharray="6 8"/>'+
+    '<path class="ln" d="M'+h.cx+' '+(h.cy-h.r)+' Q'+(h.cx+10)+' '+h.cy+' '+h.cx+' '+(h.cy+h.r)+
+    ' Q'+(h.cx-10)+' '+h.cy+' '+h.cx+' '+(h.cy-h.r)+' Z"/></g>'; }
+  if(c.h) s += hel(c.h);
+  (c.hh||[]).forEach(function(h){ s += hel(h); });
+  return s + '</svg>';
+}
+function medir(){
+  document.querySelectorAll('.dw .ln').forEach(function(el,i){
+    var L=600; try{ L = el.getTotalLength(); }catch(e){}
+    if(!L||!isFinite(L)) L=600;
+    el.style.setProperty('--L', Math.ceil(L));
+    el.style.animationDelay = ((i%8)*70)+'ms';
+  });
+}
 
 async function carrega(){
   var token = pegaToken();
-  if(!token){ telaVerificar(); return; }   /* /verificar → confere autenticidade */
+  if(!token){ telaVerificar(); return; }
   var r = await sb.rpc('os_publica', {p_token: token});
   if(r.error || !r.data){
-    erro('Ordem de serviço não encontrada',
-      'O link pode estar incorreto ou ter sido substituído. Fale com a Jusarah Manutenção.');
-    return;
+    document.getElementById('tudo').innerHTML =
+      '<div class="wrap" style="padding-top:60px"><div class="card" style="text-align:center">'+
+      '<h2 style="justify-content:center">Não encontramos esta ordem de serviço</h2>'+
+      '<p style="color:var(--muted)">O endereço pode estar incompleto. Confira o link ou fale com a oficina.</p>'+
+      '</div></div>'; return;
   }
   desenha(r.data);
 }
-function erro(t, s){
-  document.getElementById('conteudo').innerHTML =
-    '<div class="card erro"><b>🔍</b><h2 style="justify-content:center">'+esc(t)+'</h2><p>'+esc(s)+'</p></div>';
+
+function desenha(d){
+  var o=d.os, a=d.aeronave, sv=d.servicos||[], md=d.midias||[];
+  MID = md; var fim = !!o.encerrada_em;
+  var et = ETAPA[(o.etapa||1)-1] || ETAPA[0];
+
+  var trilha='<div class="trilha">';
+  for(var i=1;i<=11;i++) trilha += '<i class="'+(i<=o.etapa?(fim?'fim':'on'):'')+
+    '" style="animation-delay:'+(300+i*55)+'ms"></i>';
+  trilha += '</div><div class="trilha-l"><span>Recebimento</span><span>'+
+    (fim?'Liberada ✓':'Etapa '+o.etapa+' · '+esc(et.n))+'</span></div>';
+
+  var svHtml = sv.length ? sv.map(function(t){
+    var ok=!!t.conferido_em;
+    return '<div class="sv"><div class="sv__ic'+(ok?' ok':'')+'">'+(ok?'✓':'·')+'</div>'+
+      '<div><div class="sv__t">'+esc(t.descricao)+'</div><div class="sv__s">'+
+      (ok?'executado e conferido por uma segunda pessoa':'em andamento')+'</div></div></div>';
+  }).join('') : '<div class="sv__s">Os serviços aparecem aqui conforme são executados.</div>';
+
+  function grupo(t,cls,lbl,sub){
+    var g=md.filter(function(m){return m.tipo===t;});
+    if(!g.length) return '';
+    return '<div class="gh '+cls+'"><b>'+lbl+'</b><i>'+sub+'</i></div><div class="mid">'+
+      g.map(function(m){
+        var i = md.indexOf(m), url = PUB+m.caminho, v = m.midia==='video';
+        return '<div class="mi" data-i="'+i+'">'+
+          (v?'<video preload="metadata" src="'+esc(url)+'#t=0.5" muted playsinline></video>'
+             +'<div class="mi__play"><span>▶</span></div>'
+            :'<img src="'+esc(url)+'" loading="lazy" alt="">')+
+          '<div class="mi__c"><div class="mi__l">'+esc(m.legenda||'')+'</div>'+
+          '<div class="mi__d">'+dataBR(m.quando)+(v?' · vídeo com som':'')+'</div></div></div>';
+      }).join('')+'</div>';
+  }
+  var midHtml = md.length
+    ? grupo('antes','g-a','ANTES','como chegou') + grupo('depois','g-d','DEPOIS','o que foi feito')
+    : '<div class="vazio-m">As fotos e vídeos do serviço aparecem aqui conforme ele avança.</div>';
+
+  document.getElementById('tudo').innerHTML =
+    '<div class="hero"><div class="hero__in">'+
+      '<div class="marca"><img src="assets/img/logo-branca.png" alt="Jusarah">'+
+        '<div>Jusarah Manutenção<small>Acompanhamento de serviço</small></div></div>'+
+      '<div class="id"><div><div class="id__pref">'+esc(a.prefixo)+'</div>'+
+        '<div class="id__mod">'+esc(a.modelo||'')+(d.proprietario?' · '+esc(d.proprietario):'')+'</div></div>'+
+        '<div class="id__os"><small>Ordem de serviço</small><b>'+esc(o.codigo||'')+'</b></div></div>'+
+      '<div class="desenho">'+svgAeronave(a.categoria)+'</div>'+
+      '<div class="sit">'+
+        '<div class="selo '+(fim?'s-lib':'s-and')+'"><span class="pt"></span>'+
+          (fim?'Liberada para voltar a voar':'Em manutenção · etapa '+o.etapa+' de 11')+'</div>'+
+        '<div class="agora">'+(fim
+          ? 'Serviço concluído em <b>'+dataBR(o.encerrada_em)+'</b>. '+esc(ETAPA[10].d)
+          : '<b>Agora:</b> '+esc(et.d))+'</div>'+
+        trilha+
+      '</div>'+
+    '</div></div>'+
+
+    '<div class="wrap">'+
+      (o.tipo||o.descricao ? '<div class="card sobe" style="animation-delay:.1s">'+
+        '<h2>📋 O que veio fazer</h2><div style="font-weight:700;font-size:1.05rem">'+
+        esc(o.tipo||'Serviço')+'</div>'+
+        (o.descricao?'<div class="sv__s" style="margin-top:4px">'+esc(o.descricao)+'</div>':'')+
+        '</div>' : '')+
+
+      '<div class="card sobe" style="animation-delay:.16s"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+
+        svHtml+'<div class="nota">Na Jusarah, <b>todo serviço é conferido por uma segunda pessoa</b> '+
+        'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
+
+      '<div class="card sobe" style="animation-delay:.22s"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
+
+      '<div class="card sobe" style="animation-delay:.28s"><h2>🛬 Entrada e saída</h2><dl class="dl">'+
+        '<dt>Entregue por</dt><dd>'+esc(o.entrega_nome||'—')+
+          (o.entrega_em?'<br><span class="sv__s">'+dtBR(o.entrega_em)+'</span>':'')+'</dd>'+
+        '<dt>Retirada por</dt><dd>'+esc(o.retirada_nome||'ainda na oficina')+
+          (o.retirada_em?'<br><span class="sv__s">'+dtBR(o.retirada_em)+'</span>':'')+'</dd>'+
+      '</dl></div>'+
+
+      '<div class="verif sobe" style="animation-delay:.34s"><small>Código de autenticidade</small>'+
+        '<b>'+esc(o.verificacao||'—')+'</b>'+
+        '<span>Confirme este documento em jusarah.com.br/verificar</span></div>'+
+
+      '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+        'Qualquer dúvida sobre o serviço, fale com a gente.</div>'+
+    '</div>';
+
+  medir();
+  if(fim) setTimeout(function(){ document.querySelector('.hero').classList.add('vivo'); }, 2300);
+  document.querySelectorAll('.mi').forEach(function(el){
+    el.onclick = function(){ lightbox(MID[+el.dataset.i]); };
+  });
 }
 
-/* ============================================================
-   /verificar — confere se um relatório é mesmo da Jusarah.
-   Pede o nº da OS E o código: só quem tem o documento na mão
-   tem os dois (o código sozinho seria curto demais).
-   ============================================================ */
-function telaVerificar(){
-  document.getElementById('conteudo').innerHTML =
-    '<div class="card">'+
-      '<h2>🔒 Verificar autenticidade</h2>'+
-      '<p style="color:var(--muted);margin:0 0 18px">Recebeu um relatório de serviço da Jusarah Manutenção? '+
-      'Confirme aqui se ele foi mesmo emitido por nós. Os dois campos estão impressos no documento.</p>'+
-      '<div class="vf">'+
-        '<div><label>Nº da ordem de serviço</label>'+
-          '<input id="v-os" placeholder="OS 2026-0007" autocomplete="off"></div>'+
-        '<div><label>Código de autenticidade</label>'+
-          '<input id="v-cod" placeholder="A3F9C1" maxlength="10" autocomplete="off" '+
-          'style="text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono)"></div>'+
-      '</div>'+
-      '<button class="btn-vf" id="v-bt">Verificar</button>'+
-      '<div id="v-res"></div>'+
-    '</div>'+
-    '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO</div>';
+function lightbox(m){
+  if(!m) return;
+  var url = PUB+m.caminho;
+  var d = document.createElement('div');
+  d.className='lb';
+  d.innerHTML = '<div class="lb__x">×</div><div>'+
+    (m.midia==='video'
+      ? '<video controls autoplay playsinline src="'+esc(url)+'"></video>'
+      : '<img src="'+esc(url)+'">')+
+    '<div class="lb__l">'+esc(m.legenda||'')+'</div></div>';
+  document.body.appendChild(d);
+  d.onclick = function(e){ if(e.target===d || e.target.className==='lb__x') d.remove(); };
+}
 
-  var bt = document.getElementById('v-bt');
-  var campos = [document.getElementById('v-os'), document.getElementById('v-cod')];
-  campos.forEach(function(c){
-    c.addEventListener('keydown', function(e){ if(e.key==='Enter') bt.click(); });
+/* ---------------- /verificar ---------------- */
+function telaVerificar(){
+  document.getElementById('tudo').innerHTML =
+    '<div class="hero"><div class="hero__in" style="padding-bottom:26px">'+
+      '<div class="marca"><img src="assets/img/logo-branca.png" alt="Jusarah">'+
+      '<div>Jusarah Manutenção<small>Verificação de autenticidade</small></div></div>'+
+      '<div class="agora" style="margin:0"><b>Recebeu um relatório de serviço?</b><br>'+
+      'Confirme aqui se ele foi mesmo emitido por nós.</div>'+
+    '</div></div>'+
+    '<div class="wrap"><div class="card sobe" style="margin-top:18px">'+
+      '<div class="vf">'+
+        '<div><label>Nº da ordem de serviço</label><input id="v-os" placeholder="OS 2026-0007" autocomplete="off"></div>'+
+        '<div><label>Código de autenticidade</label><input id="v-cod" placeholder="A3F9C1" maxlength="10" '+
+        'autocomplete="off" style="text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono)"></div>'+
+      '</div><button class="btn-vf" id="v-bt">Verificar</button><div id="v-res"></div>'+
+    '</div><div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO</div></div>';
+
+  var bt=document.getElementById('v-bt');
+  [document.getElementById('v-os'),document.getElementById('v-cod')].forEach(function(c){
+    c.addEventListener('keydown',function(e){ if(e.key==='Enter') bt.click(); });
   });
   bt.onclick = async function(){
-    var os = campos[0].value.trim(), cod = campos[1].value.trim();
-    var res = document.getElementById('v-res');
-    if(!os || !cod){ res.innerHTML = '<div class="vf-msg vf-nao">Preencha os dois campos.</div>'; return; }
-    bt.disabled = true; bt.textContent = 'Verificando…';
-    var r = await sb.rpc('os_verifica', {p_codigo: os, p_verificacao: cod});
-    bt.disabled = false; bt.textContent = 'Verificar';
-    var d = r.data;
-    if(r.error || !d){
-      res.innerHTML = '<div class="vf-msg vf-nao"><b>❌ Não confere</b>'+
-        'Não encontramos um documento com esse número e código. Confira se digitou exatamente '+
-        'como está impresso — ou fale com a oficina.</div>';
-      return;
+    var os=document.getElementById('v-os').value.trim(), cod=document.getElementById('v-cod').value.trim();
+    var res=document.getElementById('v-res');
+    if(!os||!cod){ res.innerHTML='<div class="vf-msg vf-nao">Preencha os dois campos.</div>'; return; }
+    bt.disabled=true; bt.textContent='Verificando…';
+    var r = await sb.rpc('os_verifica',{p_codigo:os,p_verificacao:cod});
+    bt.disabled=false; bt.textContent='Verificar';
+    var d=r.data;
+    if(r.error||!d){
+      res.innerHTML='<div class="vf-msg vf-nao"><b>❌ Não confere</b>Não encontramos um documento com esse '+
+        'número e código. Confira se digitou como está impresso — ou fale com a oficina.</div>'; return;
     }
-    res.innerHTML = '<div class="vf-msg vf-sim"><b>✅ Documento autêntico</b>'+
+    res.innerHTML='<div class="vf-msg vf-sim"><b>✅ Documento autêntico</b>'+
       'Este relatório foi emitido pela Jusarah Manutenção.</div>'+
       '<dl class="dl" style="margin-top:16px">'+
         '<dt>Ordem de serviço</dt><dd>'+esc(d.codigo||'—')+'</dd>'+
         '<dt>Aeronave</dt><dd>'+esc(d.prefixo||'—')+(d.modelo?' · '+esc(d.modelo):'')+'</dd>'+
-        '<dt>Entrada na oficina</dt><dd>'+dataBR(d.aberta_em)+'</dd>'+
-        '<dt>Situação</dt><dd>'+(d.encerrada_em
-            ? 'Liberada para o serviço em '+dataBR(d.encerrada_em)
-            : 'Em manutenção')+'</dd>'+
-        '<dt>Serviços registrados</dt><dd>'+(d.servicos||0)+'</dd>'+
+        '<dt>Entrada</dt><dd>'+dataBR(d.aberta_em)+'</dd>'+
+        '<dt>Situação</dt><dd>'+(d.encerrada_em?'Liberada em '+dataBR(d.encerrada_em):'Em manutenção')+'</dd>'+
       '</dl>'+
-      (d.token ? '<a class="btn-vf" style="display:block;text-align:center;text-decoration:none;margin-top:16px" '+
-        'href="/os/'+esc(d.token)+'">Ver o serviço completo →</a>' : '');
+      (d.token?'<a class="btn-vf" style="display:block;text-align:center;text-decoration:none;margin-top:16px" '+
+        'href="/os/'+esc(d.token)+'">Ver o serviço completo →</a>':'');
   };
-}
-
-function desenha(d){
-  var o = d.os, a = d.aeronave, sv = d.servicos || [], md = d.midias || [];
-  var fim = !!o.encerrada_em;
-
-  /* progresso */
-  var passos = '<div class="passos">';
-  for(var i=1;i<=11;i++) passos += '<i class="'+(i<=o.etapa ? (fim?'fim':'on') : '')+'"></i>';
-  passos += '</div><div class="passos-l"><span>Recebimento</span><span>'+
-    (fim ? 'Liberada ✓' : 'Etapa '+o.etapa+' · '+esc(ETAPAS[o.etapa-1]||''))+'</span></div>';
-
-  /* serviços */
-  var svHtml = sv.length ? sv.map(function(t){
-    var ok = !!t.conferido_em;
-    return '<div class="sv"><div class="sv__ic'+(ok?' ok':'')+'">'+(ok?'✓':'·')+'</div>'+
-      '<div><div class="sv__t">'+esc(t.descricao)+'</div>'+
-      '<div class="sv__s">'+(ok ? 'executado e conferido por uma segunda pessoa'
-                                : 'em andamento')+'</div></div></div>';
-  }).join('') : '<div class="sv__s">Os serviços aparecem aqui conforme são executados.</div>';
-
-  /* mídias por momento */
-  function grupo(t, cls, lbl, sub){
-    var g = md.filter(function(m){ return m.tipo===t; });
-    if(!g.length) return '';
-    return '<div class="gh '+cls+'"><b>'+lbl+'</b><i>'+sub+'</i></div><div class="mid">'+
-      g.map(function(m){
-        var url = PUB + m.caminho;
-        return '<figure class="mi" style="margin:0">'+
-          (m.midia==='video'
-            ? '<video controls preload="metadata" playsinline src="'+esc(url)+'"></video>'
-            : '<img src="'+esc(url)+'" loading="lazy" alt="'+esc(m.legenda||'')+'">')+
-          '<figcaption class="mi__c">'+
-            (m.midia==='video'?'<span class="mi__tag">🎥 com som</span>':'')+
-            '<div class="mi__l">'+esc(m.legenda||'')+'</div>'+
-            '<div class="mi__d">'+dataBR(m.quando)+'</div>'+
-          '</figcaption></figure>';
-      }).join('')+'</div>';
-  }
-  var midHtml = md.length
-    ? grupo('antes','g-a','ANTES','como a aeronave chegou') +
-      grupo('depois','g-d','DEPOIS','o serviço executado')
-    : '<div class="sv__s">As fotos e vídeos aparecem aqui conforme o serviço avança.</div>';
-
-  document.getElementById('conteudo').innerHTML =
-    '<div class="card">'+
-      '<div class="aer"><div>'+
-        '<div class="aer__pref">'+esc(a.prefixo)+'</div>'+
-        '<div class="aer__mod">'+esc(a.modelo||'')+(d.proprietario?' · '+esc(d.proprietario):'')+'</div>'+
-      '</div><div class="aer__os"><small>Ordem de serviço</small><b>'+esc(o.codigo||'—')+'</b></div></div>'+
-      '<div class="selo '+(fim?'s-lib':'s-and')+'"><span class="pt"></span>'+
-        (fim ? 'Liberada para o serviço em '+dataBR(o.encerrada_em)
-             : 'Em manutenção · etapa '+o.etapa+' de 11')+'</div>'+
-      passos+
-      (o.tipo||o.descricao
-        ? '<div style="margin-top:16px"><b>'+esc(o.tipo||'Serviço')+'</b>'+
-          (o.descricao?'<div class="sv__s">'+esc(o.descricao)+'</div>':'')+'</div>' : '')+
-    '</div>'+
-
-    '<div class="card"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+svHtml+
-      '<div class="sv__s" style="margin-top:14px">Todo serviço é executado por um profissional e '+
-      '<b>conferido por uma segunda pessoa</b> antes de a aeronave ser liberada.</div></div>'+
-
-    '<div class="card"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
-
-    '<div class="card"><h2>🛬 Entrada e saída</h2><dl class="dl">'+
-      '<dt>Entregue por</dt><dd>'+esc(o.entrega_nome||'—')+
-        (o.entrega_em?' <span class="sv__s">em '+dtBR(o.entrega_em)+'</span>':'')+'</dd>'+
-      '<dt>Retirada por</dt><dd>'+esc(o.retirada_nome||'ainda na oficina')+
-        (o.retirada_em?' <span class="sv__s">em '+dtBR(o.retirada_em)+'</span>':'')+'</dd>'+
-    '</dl></div>'+
-
-    '<div class="card verif"><small>Código de autenticidade</small><b>'+esc(o.verificacao||'—')+'</b>'+
-      '<span>Este código confirma que o relatório desta ordem de serviço foi emitido pela Jusarah Manutenção.</span></div>'+
-
-    '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
-      'Dúvidas sobre este serviço? Fale com a oficina.</div>';
 }
 carrega();
 </script>

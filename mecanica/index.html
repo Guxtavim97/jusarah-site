@@ -2329,14 +2329,20 @@ async function abreOS(id, scrollRestaurar){
     if(!o.token){ toast('Esta OS ainda não tem link. Recarregue a página.','err'); return; }
     var url = 'https://jusarah.com.br/os/' + o.token;
     var libs = fotos.filter(function(f){ return f.compartilhada !== false && f.caminho_pub; }).length;
+    var faltam = fotos.filter(function(f){ return f.compartilhada !== false && !f.caminho_pub; });
     abreModal('Link do proprietário',
       '<div class="no" style="margin-bottom:12px">Mande este endereço para o dono da aeronave. '+
       'Ele acompanha o serviço pelo celular — <b>sem senha e sem instalar nada</b> — e '+
       '<b>assiste aos vídeos com som</b>.</div>'+
       '<label class="blk">Endereço</label>'+
       '<input class="in" id="lk-url" value="'+esc(url)+'" readonly onclick="this.select()">'+
-      '<div class="no" style="margin-top:10px">🎞️ <b>'+libs+'</b> mídia(s) liberada(s) para ele. '+
+      '<div class="no" style="margin-top:10px">🎞️ <b>'+libs+'</b> mídia(s) já visível(is) para ele. '+
       'O que estiver marcado como <b>“Não enviar”</b> não aparece no link.</div>'+
+      (faltam.length
+        ? '<div class="aviso-suave" style="margin-top:12px">⚠️ <b>'+faltam.length+'</b> mídia(s) '+
+          'estão marcadas como “Enviar” mas ainda <b>não foram publicadas</b> — por isso não aparecem no link.'+
+          '<button class="btn btn--green btn--sm" id="lk-sinc" style="margin-top:10px">Publicar agora</button></div>'
+        : '')+
       '<div class="no" style="margin-top:8px">🔒 O endereço tem um código único e não sequencial — '+
       'ninguém chega na OS de outro cliente trocando números.</div>',
       'Copiar link', async function(){
@@ -2344,6 +2350,26 @@ async function abreOS(id, scrollRestaurar){
         catch(e){ $("lk-url").select(); document.execCommand('copy'); toast('Link copiado.','ok'); }
         return true;
       });
+    /* sincroniza as mídias marcadas que ainda não foram copiadas pra área pública */
+    if($("lk-sinc")) $("lk-sinc").onclick = async function(){
+      var b = this; b.disabled = true; b.textContent = 'Publicando…';
+      var ok = 0, err = 0;
+      for(var i=0;i<faltam.length;i++){
+        var f = faltam[i];
+        try{
+          var dl = await sb.storage.from('manutencao').download(f.caminho);
+          if(dl.error) throw new Error(dl.error.message);
+          var up = await sb.storage.from('manutencao-pub').upload(f.caminho, dl.data, {upsert:true});
+          if(up.error) throw new Error(up.error.message);
+          var r2 = await sb.from('manut_os_fotos').update({caminho_pub:f.caminho}).eq('id', f.id);
+          if(r2.error) throw new Error(r2.error.message);
+          f.caminho_pub = f.caminho; ok++;
+        }catch(e){ err++; }
+      }
+      b.disabled = false; b.textContent = 'Publicar agora';
+      toast(ok+' publicada(s)'+(err?' · '+err+' com erro':'')+'.', err?'err':'ok');
+      if(ok) recarrega();
+    };
   };
   $("bt-rel").onclick = function(){
     montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
