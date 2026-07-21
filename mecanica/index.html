@@ -419,29 +419,50 @@
     padding:13px 15px;font-size:.92rem;line-height:1.5;margin-bottom:14px;color:#7d2020}
 
   /* galeria de fotos */
-  .gal-g{margin-bottom:16px}
+  /* ---- galeria: dossiê de evidências, na ordem em que aconteceu ---- */
+  .gal-g{margin-bottom:22px}
   .gal-g:last-child{margin-bottom:0}
-  .gal-t{font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-    color:var(--muted);margin-bottom:8px}
-  .gal-t span{background:var(--paper);border:1px solid var(--line);border-radius:999px;
-    padding:1px 7px;margin-left:4px}
-  .gal{display:flex;gap:10px;flex-wrap:wrap}
-  .ft{width:132px;cursor:pointer;transition:transform .13s}
-  .ft:hover{transform:translateY(-3px)}
-  .ft__img{width:132px;height:99px;border-radius:9px;background:var(--paper) center/cover no-repeat;
-    border:1px solid var(--line)}
-  .ft__l{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.25}
+  .gal-h{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:11px;margin-bottom:12px}
+  .gal-n{font-family:var(--mono);font-size:1.15rem;font-weight:800;opacity:.5;letter-spacing:-.02em}
+  .gal-tt{flex:1;min-width:0;line-height:1.2}
+  .gal-tt b{display:block;font-size:.95rem;font-weight:800}
+  .gal-tt i{font-style:normal;font-size:.78rem;opacity:.75}
+  .gal-c{font-size:.72rem;font-weight:800;background:rgba(255,255,255,.75);
+    border-radius:999px;padding:3px 11px;white-space:nowrap}
+  .g-rec{background:#eaf0fa;color:#1B3F8F}
+  .g-pro{background:#fdecec;color:#a83232}
+  .g-res{background:#e9f5ed;color:#1B6E3B}
+  .g-ent{background:#f1eefa;color:#4b3a8f}
+
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:16px}
+  .ft{margin:0;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;
+    box-shadow:var(--shadow-sm);transition:transform .14s,box-shadow .18s}
+  .ft:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(18,33,46,.15)}
+  .ft--off{opacity:.62}
+  .ft--off .ft__img{filter:grayscale(.75)}
+  .ft__img{position:relative;width:100%;aspect-ratio:4/3;cursor:zoom-in;
+    background:var(--paper) center/cover no-repeat;border-bottom:1px solid var(--line)}
+  .ft__lupa{position:absolute;right:8px;bottom:8px;background:rgba(10,20,32,.72);color:#fff;
+    font-size:.66rem;font-weight:700;letter-spacing:.05em;padding:3px 9px;border-radius:999px;
+    opacity:0;transition:opacity .18s}
+  .ft__img:hover .ft__lupa{opacity:1}
+  .ft__cap{padding:11px 13px 9px}
+  .ft__l{font-size:.92rem;font-weight:700;color:var(--ink);line-height:1.3}
+  .ft__meta{font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:3px}
+  .gal-vazio{text-align:center;padding:28px 16px;color:var(--muted)}
+  .gal-vazio b{display:block;font-size:2rem;margin-bottom:6px}
+  .gal-vazio span{font-size:.86rem}
   /* escolha explícita: enviar ao proprietário ou não */
-  .ft__sel{display:flex;margin-top:5px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .ft__sel button{flex:1;border:0;background:#fff;padding:5px 4px;font-size:.66rem;font-weight:800;
+  .ft__sel{display:flex;border-top:1px solid var(--line)}
+  .ft__sel button{flex:1;border:0;background:#fff;padding:9px 4px;font-size:.72rem;font-weight:800;
     color:#9aa6ae;cursor:pointer;transition:.15s;white-space:nowrap}
   .ft__sel button+button{border-left:1px solid var(--line)}
   .ft__sel button:hover:not(.on):not(.off){background:var(--paper);color:var(--muted)}
   .ft__sel button.on{background:var(--green);color:#fff}
   .ft__sel button.off{background:#8a95a0;color:#fff}
   .ft__sel button[disabled]{opacity:.6}
-  .ft__est{margin-top:5px;font-size:.66rem;font-weight:800;text-align:center;padding:4px;
-    border-radius:7px;background:var(--paper);color:var(--muted)}
+  .ft__est{font-size:.7rem;font-weight:800;text-align:center;padding:8px;
+    border-top:1px solid var(--line);background:var(--paper);color:var(--muted)}
   .ft__est.on{background:#eef7f0;color:var(--green-d)}
 
   /* ============================================================
@@ -1729,7 +1750,8 @@ async function abreOS(id, scrollRestaurar){
   }
   var nomes = {};
   var ids = [].concat(tarefas.map(function(t){return t.executor_id;}), tarefas.map(function(t){return t.conferente_id;}),
-                      hist.map(function(x){return x.quem;}), assins.map(function(x){return x.quem;})).filter(Boolean);
+                      hist.map(function(x){return x.quem;}), assins.map(function(x){return x.quem;}),
+                      fotos.map(function(x){return x.quem;})).filter(Boolean);
   if(ids.length){
     ((await sb.from('perfis').select('id,nome').in('id', ids)).data||[]).forEach(function(p){ nomes[p.id]=p.nome; });
   }
@@ -1888,26 +1910,43 @@ async function abreOS(id, scrollRestaurar){
                      'ela fica registrada com seu nome e o motivo.' : '')+'</div>' : '');
 
   /* --- fotos: problema e resolução --- */
-  var FT_LBL = {recebimento:'Recebimento', problema:'Problema', resolucao:'Resolução', entrega:'Entrega'};
+  /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
+  var GAL_META = {
+    recebimento:{n:'01', lbl:'Recebimento',        sub:'como a aeronave chegou',   cls:'g-rec'},
+    problema:   {n:'02', lbl:'Problema encontrado',sub:'o que motivou o serviço',  cls:'g-pro'},
+    resolucao:  {n:'03', lbl:'Resolução',          sub:'o serviço executado',      cls:'g-res'},
+    entrega:    {n:'04', lbl:'Entrega',            sub:'como a aeronave saiu',     cls:'g-ent'}
+  };
   var galeria = ['recebimento','problema','resolucao','entrega'].map(function(t){
     var fs = fotos.filter(function(f){ return f.tipo===t; });
     if(!fs.length) return '';
-    return '<div class="gal-g"><div class="gal-t">'+FT_LBL[t]+' <span>'+fs.length+'</span></div>'+
+    var m = GAL_META[t];
+    return '<section class="gal-g">'+
+      '<header class="gal-h '+m.cls+'"><span class="gal-n">'+m.n+'</span>'+
+        '<div class="gal-tt"><b>'+m.lbl+'</b><i>'+m.sub+'</i></div>'+
+        '<span class="gal-c">'+fs.length+(fs.length>1?' fotos':' foto')+'</span></header>'+
       '<div class="gal">'+ fs.map(function(f){
         var vai = f.compartilhada !== false;
-        return '<div class="ft" data-ft="'+esc(f.caminho)+'" title="'+esc(f.legenda||'')+'">'+
-          '<div class="ft__img" id="ft-'+f.id+'"></div>'+
-          (f.legenda?'<div class="ft__l">'+esc(f.legenda)+'</div>':'')+
+        return '<figure class="ft'+(vai?'':' ft--off')+'">'+
+          '<div class="ft__img" id="ft-'+f.id+'" data-ft="'+esc(f.caminho)+'">'+
+            '<span class="ft__lupa">ampliar</span></div>'+
+          '<figcaption class="ft__cap">'+
+            '<div class="ft__l">'+esc(f.legenda || m.lbl)+'</div>'+
+            '<div class="ft__meta">'+dataBR(f.quando)+
+              (f.quem ? ' · '+esc(nome(f.quem)) : '')+
+              (f.etapa ? ' · etapa '+f.etapa : '')+'</div>'+
+          '</figcaption>'+
           (encerrada
-            ? '<div class="ft__est'+(vai?' on':'')+'">'+(vai?'✓ enviada':'não enviada')+'</div>'
+            ? '<div class="ft__est'+(vai?' on':'')+'">'+(vai?'✓ enviada ao proprietário':'não enviada')+'</div>'
             : '<div class="ft__sel" data-fid="'+f.id+'">'+
                 '<button data-sh="1" class="'+(vai?'on':'')+'">Enviar</button>'+
                 '<button data-sh="0" class="'+(vai?'':'off')+'">Não enviar</button>'+
               '</div>')+
-          '</div>';
-      }).join('') +'</div></div>';
+          '</figure>';
+      }).join('') +'</div></section>';
   }).join('');
-  if(!fotos.length) galeria = '<div class="no">Nenhuma foto ainda. Registre o antes e o depois — é o que o proprietário mais valoriza no relatório.</div>';
+  if(!fotos.length) galeria = '<div class="gal-vazio"><b>📷</b>Nenhuma foto registrada.<br>'+
+    '<span>O antes e o depois é o que o proprietário mais valoriza no relatório — e o que protege a oficina.</span></div>';
 
   var html =
    '<div class="ov" id="ov"><div class="sheet"><div class="sheet__h">'+
