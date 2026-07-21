@@ -539,6 +539,8 @@
     .rp-cod{margin-top:7px;padding-top:6px;border-top:1px dashed #c9d3da}
     .rp-cod span{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
     .rp-cod b{font-family:Consolas,monospace;font-size:13pt;letter-spacing:.16em;color:#12212e;margin-left:8px}
+    .rp-cod__c{font-size:7.5pt;color:#5b6b78;margin-top:3px;line-height:1.35}
+    .rp-cod__c b{font-family:Consolas,monospace;font-size:7.5pt;letter-spacing:0;margin:0;color:#0E5A8A}
     .rp-rod{margin-top:20px;padding-top:9px;border-top:1px solid #c9d3da;
       font-size:8pt;color:#5b6b78;text-align:center;line-height:1.5}
     .rp-quebra{break-before:page}
@@ -1204,7 +1206,9 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
             'Lá estão as fotos em tamanho real'+(nVideo?' e os <b>vídeos com som</b>':'')+'.</p>'+
           '<a class="rp-link" href="'+url+'">'+url+'</a>'+
           (o.verificacao ? '<div class="rp-cod"><span>Código de autenticidade</span><b>'+
-            esc(o.verificacao)+'</b></div>' : '')+
+            esc(o.verificacao)+'</b>'+
+            '<div class="rp-cod__c">Confira a autenticidade deste documento em '+
+            '<b>jusarah.com.br/verificar</b> — informe o nº da OS e este código.</div></div>' : '')+
         '</div></div>' ;
     })() : '')+
 

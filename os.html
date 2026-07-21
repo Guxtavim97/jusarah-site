@@ -93,6 +93,22 @@
   .verif b{font-family:var(--mono);font-size:1.5rem;letter-spacing:.16em;color:var(--blue);display:block;margin:4px 0}
   .verif span{font-size:.8rem;color:var(--muted)}
 
+  /* verificação de autenticidade */
+  .vf{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+  @media(max-width:520px){ .vf{grid-template-columns:1fr} }
+  .vf label{display:block;font-size:.78rem;font-weight:800;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .vf input{width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:12px;
+    font-size:1.05rem;font-weight:600;background:#fff}
+  .vf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(27,63,143,.1)}
+  .btn-vf{width:100%;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:800;
+    background:var(--blue);color:#fff;cursor:pointer;font-family:inherit}
+  .btn-vf:hover{filter:brightness(1.08)}
+  .btn-vf[disabled]{opacity:.6}
+  .vf-msg{margin-top:18px;padding:15px 17px;border-radius:12px;font-size:.93rem;line-height:1.5}
+  .vf-msg b{display:block;font-size:1.05rem;margin-bottom:3px}
+  .vf-sim{background:#e9f6ed;color:var(--green-d);border-left:4px solid var(--green)}
+  .vf-nao{background:#fdecec;color:#8a2727;border-left:4px solid #b03030}
   .rod{text-align:center;color:var(--muted);font-size:.82rem;padding:24px 0 0;line-height:1.6}
   .carregando,.erro{text-align:center;padding:70px 20px;color:var(--muted)}
   .erro b{display:block;font-size:2rem;margin-bottom:8px}
@@ -134,7 +150,7 @@ var ETAPAS = ['Recebimento','Pré-OS','Priorização','Aguardando fila','Entrada
 
 async function carrega(){
   var token = pegaToken();
-  if(!token){ erro('Link incompleto', 'Confira se o endereço foi copiado por inteiro.'); return; }
+  if(!token){ telaVerificar(); return; }   /* /verificar → confere autenticidade */
   var r = await sb.rpc('os_publica', {p_token: token});
   if(r.error || !r.data){
     erro('Ordem de serviço não encontrada',
@@ -146,6 +162,64 @@ async function carrega(){
 function erro(t, s){
   document.getElementById('conteudo').innerHTML =
     '<div class="card erro"><b>🔍</b><h2 style="justify-content:center">'+esc(t)+'</h2><p>'+esc(s)+'</p></div>';
+}
+
+/* ============================================================
+   /verificar — confere se um relatório é mesmo da Jusarah.
+   Pede o nº da OS E o código: só quem tem o documento na mão
+   tem os dois (o código sozinho seria curto demais).
+   ============================================================ */
+function telaVerificar(){
+  document.getElementById('conteudo').innerHTML =
+    '<div class="card">'+
+      '<h2>🔒 Verificar autenticidade</h2>'+
+      '<p style="color:var(--muted);margin:0 0 18px">Recebeu um relatório de serviço da Jusarah Manutenção? '+
+      'Confirme aqui se ele foi mesmo emitido por nós. Os dois campos estão impressos no documento.</p>'+
+      '<div class="vf">'+
+        '<div><label>Nº da ordem de serviço</label>'+
+          '<input id="v-os" placeholder="OS 2026-0007" autocomplete="off"></div>'+
+        '<div><label>Código de autenticidade</label>'+
+          '<input id="v-cod" placeholder="A3F9C1" maxlength="10" autocomplete="off" '+
+          'style="text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono)"></div>'+
+      '</div>'+
+      '<button class="btn-vf" id="v-bt">Verificar</button>'+
+      '<div id="v-res"></div>'+
+    '</div>'+
+    '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO</div>';
+
+  var bt = document.getElementById('v-bt');
+  var campos = [document.getElementById('v-os'), document.getElementById('v-cod')];
+  campos.forEach(function(c){
+    c.addEventListener('keydown', function(e){ if(e.key==='Enter') bt.click(); });
+  });
+  bt.onclick = async function(){
+    var os = campos[0].value.trim(), cod = campos[1].value.trim();
+    var res = document.getElementById('v-res');
+    if(!os || !cod){ res.innerHTML = '<div class="vf-msg vf-nao">Preencha os dois campos.</div>'; return; }
+    bt.disabled = true; bt.textContent = 'Verificando…';
+    var r = await sb.rpc('os_verifica', {p_codigo: os, p_verificacao: cod});
+    bt.disabled = false; bt.textContent = 'Verificar';
+    var d = r.data;
+    if(r.error || !d){
+      res.innerHTML = '<div class="vf-msg vf-nao"><b>❌ Não confere</b>'+
+        'Não encontramos um documento com esse número e código. Confira se digitou exatamente '+
+        'como está impresso — ou fale com a oficina.</div>';
+      return;
+    }
+    res.innerHTML = '<div class="vf-msg vf-sim"><b>✅ Documento autêntico</b>'+
+      'Este relatório foi emitido pela Jusarah Manutenção.</div>'+
+      '<dl class="dl" style="margin-top:16px">'+
+        '<dt>Ordem de serviço</dt><dd>'+esc(d.codigo||'—')+'</dd>'+
+        '<dt>Aeronave</dt><dd>'+esc(d.prefixo||'—')+(d.modelo?' · '+esc(d.modelo):'')+'</dd>'+
+        '<dt>Entrada na oficina</dt><dd>'+dataBR(d.aberta_em)+'</dd>'+
+        '<dt>Situação</dt><dd>'+(d.encerrada_em
+            ? 'Liberada para o serviço em '+dataBR(d.encerrada_em)
+            : 'Em manutenção')+'</dd>'+
+        '<dt>Serviços registrados</dt><dd>'+(d.servicos||0)+'</dd>'+
+      '</dl>'+
+      (d.token ? '<a class="btn-vf" style="display:block;text-align:center;text-decoration:none;margin-top:16px" '+
+        'href="/os/'+esc(d.token)+'">Ver o serviço completo →</a>' : '');
+  };
 }
 
 function desenha(d){
