@@ -398,6 +398,29 @@
   .oshist__s{font-size:.8rem;color:var(--muted)}
   .badge{font-size:.7rem;font-weight:800;padding:3px 9px;border-radius:999px}
   .b-aberta{background:#eaf0fa;color:var(--blue)} .b-fechada{background:#e8f5ec;color:var(--green-d)}
+
+  /* cadeia de custódia */
+  .cust{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);
+    border-radius:11px;margin-bottom:9px}
+  .cust--ok{background:#f4faf6;border-color:#cfe3d3}
+  .cust__ic{font-size:1.3rem}
+  .cust__b{flex:1;min-width:0}
+  .cust__t{font-weight:700;font-size:.93rem}
+  .cust__s{font-size:.82rem;color:var(--muted);font-family:var(--mono)}
+
+  /* galeria de fotos */
+  .gal-g{margin-bottom:16px}
+  .gal-g:last-child{margin-bottom:0}
+  .gal-t{font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:8px}
+  .gal-t span{background:var(--paper);border:1px solid var(--line);border-radius:999px;
+    padding:1px 7px;margin-left:4px}
+  .gal{display:flex;gap:10px;flex-wrap:wrap}
+  .ft{width:132px;cursor:pointer;transition:transform .13s}
+  .ft:hover{transform:translateY(-3px)}
+  .ft__img{width:132px;height:99px;border-radius:9px;background:var(--paper) center/cover no-repeat;
+    border:1px solid var(--line)}
+  .ft__l{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.25}
 </style>
 </head>
 <body>
@@ -727,6 +750,26 @@ function prancheta(aeronave, tarefas, os){
       '<span>'+pctv+'% CONFERIDO ('+ok+'/'+tot+')</span><i>AERONAVEGÁVEL ►</i></div>'+
       '<div class="barra"><span style="width:'+pctv+'%"></span></div></div>'+
     '<div class="pr__nota">REPRESENTAÇÃO ESQUEMÁTICA POR CATEGORIA — NÃO SUBSTITUI O MANUAL (AMM/IPC)</div></div>';
+}
+
+/* reduz a foto antes de subir — celular tira imagem de vários MB e o hangar
+   costuma ter sinal ruim; 1400px de lado já mostra qualquer detalhe de serviço */
+function comprimeImagem(file, max){
+  max = max || 1400;
+  return new Promise(function(res){
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function(){
+      var w = img.width, h = img.height;
+      if(w > max || h > max){ if(w > h){ h = Math.round(h*max/w); w = max; }
+                              else { w = Math.round(w*max/h); h = max; } }
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ res(b || file); }, 'image/jpeg', 0.82);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); res(file); };
+    img.src = url;
+  });
 }
 
 /* mede cada traço pra ele se desenhar sozinho */
@@ -1493,6 +1536,7 @@ async function abreOS(id, scrollRestaurar){
   var pend    = (await sb.from('manut_os_pendencias').select('*').eq('os_id',id).order('aberta_em')).data||[];
   var hist    = (await sb.from('manut_os_historico').select('*').eq('os_id',id).order('quando',{ascending:false})).data||[];
   var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
+  var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   var itens=[], resp={};
   if(o.gate_checklist_id){
     itens = (await sb.from('manut_checklist_itens').select('*').eq('checklist_id',o.gate_checklist_id).order('ordem')).data||[];
@@ -1618,6 +1662,40 @@ async function abreOS(id, scrollRestaurar){
       ' · '+dt(x.quando)+' · '+esc(x.metodo)+'</div></div></div>';
   }).join('') : '<div class="no">Nenhuma assinatura registrada ainda.</div>';
 
+  /* --- cadeia de custódia: quem entregou e quem retirou a aeronave --- */
+  function blocoCustodia(tipo, nome, doc, anac, quando, rotulo, ic){
+    if(quando){
+      return '<div class="cust cust--ok"><div class="cust__ic">'+ic+'</div><div class="cust__b">'+
+        '<div class="cust__t">'+rotulo+' · '+esc(nome||'—')+'</div>'+
+        '<div class="cust__s">'+(doc?esc(doc):'sem documento')+(anac?' · ANAC '+esc(anac):'')+
+        ' · '+dt(quando)+'</div></div><span class="badge b-fechada">assinado</span></div>';
+    }
+    return '<div class="cust"><div class="cust__ic">'+ic+'</div><div class="cust__b">'+
+      '<div class="cust__t">'+rotulo+'</div><div class="cust__s">ainda não registrado</div></div>'+
+      '<button class="btn btn--ghost btn--sm" data-cust="'+tipo+'">Registrar</button></div>';
+  }
+  var custHtml =
+    blocoCustodia('entrega',  o.entrega_nome,  o.entrega_doc,  o.entrega_anac,  o.entrega_em,
+      'Entrega na oficina (quem trouxe)', '🛬') +
+    blocoCustodia('retirada', o.retirada_nome, o.retirada_doc, o.retirada_anac, o.retirada_em,
+      'Retirada da oficina (quem levou)', '🛫') +
+    (!o.encerrada_em && !o.retirada_em
+      ? '<div class="no" style="margin-top:8px">A retirada normalmente é registrada depois do encerramento.</div>' : '');
+
+  /* --- fotos: problema e resolução --- */
+  var FT_LBL = {recebimento:'Recebimento', problema:'Problema', resolucao:'Resolução', entrega:'Entrega'};
+  var galeria = ['recebimento','problema','resolucao','entrega'].map(function(t){
+    var fs = fotos.filter(function(f){ return f.tipo===t; });
+    if(!fs.length) return '';
+    return '<div class="gal-g"><div class="gal-t">'+FT_LBL[t]+' <span>'+fs.length+'</span></div>'+
+      '<div class="gal">'+ fs.map(function(f){
+        return '<div class="ft" data-ft="'+esc(f.caminho)+'" title="'+esc(f.legenda||'')+'">'+
+          '<div class="ft__img" id="ft-'+f.id+'"></div>'+
+          (f.legenda?'<div class="ft__l">'+esc(f.legenda)+'</div>':'')+'</div>';
+      }).join('') +'</div></div>';
+  }).join('');
+  if(!fotos.length) galeria = '<div class="no">Nenhuma foto ainda. Registre o antes e o depois — é o que o proprietário mais valoriza no relatório.</div>';
+
   var html =
    '<div class="ov" id="ov"><div class="sheet"><div class="sheet__h">'+
     '<div><h2>OS '+o.numero+' · '+esc(a.prefixo||'')+'</h2>'+
@@ -1634,6 +1712,10 @@ async function abreOS(id, scrollRestaurar){
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
+     '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
+     '<div class="box"><h3>📷 Fotos <span class="c">'+fotos.length+'</span>'+
+       (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Foto</button>')+
+       '</h3>'+galeria+'</div>'+
      '<div class="box"><h3>✍️ Assinaturas <span class="c">'+assins.length+'</span></h3>'+asHtml+
        '<div class="no" style="margin-top:10px">Assinatura registrada não pode ser apagada nem editada.</div></div>'+
      '<div class="box"><h3>📜 Histórico</h3>'+hHtml+'</div>'+
@@ -1659,6 +1741,72 @@ async function abreOS(id, scrollRestaurar){
   };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+
+  /* --- fotos: carrega as miniaturas por URL assinada (bucket é privado) --- */
+  fotos.forEach(async function(f){
+    var el = $("ft-"+f.id); if(!el) return;
+    var r = await sb.storage.from('manutencao').createSignedUrl(f.caminho, 3600);
+    if(r.data && r.data.signedUrl) el.style.backgroundImage = 'url("'+r.data.signedUrl+'")';
+  });
+  document.querySelectorAll('[data-ft]').forEach(function(el){
+    el.onclick = async function(){
+      var r = await sb.storage.from('manutencao').createSignedUrl(el.dataset.ft, 3600);
+      if(r.data && r.data.signedUrl) window.open(r.data.signedUrl, '_blank');
+    };
+  });
+  if($("add-foto")) $("add-foto").onclick = function(){
+    abreModal('Nova foto',
+      '<label class="blk">O que esta foto mostra?</label>'+
+      '<select class="in" id="f-tipo">'+
+        '<option value="problema">🔴 Problema encontrado</option>'+
+        '<option value="resolucao">🟢 Resolução / serviço feito</option>'+
+        '<option value="recebimento">🛬 Estado no recebimento</option>'+
+        '<option value="entrega">🛫 Estado na entrega</option>'+
+      '</select>'+
+      '<label class="blk" style="margin-top:10px">Legenda</label>'+
+      '<input class="in" id="f-leg" placeholder="Ex.: vazamento no comando do profundor">'+
+      '<label class="blk" style="margin-top:10px">Imagem *</label>'+
+      '<input class="in" id="f-arq" type="file" accept="image/*" capture="environment">'+
+      '<div class="no" style="margin-top:8px">A foto é reduzida antes de subir e fica em área privada — '+
+      'só quem tem acesso à oficina consegue ver.</div>',
+      'Enviar', async function(){
+        var arq = $("f-arq").files[0];
+        if(!arq){ toast('Escolha uma imagem.','err'); return false; }
+        toast('Enviando foto…');
+        var blob = await comprimeImagem(arq);
+        var caminho = id + '/' + $("f-tipo").value + '-' + Date.now() + '.jpg';
+        var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:'image/jpeg'});
+        if(up.error){ toast('Erro ao subir: '+up.error.message,'err'); return false; }
+        var r = await sb.from('manut_os_fotos').insert({os_id:id, tipo:$("f-tipo").value,
+          caminho:caminho, legenda:$("f-leg").value.trim()||null, etapa:o.etapa});
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Foto registrada.','ok'); recarrega(); return true;
+      });
+  };
+
+  /* --- cadeia de custódia: assinatura presencial do piloto --- */
+  document.querySelectorAll('[data-cust]').forEach(function(b){
+    b.onclick = function(){
+      var tipo = b.dataset.cust;
+      var titulo = tipo==='entrega' ? 'Quem entregou a aeronave' : 'Quem retirou a aeronave';
+      abreModal(titulo,
+        '<div class="no" style="margin-bottom:12px">Preencha com os dados de quem está <b>presente</b> '+
+        'e confira um documento. Fica registrado com data e hora, e <b>não pode ser apagado</b>.</div>'+
+        '<label class="blk">Nome completo *</label><input class="in" id="cu-nome">'+
+        '<div class="row" style="margin-top:10px"><div><label class="blk">CPF / documento *</label>'+
+        '<input class="in" id="cu-doc"></div>'+
+        '<div><label class="blk">Código ANAC / licença</label><input class="in" id="cu-anac" placeholder="se for piloto"></div></div>',
+        'Registrar assinatura', async function(){
+          var n = $("cu-nome").value.trim(), d = $("cu-doc").value.trim();
+          if(!n){ toast('Informe o nome.','err'); return false; }
+          if(!d){ toast('Informe o documento — é ele que identifica a pessoa.','err'); return false; }
+          var r = await sb.rpc('manut_assinar_externo', {p_os:id, p_tipo:tipo,
+            p_nome:n, p_doc:d, p_anac:$("cu-anac").value.trim()||null});
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Assinatura registrada.','ok'); recarrega(); return true;
+        });
+    };
+  });
 
   if($("bt-avancar")) $("bt-avancar").onclick = function(){
     moverEtapa(id, o, o.etapa + 1, recarrega);
