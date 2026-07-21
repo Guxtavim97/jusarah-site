@@ -477,6 +477,53 @@
   .ft__est.on{background:#eef7f0;color:var(--green-d)}
 
   /* ============================================================
+     CELULAR — o mecânico trabalha no hangar com o telefone na mão
+     ============================================================ */
+  @media(max-width:760px){
+    body{overflow-x:hidden}
+    .top__in{padding:10px 14px}
+    .top__logo{height:32px}
+    main{padding:14px 14px 60px}
+
+    /* abas rolam de lado em vez de serem cortadas */
+    .navs{overflow-x:auto;flex-wrap:nowrap;padding:0 14px;scrollbar-width:none}
+    .navs::-webkit-scrollbar{display:none}
+    .nav{white-space:nowrap;padding:11px 12px;font-size:.9rem}
+
+    /* a ficha da OS vira tela cheia (antes: centralizada e mais larga
+       que o visor, o que jogava metade dela pra fora e sumia o título) */
+    .ov{padding:0;place-items:stretch;overflow-y:auto}
+    .sheet{width:100%;max-width:none;max-height:none;min-height:100%;border-radius:0}
+    .sheet__h{padding:13px 14px;flex-wrap:wrap;gap:9px}
+    .sheet__h h2{font-size:1.08rem;width:100%;line-height:1.25}
+    .sheet__h .spacer{display:none}
+    .sheet__h .btn{flex:1 1 auto}
+    .sheet__b{padding:14px 14px 44px;gap:12px}
+    .box{padding:15px 14px}
+    .box h3{font-size:.95rem;flex-wrap:wrap}
+
+    /* prancheta: o carimbo sai de cima do desenho e vira legenda embaixo */
+    .pr__carimbo{position:static;display:block;margin:0;border:0;border-top:1px solid rgba(127,212,255,.16);
+      border-radius:0;background:rgba(7,18,40,.6)}
+    .pr__carimbo div{padding:5px 12px}
+    .pr__selo{font-size:.5rem;letter-spacing:.14em}
+    .pr__nota{font-size:.54rem;line-height:1.4}
+
+    /* tabelas passam a rolar sozinhas em vez de espremer */
+    table.t{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+    .steps{gap:5px}
+    .step{font-size:.78rem;padding:6px 9px}
+    .acoes-etapa{flex-direction:column;align-items:stretch}
+    .acoes-etapa .btn{width:100%}
+    .assin-sheet{border-radius:0;min-height:100%}
+    .gal{grid-template-columns:1fr 1fr;gap:10px}
+    .cust{flex-wrap:wrap}
+    .cust__b{flex:1 1 100%;order:2}
+    .row>*{min-width:100%}
+  }
+
+  /* ============================================================
      RELATÓRIO DE SERVIÇO — documento A4. Invisível na tela,
      aparece só na impressão (Ctrl+P → Salvar como PDF).
      ============================================================ */
