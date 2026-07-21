@@ -8,6 +8,7 @@
 <title>Acompanhe sua aeronave · Jusarah Manutenção</title>
 <base href="/">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/qr.js"></script>
 <style>
   :root{
     --bp:#071228; --bp2:#0b1e42; --linha:#7fd4ff; --linha2:#4a9fd4;
@@ -352,8 +353,21 @@
     .verif span{color:#5b6b78;font-size:8.5pt}
     .impresso{display:block!important;margin-top:12px;padding-top:8px;
       border-top:1px solid #c9d3da;font-size:7.5pt;color:#5b6b78;text-align:center;line-height:1.5}
+
+    /* QR + link: como o cliente leva o relatório de volta pro online */
+    .so-papel{display:flex!important;gap:14px;align-items:center;margin-top:14px;
+      padding:12px 14px;border:1.5px solid #1B3F8F;border-radius:5px;break-inside:avoid}
+    .qr-img{width:32mm;height:32mm;flex:0 0 32mm;border:1px solid #c9d3da}
+    .qr-tx{flex:1}
+    .qr-tx b{font-size:11pt;color:#1B3F8F}
+    .qr-tx p{margin:2px 0 5px;font-size:9pt;line-height:1.4}
+    .qr-url{display:block;font-family:Consolas,monospace;font-size:8.5pt;color:#0E5A8A;word-break:break-all}
+    .qr-cod{margin-top:6px;padding-top:5px;border-top:1px dashed #c9d3da;font-size:7.5pt;
+      letter-spacing:.1em;text-transform:uppercase;color:#5b6b78}
+    .qr-cod b{font-family:Consolas,monospace;font-size:12pt;letter-spacing:.16em;color:#12212e;
+      margin-left:6px;text-transform:none}
   }
-  .impresso{display:none}
+  .impresso,.so-papel{display:none}
 </style>
 </head>
 <body>
@@ -598,10 +612,30 @@ function desenha(d){
 
       '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
         'Qualquer dúvida sobre o serviço, fale com a gente.</div>'+
+      '<div class="so-papel" id="bloco-qr"></div>'+
       '<div class="impresso"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
         'Documento emitido em '+dtBR(new Date().toISOString())+' · '+esc(o.codigo||'')+' · '+esc(a.prefixo)+
         '<br>Confira a autenticidade em jusarah.com.br/verificar</div>'+
     '</div>';
+
+  /* QR só faz sentido no papel: na tela a pessoa já está no link */
+  (function(){
+    var alvo = document.getElementById('bloco-qr'), tk = pegaToken();
+    if(!alvo || !tk || typeof QR === 'undefined') return;
+    var url = 'https://jusarah.com.br/os/' + tk;
+    var qr = QR.dataURI(url, 150);
+    if(!qr) return;
+    var temVideo = md.some(function(m){ return m.midia === 'video'; });
+    alvo.innerHTML =
+      '<img class="qr-img" src="'+qr+'" alt="QR">'+
+      '<div class="qr-tx"><b>Este relatório continua online</b>'+
+        '<p>Aponte a câmera do celular para o código — lá as fotos ficam em tamanho real'+
+        (temVideo?' e os <b>vídeos podem ser ouvidos</b>':'')+
+        ', e a página acompanha o serviço em tempo real.</p>'+
+        '<span class="qr-url">'+esc(url)+'</span>'+
+        (o.verificacao?'<div class="qr-cod">Código de autenticidade <b>'+esc(o.verificacao)+'</b></div>':'')+
+      '</div>';
+  })();
 
   medir();
   enquadra();                     /* no celular, aproxima o avião pra ele dominar a tela */
