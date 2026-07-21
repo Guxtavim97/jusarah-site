@@ -299,6 +299,30 @@
   .fit__s{font-size:.83rem;color:var(--muted)}
   .fvazio{text-align:center;color:var(--muted);padding:26px 10px}
   .fvazio b{display:block;font-size:2rem;margin-bottom:4px}
+
+  /* ================= CERIMÔNIA DE ASSINATURA ================= */
+  .assin-sheet{max-width:540px;background:#fff;border-radius:18px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.4);border-top:5px solid var(--green-d)}
+  .assin-h{display:flex;gap:14px;align-items:flex-start;padding:20px 24px 16px;
+    background:linear-gradient(160deg,#f3f8f4,#fff)}
+  .assin-ic{font-size:1.7rem;line-height:1}
+  .assin-h h2{margin:0;font-size:1.2rem}
+  .assin-sub{color:var(--muted);font-size:.85rem;margin-top:2px}
+  .assin-b{padding:0 24px 22px}
+  .assin-dec{background:#f6f8fa;border-left:4px solid var(--green-d);border-radius:0 10px 10px 0;
+    padding:14px 16px;font-size:.95rem;line-height:1.5;margin-bottom:14px}
+  .assin-eu{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+  .assin-eu b{color:var(--ink)}
+  .assin-av{font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.45}
+  .assin-bt{display:flex;gap:10px;margin-top:18px}
+  /* assinaturas registradas na ficha */
+  .asl{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+  .asl:last-child{border:0}
+  .asl__ic{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:grid;place-items:center;
+    background:#eef7f0;font-size:1rem}
+  .asl__b{flex:1;min-width:0}
+  .asl__t{font-weight:700;font-size:.92rem}
+  .asl__s{font-size:.8rem;color:var(--muted);font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -925,6 +949,74 @@ $("btn-nova-os").onclick = function(){
     });
 };
 
+/* ============================================================
+   ASSINATURA DE ETAPA
+   O banco recusa com "ASSINATURA_NECESSARIA:<papel>"; a tela captura
+   isso e abre a cerimônia. A senha é conferida NO SERVIDOR.
+   ============================================================ */
+var DECLARACAO = {
+  '6-7':{ t:'Liberação do Gate',
+    d:'Declaro que conferi o planejamento, os dados técnicos, os recursos (peças, ferramental calibrado) '+
+      'e as pessoas designadas. <b>Autorizo o início da execução</b> nesta aeronave.' },
+  '10-11':{ t:'Aprovação para Retorno ao Serviço',
+    d:'Declaro que todos os serviços foram executados e <b>conferidos por segunda pessoa</b>, e que a aeronave '+
+      'está em condições de <b>retornar ao serviço</b>. Esta assinatura constitui a aprovação para retorno ao serviço.' }
+};
+
+async function moverEtapa(osId, o, alvo, recarrega, senha){
+  if(alvo === o.etapa) return;
+  var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:null, p_senha:senha||null});
+  if(r.error){
+    var msg = r.error.message || '';
+    var m = msg.match(/ASSINATURA_NECESSARIA:(\w+)/);
+    if(m){ pedeAssinatura(osId, o, alvo, m[1], recarrega); return; }
+    toast(msg, 'err'); return;
+  }
+  toast('Etapa '+alvo+' ✓', 'ok');
+  recarrega();
+}
+
+function pedeAssinatura(osId, o, alvo, papel, recarrega){
+  var dec = DECLARACAO[o.etapa+'-'+alvo] || {t:'Assinatura', d:'Confirme sua identidade para prosseguir.'};
+  var d = document.createElement('div');
+  d.className = 'ov';
+  d.innerHTML =
+    '<div class="sheet assin-sheet">'+
+      '<div class="assin-h"><div class="assin-ic">✍️</div>'+
+        '<div><h2>'+esc(dec.t)+'</h2>'+
+        '<div class="assin-sub">OS '+o.numero+' · etapa '+o.etapa+' → '+alvo+' · exige o papel <b>'+
+          esc(PAPEL_LBL[papel]||papel)+'</b></div></div></div>'+
+      '<div class="assin-b">'+
+        '<div class="assin-dec">'+dec.d+'</div>'+
+        '<div class="assin-eu">Assinando como <b>'+esc(PERFIL.nome||usuario.email)+'</b></div>'+
+        '<label class="blk">Sua senha (a mesma do login)</label>'+
+        '<div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">'+
+          '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>'+
+          '<input type="password" id="as-senha" autocomplete="current-password"></div>'+
+        '<div class="assin-av">🔒 A senha é conferida no servidor. Esta assinatura fica registrada '+
+          'com seu nome, data e hora — e não pode ser apagada.</div>'+
+        '<div class="assin-bt"><button class="btn btn--ghost" id="as-cancel">Cancelar</button>'+
+        '<button class="btn btn--green" id="as-ok" style="flex:1">Assinar e liberar</button></div>'+
+      '</div></div>';
+  document.body.appendChild(d);
+  var fecha = function(){ d.remove(); };
+  d.querySelector('#as-cancel').onclick = fecha;
+  d.onclick = function(e){ if(e.target===d) fecha(); };
+  var campo = d.querySelector('#as-senha');
+  setTimeout(function(){ campo.focus(); }, 60);
+  var assinar = async function(){
+    var s = campo.value;
+    if(!s){ toast('Digite sua senha para assinar.','err'); return; }
+    var bt = d.querySelector('#as-ok'); bt.disabled = true; bt.textContent = 'Verificando…';
+    var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:null, p_senha:s});
+    bt.disabled = false; bt.textContent = 'Assinar e liberar';
+    if(r.error){ toast(r.error.message,'err'); campo.value=''; campo.focus(); return; }
+    fecha(); toast('Assinado ✓','ok'); recarrega();
+  };
+  d.querySelector('#as-ok').onclick = assinar;
+  campo.addEventListener('keydown', function(e){ if(e.key==='Enter') assinar(); });
+}
+
 /* ---------------- FICHA DA OS ---------------- */
 async function abreOS(id, scrollRestaurar){
   var o  = (await sb.from('manut_os').select('*, manut_aeronaves(*), clientes(nome)').eq('id',id).single()).data;
@@ -932,6 +1024,7 @@ async function abreOS(id, scrollRestaurar){
   var tarefas = (await sb.from('manut_os_tarefas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var pend    = (await sb.from('manut_os_pendencias').select('*').eq('os_id',id).order('aberta_em')).data||[];
   var hist    = (await sb.from('manut_os_historico').select('*').eq('os_id',id).order('quando',{ascending:false})).data||[];
+  var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
   var itens=[], resp={};
   if(o.gate_checklist_id){
     itens = (await sb.from('manut_checklist_itens').select('*').eq('checklist_id',o.gate_checklist_id).order('ordem')).data||[];
@@ -939,7 +1032,7 @@ async function abreOS(id, scrollRestaurar){
   }
   var nomes = {};
   var ids = [].concat(tarefas.map(function(t){return t.executor_id;}), tarefas.map(function(t){return t.conferente_id;}),
-                      hist.map(function(x){return x.quem;})).filter(Boolean);
+                      hist.map(function(x){return x.quem;}), assins.map(function(x){return x.quem;})).filter(Boolean);
   if(ids.length){
     ((await sb.from('perfis').select('id,nome').in('id', ids)).data||[]).forEach(function(p){ nomes[p.id]=p.nome; });
   }
@@ -1018,6 +1111,20 @@ async function abreOS(id, scrollRestaurar){
       (x.para_etapa?' → etapa '+x.para_etapa:'')+(x.detalhe&&x.acao==='mudou_etapa'?' ('+esc(x.detalhe)+')':'')+'</span></li>';
   }).join(''):'<li class="no">Sem registros.</li>')+'</ul>';
 
+  /* --- assinaturas --- */
+  var TIPO_AS = {etapa:'✍️', entrega:'🛬', retirada:'🛫'};
+  var asHtml = assins.length ? assins.map(function(x){
+    var quem = x.quem_nome ? esc(x.quem_nome)+(x.quem_doc?' · '+esc(x.quem_doc):'')
+                           : esc(nome(x.quem));
+    var titulo = x.tipo==='etapa'
+      ? ((DECLARACAO[x.de_etapa+'-'+x.para_etapa]||{}).t || ('Etapa '+x.de_etapa+' → '+x.para_etapa))
+      : (x.tipo==='entrega' ? 'Entrega da aeronave (piloto)' : 'Retirada da aeronave (piloto)');
+    return '<div class="asl"><div class="asl__ic">'+(TIPO_AS[x.tipo]||'✍️')+'</div>'+
+      '<div class="asl__b"><div class="asl__t">'+esc(titulo)+'</div>'+
+      '<div class="asl__s">'+quem+(x.papel?' · '+esc(PAPEL_LBL[x.papel]||x.papel):'')+
+      ' · '+dt(x.quando)+' · '+esc(x.metodo)+'</div></div></div>';
+  }).join('') : '<div class="no">Nenhuma assinatura registrada ainda.</div>';
+
   var html =
    '<div class="ov" id="ov"><div class="sheet"><div class="sheet__h">'+
     '<div><h2>OS '+o.numero+' · '+esc(a.prefixo||'')+'</h2>'+
@@ -1033,6 +1140,8 @@ async function abreOS(id, scrollRestaurar){
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
+     '<div class="box"><h3>✍️ Assinaturas <span class="c">'+assins.length+'</span></h3>'+asHtml+
+       '<div class="no" style="margin-top:10px">Assinatura registrada não pode ser apagada nem editada.</div></div>'+
      '<div class="box"><h3>📜 Histórico</h3>'+hHtml+'</div>'+
    '</div></div></div>';
   $("modal").innerHTML = html;
@@ -1058,13 +1167,7 @@ async function abreOS(id, scrollRestaurar){
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
 
   document.querySelectorAll('[data-mv]').forEach(function(b){
-    b.onclick = async function(){
-      var alvo = parseInt(b.dataset.mv);
-      if(alvo===o.etapa) return;
-      var r = await sb.rpc('manut_mover_etapa', {p_os:id, p_etapa:alvo, p_obs:null});
-      if(r.error){ toast(r.error.message,'err'); return; }
-      toast('Etapa '+alvo+'.','ok'); recarrega();
-    };
+    b.onclick = function(){ moverEtapa(id, o, parseInt(b.dataset.mv), recarrega); };
   });
   /* Marcar item do gate NÃO recarrega a ficha: atualiza só a linha e o contador.
      (antes recarregava tudo e o avião se redesenhava, jogando a tela pro topo) */
