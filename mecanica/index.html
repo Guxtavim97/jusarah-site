@@ -323,6 +323,10 @@
   .asl__b{flex:1;min-width:0}
   .asl__t{font-weight:700;font-size:.92rem}
   .asl__s{font-size:.8rem;color:var(--muted);font-family:var(--mono)}
+  /* serviço executado por mim: não posso conferir — explica em vez de só desabilitar */
+  .aguarda{display:inline-block;text-align:right;font-size:.84rem;font-weight:700;color:var(--amber);
+    background:#fdf6e6;border:1px solid #f0dfb8;border-radius:9px;padding:6px 11px;line-height:1.2}
+  .aguarda small{display:block;font-weight:600;font-size:.72rem;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -1083,9 +1087,15 @@ async function abreOS(id, scrollRestaurar){
       '<td class="sig">'+(t.executado_em?'<b>'+esc(nome(t.executor_id))+'</b><span>'+dt(t.executado_em)+'</span>':'<span class="no">—</span>')+'</td>'+
       '<td class="sig">'+(t.conferido_em?'<b>'+esc(nome(t.conferente_id))+'</b><span>'+dt(t.conferido_em)+'</span>':'<span class="no">—</span>')+'</td>'+
       '<td style="text-align:right">'+
-        (encerrada?'':
-          (!t.executado_em?'<button class="btn btn--blue btn--sm" data-exec="'+t.id+'">Executei</button>':
-           (!t.conferido_em?'<button class="btn btn--green btn--sm" data-conf="'+t.id+'"'+(meuExec?' disabled title="Quem executou não pode conferir"':'')+'>Conferir</button>':'✓')))+
+        (encerrada ? '' :
+          (!t.executado_em
+            ? '<button class="btn btn--blue btn--sm" data-exec="'+t.id+'">Executei</button>'
+            : (!t.conferido_em
+                ? (meuExec
+                    ? '<span class="aguarda">⏳ aguarda 2ª pessoa'+
+                      '<small>você executou — o cross check exige outra pessoa</small></span>'
+                    : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'">Conferir</button>')
+                : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')))+
       '</td></tr>';
   });
   tHtml+='</tbody></table>'+(encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-tarefa" style="margin-top:10px">+ Tarefa</button>');
