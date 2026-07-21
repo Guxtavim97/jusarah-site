@@ -93,9 +93,12 @@
   .fase-tit{font-weight:800;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;
     padding:7px 12px;border-radius:9px;color:#fff}
   .f1{background:var(--blue)} .f2{background:var(--red)} .f3{background:var(--green-d)}
-  .board{display:flex;gap:12px;overflow-x:auto;padding-bottom:14px;align-items:flex-start}
-  .col{flex:0 0 236px;background:#fff;border:1px solid var(--line);border-radius:14px;
-    box-shadow:var(--shadow-sm);display:flex;flex-direction:column;max-height:74vh}
+  /* Visão do processo: por FASE, com quebra de linha (sem rolagem lateral) */
+  .fbloco{margin-bottom:20px}
+  .fbloco .fase-tit{display:inline-block;margin-bottom:10px}
+  .etapas{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+  .col{flex:1 1 200px;max-width:280px;min-width:180px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
   .col--gate{border-color:#e9c0c0;background:#fdf7f7}
   .col__h{padding:11px 13px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px}
   .col__n{font-size:.68rem;font-weight:800;color:#fff;background:var(--muted);
@@ -403,6 +406,7 @@
     <button class="nav" data-view="quadro">Visão do processo</button>
     <button class="nav" data-view="aeronaves">Aeronaves</button>
     <button class="nav" data-view="proprietarios">Proprietários</button>
+    <button class="nav" data-view="arquivo">Arquivo</button>
   </div>
 
   <main>
@@ -451,16 +455,31 @@
 
     <!-- ================= VISÃO DO PROCESSO ================= -->
     <section id="view-quadro" class="hidden">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-        <div class="fases">
-          <span class="fase-tit f1">Fase 1 · Recebimento e Inspeção</span>
-          <span class="fase-tit f2">Fase 2 · Gate</span>
-          <span class="fase-tit f3">Fase 3 · Execução e Conclusão</span>
-        </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="no">Só OS <b>em andamento</b>. As encerradas vão para o <b>Arquivo</b>.</div>
         <div class="spacer"></div>
         <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
       </div>
-      <div class="board" id="board"></div>
+      <div class="fbloco"><div class="fase-tit f1">Fase 1 · Recebimento e Inspeção</div>
+        <div class="etapas" id="fase1"></div></div>
+      <div class="fbloco"><div class="fase-tit f2">Fase 2 · Planejamento e Preparação (Gate)</div>
+        <div class="etapas" id="fase2"></div></div>
+      <div class="fbloco"><div class="fase-tit f3">Fase 3 · Execução e Conclusão</div>
+        <div class="etapas" id="fase3"></div></div>
+    </section>
+
+    <!-- ARQUIVO -->
+    <section id="view-arquivo" class="hidden">
+      <div class="box">
+        <h3>🗄️ Arquivo de OS encerradas <span class="c" id="arq-n">0</span></h3>
+        <div class="busca">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q-arq" placeholder="Buscar por matrícula, nº da OS ou tipo de serviço…">
+        </div>
+        <div class="no" style="margin-bottom:12px">OS encerrada é <b>registro definitivo</b>: não reabre e não se edita.
+          Se a aeronave voltou — mesmo em garantia — abre-se uma <b>OS nova</b>.</div>
+        <div id="arq-lista"></div>
+      </div>
     </section>
 
     <!-- AERONAVES -->
@@ -720,7 +739,7 @@ async function entrar(){
 }
 
 /* ---------------- NAVEGAÇÃO ---------------- */
-var VIEWS = ['oficina','quadro','aeronaves','proprietarios'];
+var VIEWS = ['oficina','quadro','aeronaves','proprietarios','arquivo'];
 document.querySelectorAll('.nav').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('.nav').forEach(function(x){ x.classList.remove('is-active'); });
@@ -1012,33 +1031,69 @@ async function carregaQuadro(){
   renderQuadro(pend);
 }
 function renderQuadro(pend){
-  var h='';
-  ETAPAS.forEach(function(e){
-    var lista = OSS.filter(function(o){ return o.etapa===e.n; });
-    h += '<div class="col col--f'+e.f+(e.gate?' col--gate':'')+'">'+
-         '<div class="col__h"><span class="col__n">'+e.n+'</span>'+
-         '<span class="col__t">'+(e.gate?'🔒 ':'')+esc(e.t)+'</span>'+
-         '<span class="col__c">'+lista.length+'</span></div><div class="col__b">';
-    if(!lista.length) h+='<div class="empty">—</div>';
-    lista.forEach(function(o){
-      var a=o.manut_aeronaves||{};
-      h += '<div class="card" data-os="'+o.id+'">'+
-           '<div class="card__top"><span class="card__pref">'+esc(a.prefixo||'?')+'</span>'+
-           '<span class="card__os">OS '+o.numero+'</span></div>'+
-           '<div class="card__d">'+esc(o.tipo||'Serviço')+(o.descricao?' · '+esc(o.descricao.slice(0,52)):'')+'</div>'+
-           '<div class="card__f">'+
-             '<span class="tag '+(o.terceiro?'tag--terc':'tag--prop')+'">'+(o.terceiro?'Terceiro':'Própria')+'</span>'+
-             (o.prioridade<=2?'<span class="tag tag--p1">Prioridade '+o.prioridade+'</span>':'')+
-             (pend[o.id]?'<span class="tag tag--pend">'+pend[o.id]+' pendência(s)</span>':'')+
-           '</div></div>';
+  /* Só OS EM ANDAMENTO. Encerrada é arquivo — não volta pro quadro. */
+  var ativas = OSS.filter(function(o){ return !o.encerrada_em; });
+  [1,2,3].forEach(function(f){
+    var h = '';
+    ETAPAS.filter(function(e){ return e.f===f; }).forEach(function(e){
+      var lista = ativas.filter(function(o){ return o.etapa===e.n; });
+      h += '<div class="col col--f'+e.f+(e.gate?' col--gate':'')+'">'+
+           '<div class="col__h"><span class="col__n">'+e.n+'</span>'+
+           '<span class="col__t">'+(e.gate?'🔒 ':'')+esc(e.t)+'</span>'+
+           '<span class="col__c">'+lista.length+'</span></div><div class="col__b">';
+      if(!lista.length) h+='<div class="empty">—</div>';
+      lista.forEach(function(o){
+        var a=o.manut_aeronaves||{};
+        h += '<div class="card" data-os="'+o.id+'">'+
+             '<div class="card__top"><span class="card__pref">'+esc(a.prefixo||'?')+'</span>'+
+             '<span class="card__os">OS '+o.numero+'</span></div>'+
+             '<div class="card__d">'+esc(o.tipo||'Serviço')+(o.descricao?' · '+esc(o.descricao.slice(0,52)):'')+'</div>'+
+             '<div class="card__f">'+
+               '<span class="tag '+(o.terceiro?'tag--terc':'tag--prop')+'">'+(o.terceiro?'Terceiro':'Própria')+'</span>'+
+               (o.prioridade<=2?'<span class="tag tag--p1">Prioridade '+o.prioridade+'</span>':'')+
+               (pend[o.id]?'<span class="tag tag--pend">'+pend[o.id]+' pendência(s)</span>':'')+
+             '</div></div>';
+      });
+      h+='</div></div>';
     });
-    h+='</div></div>';
+    $("fase"+f).innerHTML = h;
   });
-  $("board").innerHTML = h;
   document.querySelectorAll('.card').forEach(function(c){
     c.onclick = function(){ abreOS(c.dataset.os); };
   });
+  renderArquivo();
 }
+
+/* ---------------- ARQUIVO (OS encerradas) ---------------- */
+function renderArquivo(){
+  var arq = OSS.filter(function(o){ return !!o.encerrada_em; })
+               .sort(function(x,y){ return new Date(y.encerrada_em)-new Date(x.encerrada_em); });
+  $("arq-n").textContent = arq.length;
+  var q = ($("q-arq").value||'').toLowerCase().trim();
+  var lista = arq.filter(function(o){
+    if(!q) return true;
+    var a=o.manut_aeronaves||{};
+    return (a.prefixo||'').toLowerCase().indexOf(q)>=0
+        || String(o.numero).indexOf(q)>=0
+        || (o.tipo||'').toLowerCase().indexOf(q)>=0
+        || (o.descricao||'').toLowerCase().indexOf(q)>=0;
+  });
+  if(!arq.length){
+    $("arq-lista").innerHTML='<div class="empty">Nenhuma OS encerrada ainda.</div>'; return; }
+  if(!lista.length){ $("arq-lista").innerHTML='<div class="empty">Nada encontrado.</div>'; return; }
+  $("arq-lista").innerHTML = lista.map(function(o){
+    var a=o.manut_aeronaves||{};
+    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">OS '+o.numero+'</span>'+
+      '<div class="oshist__b"><div class="oshist__t">'+esc(a.prefixo||'?')+' · '+esc(o.tipo||'Serviço')+'</div>'+
+      '<div class="oshist__s">'+(o.descricao?esc(o.descricao)+' · ':'')+
+      'aberta '+dataBR(o.aberta_em)+' · encerrada '+dataBR(o.encerrada_em)+'</div></div>'+
+      '<span class="badge b-fechada">Arquivada</span></div>';
+  }).join('');
+  document.querySelectorAll('#arq-lista [data-os]').forEach(function(el){
+    el.onclick = function(){ abreOS(el.dataset.os); };
+  });
+}
+$("q-arq").addEventListener('input', renderArquivo);
 
 /* ============================================================
    HOJE NA OFICINA — a planta do hangar + a fila de cada pessoa
