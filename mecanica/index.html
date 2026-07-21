@@ -329,6 +329,30 @@
   .aguarda{display:inline-block;text-align:right;font-size:.84rem;font-weight:700;color:var(--amber);
     background:#fdf6e6;border:1px solid #f0dfb8;border-radius:9px;padding:6px 11px;line-height:1.2}
   .aguarda small{display:block;font-weight:600;font-size:.72rem;color:var(--muted);margin-top:2px}
+
+  /* busca */
+  .busca{display:flex;align-items:center;gap:9px;border:2px solid var(--line);border-radius:11px;
+    padding:0 13px;margin-bottom:14px;background:#fff}
+  .busca:focus-within{border-color:var(--blue)}
+  .busca svg{color:#9aa6ae;flex:0 0 18px}
+  .busca input{border:none;outline:none;padding:11px 0;font-size:.98rem;width:100%;background:transparent}
+  tr.clicavel{cursor:pointer}
+  tr.clicavel:hover{background:var(--paper)}
+  /* ficha da aeronave */
+  .fa-cab{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .fa-pref{font-family:var(--mono);font-size:1.6rem;font-weight:700;letter-spacing:.05em}
+  .dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem}
+  .dl dt{color:var(--muted);font-weight:600} .dl dd{margin:0;font-weight:600}
+  .oshist{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .oshist:last-child{border:0}
+  .oshist:hover{background:var(--paper)}
+  .oshist__n{font-family:var(--mono);font-weight:800;font-size:.9rem;background:var(--paper);
+    border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+  .oshist__b{flex:1;min-width:0}
+  .oshist__t{font-weight:700;font-size:.92rem}
+  .oshist__s{font-size:.8rem;color:var(--muted)}
+  .badge{font-size:.7rem;font-weight:800;padding:3px 9px;border-radius:999px}
+  .b-aberta{background:#eaf0fa;color:var(--blue)} .b-fechada{background:#e8f5ec;color:var(--green-d)}
 </style>
 </head>
 <body>
@@ -378,6 +402,7 @@
     <button class="nav is-active" data-view="oficina">Hoje na oficina</button>
     <button class="nav" data-view="quadro">Visão do processo</button>
     <button class="nav" data-view="aeronaves">Aeronaves</button>
+    <button class="nav" data-view="proprietarios">Proprietários</button>
   </div>
 
   <main>
@@ -442,7 +467,23 @@
     <section id="view-aeronaves" class="hidden">
       <div class="box">
         <h3>✈️ Aeronaves <button class="btn btn--blue btn--sm" id="btn-nova-aer" style="margin-left:auto">+ Nova aeronave</button></h3>
+        <div class="busca">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q-aer" placeholder="Buscar por matrícula (PT-ABC), modelo ou proprietário…">
+        </div>
         <div id="aer-lista"></div>
+      </div>
+    </section>
+
+    <!-- PROPRIETÁRIOS -->
+    <section id="view-proprietarios" class="hidden">
+      <div class="box">
+        <h3>🏢 Proprietários <button class="btn btn--blue btn--sm" id="btn-novo-prop" style="margin-left:auto">+ Novo proprietário</button></h3>
+        <div class="busca">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q-prop" placeholder="Buscar por nome, razão social ou CPF/CNPJ…">
+        </div>
+        <div id="prop-lista"></div>
       </div>
     </section>
   </main>
@@ -460,7 +501,7 @@ var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
 var sb = window.supabase.createClient(SB_URL, SB_KEY);
 var $ = function(id){ return document.getElementById(id); };
-var usuario = null, PERFIL = null, AERONAVES = [], OSS = [];
+var usuario = null, PERFIL = null, AERONAVES = [], OSS = [], PROPS = [], PROPMAP = {};
 
 var ETAPAS = [
   {n:1,  t:'Recebimento',               f:1},
@@ -636,6 +677,7 @@ function toast(msg, tipo){
 }
 function dt(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
 function temPapel(p){ return !!(PERFIL && PERFIL.papeis && PERFIL.papeis.indexOf(p)>=0); }
 function ehAdmin(){ return PERFIL && PERFIL.nivel >= 3; }
 
@@ -671,22 +713,173 @@ async function entrar(){
   $("u-nome").textContent = PERFIL.nome || user.email;
   $("u-papeis").innerHTML = (PERFIL.papeis.length ? PERFIL.papeis : (ehAdmin()?['diretor_tecnico']:[]))
     .map(function(p){ return '<span class="pap">'+esc(PAPEL_LBL[p]||p)+'</span>'; }).join('');
+  await carregaProprietarios();
   await carregaAeronaves();
   await carregaQuadro();
   await carregaOficina();
 }
 
 /* ---------------- NAVEGAÇÃO ---------------- */
-var VIEWS = ['oficina','quadro','aeronaves'];
+var VIEWS = ['oficina','quadro','aeronaves','proprietarios'];
 document.querySelectorAll('.nav').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('.nav').forEach(function(x){ x.classList.remove('is-active'); });
     b.classList.add('is-active');
     VIEWS.forEach(function(v){ $("view-"+v).classList.toggle('hidden', b.dataset.view!==v); });
-    if(b.dataset.view==='aeronaves') renderAeronaves();
-    if(b.dataset.view==='oficina')   carregaOficina();
+    if(b.dataset.view==='aeronaves')     renderAeronaves();
+    if(b.dataset.view==='proprietarios') renderProprietarios();
+    if(b.dataset.view==='oficina')       carregaOficina();
   };
 });
+
+/* ============================================================
+   PROPRIETÁRIOS — cadastrado UMA vez, vale pra várias aeronaves.
+   Base própria da mecânica (não é a carteira do agro).
+   ============================================================ */
+function soDig(s){ return String(s||'').replace(/\D/g,''); }
+function nomeProp(id){ return (id && PROPMAP[id]) ? PROPMAP[id].nome : null; }
+/* opções de proprietário para os <select> do cadastro de aeronave */
+function opsProp(vazio){
+  return '<option value="">'+esc(vazio)+'</option>' + PROPS.map(function(p){
+    return '<option value="'+p.id+'">'+esc(p.nome)+(p.doc?' — '+esc(p.doc):'')+'</option>';
+  }).join('');
+}
+
+async function carregaProprietarios(){
+  var r = await sb.from('manut_proprietarios').select('*').order('nome');
+  if(r.error){ toast('Erro ao ler proprietários: '+r.error.message,'err'); return; }
+  PROPS = r.data || []; PROPMAP = {};
+  PROPS.forEach(function(p){ PROPMAP[p.id] = p; });
+}
+
+function renderProprietarios(){
+  var q = ($("q-prop").value || '').toLowerCase().trim(), qd = soDig(q);
+  var lista = PROPS.filter(function(p){
+    if(!q) return true;
+    var achouTexto = (p.nome||'').toLowerCase().indexOf(q) >= 0 ||
+                     (p.fantasia||'').toLowerCase().indexOf(q) >= 0;
+    var achouDoc = qd.length > 0 && soDig(p.doc).indexOf(qd) >= 0;
+    return achouTexto || achouDoc;
+  });
+  if(!PROPS.length){
+    $("prop-lista").innerHTML = '<div class="empty">Nenhum proprietário cadastrado.<br>'+
+      'Cadastre aqui e depois é só escolher no cadastro da aeronave — sem digitar de novo.</div>'; return; }
+  if(!lista.length){ $("prop-lista").innerHTML = '<div class="empty">Nada encontrado.</div>'; return; }
+
+  var h = '<table class="t"><thead><tr><th>Nome / Razão social</th><th>Tipo</th><th>CPF / CNPJ</th>'+
+          '<th>Contato</th><th>Aeronaves</th></tr></thead><tbody>';
+  lista.forEach(function(p){
+    var frota = AERONAVES.filter(function(a){ return a.proprietario_id===p.id || a.operador_id===p.id; });
+    h += '<tr class="clicavel" data-prop="'+p.id+'"><td><b>'+esc(p.nome)+'</b>'+
+         (p.fantasia?'<br><span class="no">'+esc(p.fantasia)+'</span>':'')+'</td>'+
+         '<td><span class="tag">'+(p.tipo==='pf'?'Pessoa física':'Empresa')+'</span></td>'+
+         '<td>'+esc(p.doc||'—')+'</td>'+
+         '<td>'+esc(p.fone||'—')+(p.email?'<br><span class="no">'+esc(p.email)+'</span>':'')+'</td>'+
+         '<td>'+(frota.length
+            ? frota.map(function(a){ return '<b>'+esc(a.prefixo)+'</b>'; }).join(' · ')
+            : '<span class="no">nenhuma</span>')+'</td></tr>';
+  });
+  $("prop-lista").innerHTML = h + '</tbody></table>';
+  document.querySelectorAll('[data-prop]').forEach(function(tr){
+    tr.onclick = function(){ abreProprietario(tr.dataset.prop); };
+  });
+}
+$("q-prop").addEventListener('input', renderProprietarios);
+
+function formProprietario(){
+  return '<div class="row"><div><label class="blk">Tipo</label>'+
+    '<select class="in" id="p-tipo"><option value="pj">Empresa (CNPJ)</option>'+
+    '<option value="pf">Pessoa física (CPF)</option></select></div>'+
+    '<div><label class="blk">CPF / CNPJ</label><input class="in" id="p-doc" placeholder="só números ou formatado"></div></div>'+
+    '<label class="blk" style="margin-top:10px">Nome / Razão social *</label><input class="in" id="p-nome">'+
+    '<label class="blk" style="margin-top:10px">Nome fantasia</label><input class="in" id="p-fant">'+
+    '<div class="row" style="margin-top:10px"><div><label class="blk">Telefone</label><input class="in" id="p-fone"></div>'+
+    '<div><label class="blk">E-mail</label><input class="in" id="p-email" type="email"></div></div>'+
+    '<div class="row" style="margin-top:10px"><div style="flex:2"><label class="blk">Endereço</label><input class="in" id="p-end"></div>'+
+    '<div><label class="blk">Cidade</label><input class="in" id="p-cid"></div>'+
+    '<div style="flex:0 0 80px"><label class="blk">UF</label><input class="in" id="p-uf" maxlength="2"></div></div>';
+}
+
+$("btn-novo-prop").onclick = function(){
+  abreModal('Novo proprietário', formProprietario(), 'Cadastrar', async function(){
+    var nome = $("p-nome").value.trim();
+    if(!nome){ toast('Informe o nome ou razão social.','err'); return false; }
+    var doc = $("p-doc").value.trim(), dn = soDig(doc);
+    /* anti-duplicação: mesmo CPF/CNPJ não entra duas vezes */
+    if(dn){
+      var ja = PROPS.filter(function(p){ return soDig(p.doc)===dn; })[0];
+      if(ja){ toast('Esse CPF/CNPJ já está cadastrado como "'+ja.nome+'".','err'); return false; }
+    }
+    var r = await sb.from('manut_proprietarios').insert({
+      tipo:$("p-tipo").value, nome:nome, fantasia:$("p-fant").value.trim()||null,
+      doc:doc||null, fone:$("p-fone").value.trim()||null, email:$("p-email").value.trim()||null,
+      endereco:$("p-end").value.trim()||null, cidade:$("p-cid").value.trim()||null,
+      uf:($("p-uf").value.trim()||'').toUpperCase()||null
+    });
+    if(r.error){
+      toast(r.error.code==='23505' ? 'Esse CPF/CNPJ já existe.' : ('Erro: '+r.error.message),'err');
+      return false;
+    }
+    await carregaProprietarios(); renderProprietarios();
+    toast('Proprietário cadastrado.','ok'); return true;
+  });
+};
+
+/* ficha do proprietário: dados, contatos e a frota dele */
+async function abreProprietario(id){
+  var p = PROPMAP[id]; if(!p) return;
+  var cts = (await sb.from('manut_prop_contatos').select('*').eq('proprietario_id',id).order('nome')).data||[];
+  var frota = AERONAVES.filter(function(a){ return a.proprietario_id===id || a.operador_id===id; });
+
+  var ctHtml = cts.length ? cts.map(function(c){
+    return '<div class="oshist"><div class="oshist__b"><div class="oshist__t">'+esc(c.nome)+
+      (c.principal?' 📌':'')+'</div><div class="oshist__s">'+esc(c.funcao||'—')+
+      (c.fone?' · '+esc(c.fone):'')+(c.email?' · '+esc(c.email):'')+'</div></div></div>';
+  }).join('') : '<div class="no">Nenhum contato cadastrado.</div>';
+
+  var frHtml = frota.length ? frota.map(function(a){
+    var papel = a.proprietario_id===id ? 'proprietário' : 'operador';
+    return '<div class="oshist" data-aer="'+a.id+'"><span class="oshist__n">'+esc(a.prefixo)+'</span>'+
+      '<div class="oshist__b"><div class="oshist__t">'+esc(a.modelo||'—')+'</div>'+
+      '<div class="oshist__s">'+(CATS[a.categoria]||CATS['agricola']).nome+' · '+papel+'</div></div></div>';
+  }).join('') : '<div class="no">Nenhuma aeronave vinculada.</div>';
+
+  $("modal").innerHTML =
+   '<div class="ov" id="ov"><div class="sheet" style="max-width:760px"><div class="sheet__h">'+
+     '<div><h2>'+esc(p.nome)+'</h2><div class="sub">'+
+       (p.tipo==='pf'?'Pessoa física':'Empresa')+(p.doc?' · '+esc(p.doc):'')+'</div></div>'+
+     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
+   '<div class="sheet__b">'+
+     '<div class="box"><h3>Dados</h3><dl class="dl">'+
+       '<dt>Telefone</dt><dd>'+esc(p.fone||'—')+'</dd>'+
+       '<dt>E-mail</dt><dd>'+esc(p.email||'—')+'</dd>'+
+       '<dt>Endereço</dt><dd>'+esc(p.endereco||'—')+(p.cidade?', '+esc(p.cidade):'')+(p.uf?'/'+esc(p.uf):'')+'</dd>'+
+     '</dl></div>'+
+     '<div class="box"><h3>👤 Contatos <button class="btn btn--ghost btn--sm" id="add-ct" style="margin-left:auto">+ Contato</button></h3>'+ctHtml+'</div>'+
+     '<div class="box"><h3>✈️ Frota <span class="c">'+frota.length+'</span></h3>'+frHtml+'</div>'+
+   '</div></div></div>';
+  $("fecha").onclick = function(){ $("modal").innerHTML=''; };
+  $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  document.querySelectorAll('[data-aer]').forEach(function(el){
+    el.onclick = function(){ abreAeronave(el.dataset.aer); };
+  });
+  $("add-ct").onclick = function(){
+    abreModal('Novo contato',
+      '<label class="blk">Nome *</label><input class="in" id="c-nome">'+
+      '<div class="row" style="margin-top:10px"><div><label class="blk">Função</label>'+
+      '<input class="in" id="c-func" placeholder="Gestor de frota / Piloto / Financeiro"></div>'+
+      '<div><label class="blk">Telefone</label><input class="in" id="c-fone"></div></div>'+
+      '<label class="blk" style="margin-top:10px">E-mail</label><input class="in" id="c-email" type="email">',
+      'Adicionar', async function(){
+        if(!$("c-nome").value.trim()){ toast('Informe o nome.','err'); return false; }
+        var r = await sb.from('manut_prop_contatos').insert({proprietario_id:id,
+          nome:$("c-nome").value.trim(), funcao:$("c-func").value.trim()||null,
+          fone:$("c-fone").value.trim()||null, email:$("c-email").value.trim()||null});
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        abreProprietario(id); return true;
+      });
+  };
+}
 
 /* ---------------- AERONAVES ---------------- */
 async function carregaAeronaves(){
@@ -696,15 +889,78 @@ async function carregaAeronaves(){
 }
 function renderAeronaves(){
   if(!AERONAVES.length){ $("aer-lista").innerHTML='<div class="empty">Nenhuma aeronave cadastrada ainda.</div>'; return; }
-  var h='<table class="t"><thead><tr><th>Prefixo</th><th>Modelo</th><th>Categoria</th><th>Origem</th><th>Proprietário</th><th>Horas</th></tr></thead><tbody>';
-  AERONAVES.forEach(function(a){
+  var q = ($("q-aer").value||'').toLowerCase().trim();
+  var lista = AERONAVES.filter(function(a){
+    if(!q) return true;
+    var dono = (nomeProp(a.proprietario_id)||'').toLowerCase();
+    return (a.prefixo||'').toLowerCase().indexOf(q)>=0
+        || (a.modelo||'').toLowerCase().indexOf(q)>=0
+        || dono.indexOf(q)>=0;
+  });
+  if(!lista.length){ $("aer-lista").innerHTML='<div class="empty">Nenhuma aeronave encontrada para “'+esc(q)+'”.</div>'; return; }
+  var h='<table class="t"><thead><tr><th>Matrícula</th><th>Modelo</th><th>Categoria</th><th>Origem</th>'+
+        '<th>Proprietário</th><th>Horas</th></tr></thead><tbody>';
+  lista.forEach(function(a){
     var c = CATS[a.categoria] || CATS['agricola'];
-    h+='<tr><td><b>'+esc(a.prefixo)+'</b></td><td>'+esc(a.modelo||'—')+'</td>'+
-       '<td>'+esc(c.nome)+'<br><span class="no">'+esc(c.ex)+'</span></td>'+
+    var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
+    h+='<tr class="clicavel" data-aer="'+a.id+'"><td><b>'+esc(a.prefixo)+'</b></td><td>'+esc(a.modelo||'—')+'</td>'+
+       '<td>'+esc(c.nome)+'</td>'+
        '<td><span class="tag '+(a.propria?'tag--prop':'tag--terc')+'">'+(a.propria?'Frota própria':'Terceiro')+'</span></td>'+
-       '<td>'+esc(a.proprietario||'—')+'</td><td>'+(a.horas_celula!=null?a.horas_celula:'—')+'</td></tr>';
+       '<td>'+(dono?esc(dono):'<span class="no">—</span>')+
+         (oper && oper!==dono ? '<br><span class="no">opera: '+esc(oper)+'</span>' : '')+'</td>'+
+       '<td>'+(a.horas_celula!=null?a.horas_celula:'—')+'</td></tr>';
   });
   $("aer-lista").innerHTML = h+'</tbody></table>';
+  document.querySelectorAll('[data-aer]').forEach(function(tr){
+    tr.onclick = function(){ abreAeronave(tr.dataset.aer); };
+  });
+}
+$("q-aer").addEventListener('input', renderAeronaves);
+
+/* FICHA DA AERONAVE — a caderneta: dados, dono e TODAS as OS dela */
+async function abreAeronave(id){
+  var a = AERONAVES.filter(function(x){ return x.id===id; })[0];
+  if(!a){ toast('Aeronave não encontrada.','err'); return; }
+  var oss = (await sb.from('manut_os').select('*').eq('aeronave_id',id)
+              .order('numero',{ascending:false})).data || [];
+  var c = CATS[a.categoria] || CATS['agricola'];
+  var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
+
+  var osHtml = oss.length ? oss.map(function(o){
+    var fechada = !!o.encerrada_em;
+    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">OS '+o.numero+'</span>'+
+      '<div class="oshist__b"><div class="oshist__t">'+esc(o.tipo||'Serviço')+'</div>'+
+      '<div class="oshist__s">'+(o.descricao?esc(o.descricao)+' · ':'')+
+        'aberta '+dataBR(o.aberta_em)+(fechada?' · encerrada '+dataBR(o.encerrada_em):'')+'</div></div>'+
+      '<span class="badge '+(fechada?'b-fechada':'b-aberta')+'">'+
+        (fechada?'Encerrada':'Etapa '+o.etapa)+'</span></div>';
+  }).join('') : '<div class="no">Esta aeronave ainda não teve nenhuma OS.</div>';
+
+  $("modal").innerHTML =
+   '<div class="ov" id="ov"><div class="sheet" style="max-width:820px"><div class="sheet__h">'+
+     '<div><h2 class="fa-pref">'+esc(a.prefixo)+'</h2>'+
+     '<div class="sub">'+esc(a.modelo||c.nome)+' · '+esc(c.nome)+'</div></div>'+
+     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
+   '<div class="sheet__b">'+
+     prancheta(a, [], null)+
+     '<div class="box"><h3>Dados da aeronave</h3><dl class="dl">'+
+       '<dt>Matrícula</dt><dd>'+esc(a.prefixo)+'</dd>'+
+       '<dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd>'+
+       '<dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd>'+
+       '<dt>Categoria</dt><dd>'+esc(c.nome)+' <span class="no">('+esc(c.ex)+')</span></dd>'+
+       '<dt>Origem</dt><dd>'+(a.propria?'Frota própria (Jusarah)':'Aeronave de terceiro')+'</dd>'+
+       '<dt>Proprietário</dt><dd>'+(dono?esc(dono):'<span class="no">não vinculado</span>')+'</dd>'+
+       '<dt>Operador</dt><dd>'+(oper?esc(oper):'<span class="no">mesmo que o proprietário</span>')+'</dd>'+
+       '<dt>Horas de célula</dt><dd>'+(a.horas_celula!=null?a.horas_celula:'—')+'</dd>'+
+     '</dl></div>'+
+     '<div class="box"><h3>📋 Histórico de OS <span class="c">'+oss.length+'</span></h3>'+osHtml+'</div>'+
+   '</div></div></div>';
+  medirTracos();
+  $("fecha").onclick = function(){ $("modal").innerHTML=''; };
+  $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  document.querySelectorAll('[data-os]').forEach(function(el){
+    el.onclick = function(){ abreOS(el.dataset.os); };
+  });
 }
 $("btn-nova-aer").onclick = function(){
   abreModal('Nova aeronave',
@@ -720,16 +976,22 @@ $("btn-nova-aer").onclick = function(){
     '</select>'+
     '<div class="row" style="margin-top:10px"><div><label class="blk">Origem</label>'+
     '<select class="in" id="a-prop"><option value="false">Aeronave de terceiro</option><option value="true">Frota própria (Jusarah)</option></select></div>'+
-    '<div><label class="blk">Proprietário / operador</label><input class="in" id="a-dono"></div></div>'+
-    '<div class="row" style="margin-top:10px"><div><label class="blk">Horas de célula</label><input class="in" id="a-hs" type="number" step="0.1"></div>'+
-    '<div><label class="blk">Nº de série</label><input class="in" id="a-sn"></div></div>',
+    '<div><label class="blk">Nº de série</label><input class="in" id="a-sn"></div></div>'+
+    '<label class="blk" style="margin-top:10px">Proprietário</label>'+
+    '<select class="in" id="a-dono">'+opsProp('— não vinculado —')+'</select>'+
+    '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for diferente do dono — ex.: aeronave financiada)</span></label>'+
+    '<select class="in" id="a-oper">'+opsProp('— mesmo que o proprietário —')+'</select>'+
+    (PROPS.length?'':'<div class="no" style="margin-top:8px">Nenhum proprietário cadastrado ainda — cadastre na aba <b>Proprietários</b> e depois é só escolher aqui.</div>')+
+    '<label class="blk" style="margin-top:10px">Horas de célula</label>'+
+    '<input class="in" id="a-hs" type="number" step="0.1">',
     'Cadastrar', async function(){
       var pref = $("a-pref").value.trim();
       if(!pref){ toast('Informe o prefixo.','err'); return false; }
       var r = await sb.from('manut_aeronaves').insert({
         prefixo:pref.toUpperCase(), modelo:$("a-mod").value.trim()||null,
-        categoria: $("a-cat").value,
-        propria: $("a-prop").value==='true', proprietario:$("a-dono").value.trim()||null,
+        categoria: $("a-cat").value, propria: $("a-prop").value==='true',
+        proprietario_id: $("a-dono").value || null,
+        operador_id:     $("a-oper").value || null,
         horas_celula: parseFloat($("a-hs").value)||null, numero_serie:$("a-sn").value.trim()||null
       });
       if(r.error){ toast('Erro: '+r.error.message,'err'); return false; }
