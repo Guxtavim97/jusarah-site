@@ -234,6 +234,41 @@
     background:linear-gradient(90deg,#ff6b6b,#ffc44d 55%,#4fe08a);transition:width 1.3s cubic-bezier(.3,1,.4,1)}
 
   /* ================= HOJE NA OFICINA ================= */
+  /* saudação — a "casa dele" */
+  .saud{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+  .saud h1{margin:0;font-size:1.75rem;font-weight:800;letter-spacing:-.01em}
+  .saud h1 b{color:var(--blue)}
+  .saud-s{color:var(--muted);font-size:.95rem;margin-top:2px}
+  .saud-est{margin-left:auto;display:flex;align-items:center;gap:9px;background:#fff;
+    border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.88rem;
+    font-weight:700;box-shadow:var(--shadow-sm)}
+  .saud-est .pt{width:9px;height:9px;border-radius:50%;background:var(--green);
+    animation:bate 1.8s ease-in-out infinite}
+  .saud-est.alerta .pt{background:var(--red)}
+  @keyframes bate{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.35)}}
+
+  /* dashboard da oficina */
+  .dash{margin-top:22px}
+  .dash h2{font-size:1.15rem;margin:0 0 4px}
+  .dash .sub{color:var(--muted);font-size:.9rem;margin-bottom:14px}
+  .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+  .dcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow-sm)}
+  .dcard .lbl{font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .dcard .val{font-size:1.75rem;font-weight:800;line-height:1.1;margin:5px 0 2px}
+  .dcard .obs{font-size:.8rem;color:var(--muted)}
+  .dcard.gargalo{border-color:#f0dfb8;background:#fffdf6}
+  .dcard.gargalo .val{color:var(--amber);font-size:1.2rem}
+  /* barras de tempo por etapa */
+  .tempos{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    box-shadow:var(--shadow-sm);margin-top:12px}
+  .tp{display:flex;align-items:center;gap:11px;margin-bottom:7px;font-size:.85rem}
+  .tp__n{flex:0 0 150px;color:var(--muted);font-weight:600}
+  .tp__b{flex:1;height:9px;background:var(--paper);border-radius:5px;overflow:hidden}
+  .tp__b i{display:block;height:100%;border-radius:5px;background:var(--blue);
+    transition:width .8s cubic-bezier(.3,1,.4,1)}
+  .tp.pior .tp__b i{background:var(--amber)}
+  .tp__v{flex:0 0 66px;text-align:right;font-weight:700;font-family:var(--mono);font-size:.8rem}
+
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:18px}
   .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm)}
   .kpi b{display:block;font-size:1.9rem;font-weight:800;line-height:1}
@@ -417,6 +452,13 @@
   <main>
     <!-- ================= HOJE NA OFICINA ================= -->
     <section id="view-oficina">
+      <div class="saud">
+        <div>
+          <h1 id="saud-t">Bem-vindo</h1>
+          <div class="saud-s" id="saud-s"></div>
+        </div>
+        <div class="saud-est" id="saud-est"></div>
+      </div>
       <div class="kpis" id="kpis"></div>
 
       <div class="planta">
@@ -456,6 +498,8 @@
         <div class="quem" id="fila-quem"></div>
         <div id="fila-itens"></div>
       </div>
+
+      <div class="dash" id="dash"></div>
     </section>
 
     <!-- ================= VISÃO DO PROCESSO ================= -->
@@ -1190,7 +1234,99 @@ async function carregaOficina(){
     ? '🚧 '+esperandoGate+' aeronave(s) presa(s) no gate — só o gatekeeper libera'
     : '🔓 Nada preso no gate';
 
+  montaSaudacao(oss);
   montaFila(oss);
+  await montaDash();
+}
+
+/* ---- saudação: a "casa dele" ---- */
+function montaSaudacao(oss){
+  var h = new Date().getHours();
+  var s = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
+  var primeiro = (PERFIL.nome || usuario.email || '').split(/\s+/)[0];
+  $("saud-t").innerHTML = esc(s) + ', <b>' + esc(primeiro) + '</b>';
+  $("saud-s").textContent = new Date().toLocaleDateString('pt-BR',
+    {weekday:'long', day:'numeric', month:'long'}) + ' · Hangar Cerejeiras–RO';
+
+  var travadas = oss.filter(function(o){ return o._pend>0 || o._dias>=7; }).length;
+  var est = $("saud-est");
+  est.className = 'saud-est' + (travadas ? ' alerta' : '');
+  est.innerHTML = '<span class="pt"></span>' + (
+    !oss.length ? 'Oficina vazia' :
+    travadas ? travadas+' aeronave(s) precisando de atenção'
+             : oss.length+' aeronave(s) · tudo fluindo');
+}
+
+/* ---- dashboard: onde o trabalho está empacando ---- */
+async function montaDash(){
+  var gestao = temPapel('chefe_manutencao') || temPapel('diretor_tecnico') ||
+               temPapel('gatekeeper') || ehAdmin();
+  if(!gestao){ $("dash").innerHTML = ''; return; }   // mecânico não precisa de indicador de gestão
+
+  var hist = (await sb.from('manut_os_historico')
+    .select('os_id,para_etapa,quando').not('para_etapa','is',null)
+    .order('quando').limit(2000)).data || [];
+
+  /* tempo médio parado em cada etapa */
+  var porOS = {};
+  hist.forEach(function(x){ (porOS[x.os_id] = porOS[x.os_id] || []).push(x); });
+  var soma = {}, cont = {};
+  Object.keys(porOS).forEach(function(osId){
+    var l = porOS[osId], os = OSS.filter(function(o){ return o.id===osId; })[0];
+    for(var i=0;i<l.length;i++){
+      var et = l[i].para_etapa; if(!et) continue;
+      var ini = new Date(l[i].quando).getTime();
+      var fim = (i+1 < l.length) ? new Date(l[i+1].quando).getTime()
+              : (os && os.encerrada_em ? new Date(os.encerrada_em).getTime() : Date.now());
+      var d = (fim - ini) / 86400000;
+      if(d < 0) continue;
+      soma[et] = (soma[et]||0) + d; cont[et] = (cont[et]||0) + 1;
+    }
+  });
+  var tempos = [];
+  for(var e=1; e<=11; e++) if(cont[e]) tempos.push({e:e, m:soma[e]/cont[e], n:cont[e]});
+  var pior = tempos.slice().sort(function(a,b){ return b.m - a.m; })[0];
+  var maxM = pior ? pior.m : 1;
+
+  /* números do mês */
+  var agora = new Date(), m0 = new Date(agora.getFullYear(), agora.getMonth(), 1).getTime();
+  var encMes = OSS.filter(function(o){ return o.encerrada_em && new Date(o.encerrada_em).getTime() >= m0; });
+  var abertas = OSS.filter(function(o){ return !o.encerrada_em; });
+  var ciclo = encMes.length
+    ? (encMes.reduce(function(s,o){ return s + (new Date(o.encerrada_em)-new Date(o.aberta_em))/86400000; },0) / encMes.length)
+    : null;
+
+  var etNome = function(n){ return (ETAPAS[n-1]||{}).t || ('Etapa '+n); };
+  var d1 = function(v){ return v.toFixed(1).replace('.', ','); };
+
+  $("dash").innerHTML =
+    '<h2>Indicadores da oficina</h2>'+
+    '<div class="sub">Onde o trabalho está passando — e onde está empacando.</div>'+
+    '<div class="dash-grid">'+
+      '<div class="dcard"><div class="lbl">OS em andamento</div><div class="val">'+abertas.length+'</div>'+
+        '<div class="obs">aeronaves na oficina agora</div></div>'+
+      '<div class="dcard"><div class="lbl">Encerradas no mês</div><div class="val">'+encMes.length+'</div>'+
+        '<div class="obs">retornaram ao serviço</div></div>'+
+      '<div class="dcard"><div class="lbl">Ciclo médio</div><div class="val">'+
+        (ciclo!=null ? d1(ciclo)+'<span style="font-size:.9rem"> dias</span>' : '—')+'</div>'+
+        '<div class="obs">da entrada ao retorno ao serviço</div></div>'+
+      (pior
+        ? '<div class="dcard gargalo"><div class="lbl">⚠️ Gargalo</div>'+
+          '<div class="val">'+pior.e+' · '+esc(etNome(pior.e))+'</div>'+
+          '<div class="obs">média de '+d1(pior.m)+' dias parada aqui</div></div>'
+        : '<div class="dcard"><div class="lbl">Gargalo</div><div class="val">—</div>'+
+          '<div class="obs">ainda sem histórico suficiente</div></div>')+
+    '</div>'+
+    (tempos.length
+      ? '<div class="tempos"><div class="lbl" style="font-size:.72rem;font-weight:800;letter-spacing:.09em;'+
+        'text-transform:uppercase;color:var(--muted);margin-bottom:10px">Tempo médio parado por etapa</div>'+
+        tempos.map(function(t){
+          return '<div class="tp'+(pior && t.e===pior.e?' pior':'')+'">'+
+            '<span class="tp__n">'+t.e+' · '+esc(etNome(t.e))+'</span>'+
+            '<span class="tp__b"><i style="width:'+Math.max(3, t.m/maxM*100)+'%"></i></span>'+
+            '<span class="tp__v">'+d1(t.m)+' d</span></div>';
+        }).join('')+'</div>'
+      : '');
 }
 
 /* ---- A MINHA FILA: o que depende de MIM agora ---- */
