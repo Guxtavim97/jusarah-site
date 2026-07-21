@@ -222,6 +222,83 @@
   .barra{height:8px;border-radius:5px;background:rgba(127,212,255,.12);overflow:hidden}
   .barra span{display:block;height:100%;width:0;border-radius:5px;
     background:linear-gradient(90deg,#ff6b6b,#ffc44d 55%,#4fe08a);transition:width 1.3s cubic-bezier(.3,1,.4,1)}
+
+  /* ================= HOJE NA OFICINA ================= */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:18px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm)}
+  .kpi b{display:block;font-size:1.9rem;font-weight:800;line-height:1}
+  .kpi span{font-size:.82rem;color:var(--muted);font-weight:600}
+  .kpi.r b{color:var(--red)} .kpi.g b{color:var(--green-d)}
+
+  .planta{background:
+      linear-gradient(rgba(255,255,255,.7),rgba(255,255,255,.7)),
+      repeating-linear-gradient(0deg,#dfe5ea 0 1px,transparent 1px 42px),
+      repeating-linear-gradient(90deg,#dfe5ea 0 1px,transparent 1px 42px),#e9edf1;
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:22px;
+    box-shadow:inset 0 2px 14px rgba(18,33,46,.07)}
+  .zonas{display:grid;grid-template-columns:1.1fr 1fr 30px 1.35fr .95fr;gap:12px;padding:14px}
+  @media(max-width:1080px){ .zonas{grid-template-columns:1fr 1fr} .gate{display:none!important} }
+  @media(max-width:660px){ .zonas{grid-template-columns:1fr} }
+  .zona{border:2px dashed #c3cdd6;border-radius:13px;padding:11px;background:rgba(255,255,255,.6);min-height:170px}
+  .zona--plan{border-color:#e0b4b4;background:rgba(253,244,244,.8)}
+  .zona--exec{border-color:#bcd9c5;background:rgba(243,250,245,.78)}
+  .zona--lib{border-color:#b9cfe6;background:rgba(242,248,253,.78)}
+  .zona__h{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+  .zona__t{font-size:.72rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .zona--rec .zona__t{color:var(--blue)} .zona--plan .zona__t{color:var(--red)}
+  .zona--exec .zona__t{color:var(--green-d)} .zona--lib .zona__t{color:var(--blue)}
+  .zona__c{margin-left:auto;font-size:.72rem;font-weight:800;color:var(--muted);background:#fff;
+    border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+  .frota{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
+
+  /* barreira do gate */
+  .gate{position:relative;background:#9aa2a8;border-radius:6px;display:grid;place-items:center}
+  .gate__barra{position:absolute;inset:6px 3px;border-radius:4px;
+    background:repeating-linear-gradient(45deg,#f2c200 0 10px,#1a1a1a 10px 20px);
+    box-shadow:0 3px 9px rgba(0,0,0,.35);transform-origin:50% 100%;
+    transition:transform .7s cubic-bezier(.3,1.4,.5,1),opacity .5s}
+  .gate.aberto .gate__barra{transform:rotate(-78deg) translateY(-6px);opacity:.5}
+  .gate__lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.15rem;z-index:2;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,.5))}
+  .gate__tx{position:absolute;bottom:7px;left:50%;transform:translateX(-50%) rotate(90deg);
+    font-size:.54rem;font-weight:900;letter-spacing:.18em;color:#2b3238;white-space:nowrap}
+
+  /* aeronave na planta */
+  .pav{width:128px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:8px;
+    box-shadow:0 3px 10px rgba(18,33,46,.1);cursor:pointer;position:relative;
+    animation:pousa .5s cubic-bezier(.2,.8,.3,1) both;transition:transform .13s,box-shadow .16s}
+  .pav:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(18,33,46,.17)}
+  @keyframes pousa{from{opacity:0;transform:translateY(-9px) scale(.96)}to{opacity:1;transform:none}}
+  .pav__p{font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:5px}
+  .pav__d{font-size:.7rem;color:var(--muted);font-weight:600;line-height:1.3}
+  .pav__t{display:flex;gap:2px;margin-top:6px}
+  .pav__t i{flex:1;height:4px;border-radius:2px;background:#dde3e9}
+  .pav__t i.on{background:var(--blue)}
+  .etq{position:absolute;top:-6px;right:-6px;font-size:.56rem;font-weight:900;letter-spacing:.04em;
+    padding:2px 6px;border-radius:4px;border:1px solid rgba(0,0,0,.2);box-shadow:0 2px 5px rgba(0,0,0,.25)}
+  .e-am{background:#f6d34a;color:#4a3c00} .e-vd{background:#4fb06a;color:#08260f}
+  .e-vm{background:#d34a4a;color:#fff;animation:alerta 1.6s ease-in-out infinite}
+  @keyframes alerta{0%,100%{box-shadow:0 2px 5px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 5px rgba(211,74,74,.35)}}
+  .leg{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:9px 14px;background:#2b3238;
+    color:#cfd6dc;font-size:.74rem;font-weight:600}
+  .leg i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px}
+  .leg span{display:flex;align-items:center}
+
+  /* a minha fila */
+  .fila{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+  .fila h2{margin:0 0 3px;font-size:1.2rem}
+  .fila .quem{color:var(--muted);font-size:.92rem;margin-bottom:14px}
+  .fila .quem b{color:var(--blue)}
+  .fit{display:flex;align-items:center;gap:13px;padding:12px 14px;border:1px solid var(--line);
+    border-left:4px solid var(--blue);border-radius:10px;margin-bottom:9px;transition:transform .12s;cursor:pointer}
+  .fit:hover{transform:translateX(3px)}
+  .fit.g{border-left-color:var(--green)} .fit.r{border-left-color:var(--red)}
+  .fit__ic{font-size:1.2rem}
+  .fit__b{flex:1;min-width:0}
+  .fit__t{font-weight:700;line-height:1.25}
+  .fit__s{font-size:.83rem;color:var(--muted)}
+  .fvazio{text-align:center;color:var(--muted);padding:26px 10px}
+  .fvazio b{display:block;font-size:2rem;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -268,13 +345,57 @@
     <button class="btn btn--ghost btn--sm" id="btn-sair">Sair</button>
   </div></div>
   <div class="navs">
-    <button class="nav is-active" data-view="quadro">Quadro de OS</button>
+    <button class="nav is-active" data-view="oficina">Hoje na oficina</button>
+    <button class="nav" data-view="quadro">Visão do processo</button>
     <button class="nav" data-view="aeronaves">Aeronaves</button>
   </div>
 
   <main>
-    <!-- QUADRO -->
-    <section id="view-quadro">
+    <!-- ================= HOJE NA OFICINA ================= -->
+    <section id="view-oficina">
+      <div class="kpis" id="kpis"></div>
+
+      <div class="planta">
+        <div class="zonas">
+          <div class="zona zona--rec">
+            <div class="zona__h"><span class="zona__t">🛬 Pátio · Recebimento</span><span class="zona__c" id="c1">0</span></div>
+            <div class="frota" id="zf1"></div>
+          </div>
+          <div class="zona zona--plan">
+            <div class="zona__h"><span class="zona__t">📋 Planejamento</span><span class="zona__c" id="c2">0</span></div>
+            <div class="frota" id="zf2"></div>
+          </div>
+          <div class="gate" id="gate">
+            <div class="gate__barra"></div><div class="gate__lock" id="gate-lock">🔒</div>
+            <div class="gate__tx">GATE</div>
+          </div>
+          <div class="zona zona--exec">
+            <div class="zona__h"><span class="zona__t">🔧 Baias · Execução</span><span class="zona__c" id="c3">0</span></div>
+            <div class="frota" id="zf3"></div>
+          </div>
+          <div class="zona zona--lib">
+            <div class="zona__h"><span class="zona__t">✅ Liberação</span><span class="zona__c" id="c4">0</span></div>
+            <div class="frota" id="zf4"></div>
+          </div>
+        </div>
+        <div class="leg">
+          <span><i style="background:#f6d34a"></i> Em serviço</span>
+          <span><i style="background:#d34a4a"></i> Inoperante / pendência</span>
+          <span><i style="background:#4fb06a"></i> Liberado</span>
+          <span style="flex:1"></span>
+          <span id="gate-txt">🚧 A barreira abre quando o gatekeeper libera</span>
+        </div>
+      </div>
+
+      <div class="fila">
+        <h2>A sua fila</h2>
+        <div class="quem" id="fila-quem"></div>
+        <div id="fila-itens"></div>
+      </div>
+    </section>
+
+    <!-- ================= VISÃO DO PROCESSO ================= -->
+    <section id="view-quadro" class="hidden">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
         <div class="fases">
           <span class="fase-tit f1">Fase 1 · Recebimento e Inspeção</span>
@@ -520,16 +641,18 @@ async function entrar(){
     .map(function(p){ return '<span class="pap">'+esc(PAPEL_LBL[p]||p)+'</span>'; }).join('');
   await carregaAeronaves();
   await carregaQuadro();
+  await carregaOficina();
 }
 
 /* ---------------- NAVEGAÇÃO ---------------- */
+var VIEWS = ['oficina','quadro','aeronaves'];
 document.querySelectorAll('.nav').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('.nav').forEach(function(x){ x.classList.remove('is-active'); });
     b.classList.add('is-active');
-    $("view-quadro").classList.toggle('hidden', b.dataset.view!=='quadro');
-    $("view-aeronaves").classList.toggle('hidden', b.dataset.view!=='aeronaves');
+    VIEWS.forEach(function(v){ $("view-"+v).classList.toggle('hidden', b.dataset.view!==v); });
     if(b.dataset.view==='aeronaves') renderAeronaves();
+    if(b.dataset.view==='oficina')   carregaOficina();
   };
 });
 
@@ -623,6 +746,151 @@ function renderQuadro(pend){
   });
 }
 
+/* ============================================================
+   HOJE NA OFICINA — a planta do hangar + a fila de cada pessoa
+   As zonas da planta agrupam as 11 etapas:
+   1..5 Pátio · 6 Planejamento(gate) · 7..9 Baias · 10..11 Liberação
+   ============================================================ */
+function zonaDaEtapa(e){ return e<=5?1:(e===6?2:(e<=9?3:4)); }
+function diasDesde(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
+
+async function carregaOficina(){
+  var r = await sb.from('manut_os')
+    .select('*, manut_aeronaves(prefixo,modelo,propria,categoria), clientes(nome)')
+    .is('encerrada_em', null).order('prioridade').order('aberta_em');
+  if(r.error){ toast('Erro ao ler OS: '+r.error.message,'err'); return; }
+  var oss = r.data || [], ids = oss.map(function(o){ return o.id; });
+
+  var tarefas=[], pend=[], hist=[], gate=[], itens=[];
+  if(ids.length){
+    tarefas = (await sb.from('manut_os_tarefas').select('*').in('os_id', ids)).data || [];
+    pend    = (await sb.from('manut_os_pendencias').select('*').in('os_id', ids).is('resolvida_em', null)).data || [];
+    hist    = (await sb.from('manut_os_historico').select('os_id,quando').in('os_id', ids)
+                 .order('quando', {ascending:false})).data || [];
+    gate    = (await sb.from('manut_os_gate').select('os_id,item_id,ok').in('os_id', ids)).data || [];
+    var chks = oss.map(function(o){ return o.gate_checklist_id; }).filter(Boolean);
+    if(chks.length) itens = (await sb.from('manut_checklist_itens')
+      .select('id,checklist_id,obrigatorio,so_terceiro').in('checklist_id', chks)).data || [];
+  }
+
+  /* --- consolida por OS --- */
+  var ultima={}, nPend={}, tOS={}, gOK={};
+  hist.forEach(function(h){ if(!ultima[h.os_id]) ultima[h.os_id]=h.quando; });   // já vem desc
+  pend.forEach(function(p){ nPend[p.os_id]=(nPend[p.os_id]||0)+1; });
+  tarefas.forEach(function(t){ (tOS[t.os_id]=tOS[t.os_id]||[]).push(t); });
+  gate.forEach(function(g){ if(g.ok) gOK[g.os_id]=(gOK[g.os_id]||0)+1; });
+
+  oss.forEach(function(o){
+    o._dias  = diasDesde(ultima[o.id] || o.aberta_em);
+    o._pend  = nPend[o.id] || 0;
+    o._tar   = tOS[o.id] || [];
+    o._gateOk = gOK[o.id] || 0;
+    o._gateTot = itens.filter(function(i){
+      return i.checklist_id===o.gate_checklist_id && i.obrigatorio &&
+             (!i.so_terceiro || o.terceiro); }).length;
+    o._etq = (o._pend>0 || o._dias>=7) ? 'vm' : (o.etapa>=10 ? 'vd' : 'am');
+  });
+
+  /* --- KPIs --- */
+  var esperandoGate = oss.filter(function(o){ return o.etapa===6; }).length;
+  var paradas       = oss.filter(function(o){ return o._dias>=7; }).length;
+  var prontas       = oss.filter(function(o){ return o.etapa>=10; }).length;
+  $("kpis").innerHTML =
+    '<div class="kpi"><b>'+oss.length+'</b><span>aeronaves na oficina</span></div>'+
+    '<div class="kpi'+(esperandoGate?' r':'')+'"><b>'+esperandoGate+'</b><span>esperando o gate 🔒</span></div>'+
+    '<div class="kpi'+(paradas?' r':'')+'"><b>'+paradas+'</b><span>paradas há 7+ dias</span></div>'+
+    '<div class="kpi g"><b>'+prontas+'</b><span>prontas pra liberar</span></div>';
+
+  /* --- planta --- */
+  [1,2,3,4].forEach(function(z){ $("zf"+z).innerHTML=''; $("c"+z).textContent='0'; });
+  var cont={1:0,2:0,3:0,4:0};
+  oss.forEach(function(o,i){
+    var z = zonaDaEtapa(o.etapa); cont[z]++;
+    var a = o.manut_aeronaves||{};
+    var trilha='<div class="pav__t">';
+    for(var k=1;k<=11;k++) trilha += '<i class="'+(k<=o.etapa?'on':'')+'"></i>';
+    trilha+='</div>';
+    var etqTx = o._etq==='vm' ? 'INOP' : (o._etq==='vd' ? 'LIB' : 'SERV');
+    $("zf"+z).insertAdjacentHTML('beforeend',
+      '<div class="pav" data-os="'+o.id+'" style="animation-delay:'+(i*70)+'ms">'+
+        '<span class="etq e-'+o._etq+'">'+etqTx+'</span>'+
+        '<div class="pav__p">'+esc(a.prefixo||'?')+'</div>'+
+        '<div class="pav__d">OS '+o.numero+' · '+o._dias+'d parada'+
+          (o._pend?'<br>⚠️ '+o._pend+' pendência(s)':'')+
+          (o.etapa===6 ? '<br>🔒 gate '+o._gateOk+'/'+o._gateTot : '')+'</div>'+
+        trilha+'</div>');
+  });
+  [1,2,3,4].forEach(function(z){
+    $("c"+z).textContent = cont[z];
+    if(!cont[z]) $("zf"+z).innerHTML = '<div class="no" style="padding:8px">—</div>';
+  });
+  document.querySelectorAll('.pav').forEach(function(c){
+    c.onclick = function(){ abreOS(c.dataset.os); };
+  });
+
+  /* --- a barreira: fechada enquanto houver aeronave presa no gate --- */
+  var g = $("gate");
+  g.classList.toggle('aberto', esperandoGate===0);
+  $("gate-lock").textContent = esperandoGate ? '🔒' : '🔓';
+  $("gate-txt").textContent = esperandoGate
+    ? '🚧 '+esperandoGate+' aeronave(s) presa(s) no gate — só o gatekeeper libera'
+    : '🔓 Nada preso no gate';
+
+  montaFila(oss);
+}
+
+/* ---- A MINHA FILA: o que depende de MIM agora ---- */
+function montaFila(oss){
+  var eu = usuario.id, itens = [], papeis = PERFIL.papeis || [];
+  if(!papeis.length && ehAdmin()) papeis = ['diretor_tecnico'];
+  function tem(p){ return papeis.indexOf(p)>=0; }
+  function add(cor, ic, t, s, osId){ itens.push({c:cor, ic:ic, t:t, s:s, os:osId}); }
+
+  oss.forEach(function(o){
+    var pref = (o.manut_aeronaves||{}).prefixo || '?';
+    var ref  = pref+' · OS '+o.numero;
+
+    if(tem('gatekeeper') && o.etapa===6){
+      var falta = o._gateTot - o._gateOk;
+      if(falta>0) add('r','🔒', ref+' — gate incompleto', falta+' de '+o._gateTot+' itens faltando · parada há '+o._dias+'d', o.id);
+      else        add('g','🚧', ref+' — pronta pra liberar', 'todos os '+o._gateTot+' itens ✓ · só falta você liberar', o.id);
+    }
+    if(tem('mecanico') && o.etapa>=7 && o.etapa<=9){
+      var naoExec = o._tar.filter(function(t){ return !t.executado_em; }).length;
+      if(naoExec) add('','🔧', ref+' — '+naoExec+' serviço(s) pra executar', 'liberado · etapa '+o.etapa, o.id);
+    }
+    if(tem('controle_tecnico')){
+      var aConferir = o._tar.filter(function(t){ return t.executado_em && !t.conferido_em && t.executor_id!==eu; }).length;
+      if(aConferir) add('g','✅', ref+' — '+aConferir+' serviço(s) aguardando cross check', 'executados · falta a segunda assinatura', o.id);
+      if(o.etapa<=2) add('','📋', ref+' — Pré-OS pendente', 'aeronave recebida há '+o._dias+'d', o.id);
+    }
+    if(tem('chefe_manutencao')){
+      if(o._dias>=7) add('r','🏷️', ref+' — parada há '+o._dias+' dias', 'etapa '+o.etapa+' · sem movimento', o.id);
+      if(o._pend)    add('r','⚠️', ref+' — '+o._pend+' pendência(s) aberta(s)', 'trava a conclusão', o.id);
+      if(o.etapa===3) add('','📊', ref+' — aguardando priorização', 'defina a ordem na fila', o.id);
+    }
+    if(tem('diretor_tecnico')){
+      if(o.etapa>=10){
+        var falta2 = o._tar.filter(function(t){ return !t.conferido_em; }).length;
+        if(!falta2) add('g','✍️', ref+' — pronta para retorno ao serviço', 'todos os serviços conferidos', o.id);
+      }
+      if(o._dias>=7) add('r','🏷️', ref+' — parada há '+o._dias+' dias', o.terceiro?'aeronave de terceiro — risco de reclamação':'frota própria', o.id);
+    }
+  });
+
+  var lbl = papeis.map(function(p){ return PAPEL_LBL[p]||p; }).join(' · ');
+  $("fila-quem").innerHTML = 'Você é <b>'+esc(lbl)+'</b>. Aqui fica só o que <b>depende de você</b> agora.';
+  $("fila-itens").innerHTML = itens.length
+    ? itens.map(function(i){
+        return '<div class="fit '+i.c+'" data-os="'+i.os+'"><div class="fit__ic">'+i.ic+'</div>'+
+          '<div class="fit__b"><div class="fit__t">'+esc(i.t)+'</div><div class="fit__s">'+esc(i.s)+'</div></div></div>';
+      }).join('')
+    : '<div class="fvazio"><b>☕</b>Nada depende de você agora.</div>';
+  document.querySelectorAll('.fit').forEach(function(f){
+    f.onclick = function(){ if(f.dataset.os) abreOS(f.dataset.os); };
+  });
+}
+
 /* ---------------- NOVA OS ---------------- */
 $("btn-nova-os").onclick = function(){
   if(!AERONAVES.length){ toast('Cadastre uma aeronave primeiro.','err'); return; }
@@ -652,7 +920,8 @@ $("btn-nova-os").onclick = function(){
       }).select().single();
       if(r.error){ toast('Erro: '+r.error.message,'err'); return false; }
       await sb.rpc('manut_mover_etapa', {p_os:r.data.id, p_etapa:1, p_obs:'OS aberta'});
-      await carregaQuadro(); toast('OS '+r.data.numero+' aberta.','ok'); return true;
+      await carregaQuadro(); await carregaOficina();
+      toast('OS '+r.data.numero+' aberta.','ok'); return true;
     });
 };
 
@@ -769,7 +1038,7 @@ async function abreOS(id){
   $("modal").innerHTML = html;
   medirTracos();   // faz cada traço da prancheta se desenhar sozinho
 
-  var recarrega = async function(){ await carregaQuadro(); abreOS(id); };
+  var recarrega = async function(){ await carregaQuadro(); await carregaOficina(); abreOS(id); };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
 
