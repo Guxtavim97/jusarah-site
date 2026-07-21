@@ -25,6 +25,10 @@
   /* entrada suave dos blocos */
   .sobe{opacity:0;transform:translateY(22px);animation:sobe .7s cubic-bezier(.16,.84,.44,1) forwards}
   @keyframes sobe{to{opacity:1;transform:none}}
+  /* entrada SEM transform — para elementos position:fixed, onde qualquer transform
+     desloca (e em alguns navegadores quebra) a fixação na tela */
+  .aparece{opacity:0;animation:aparece .6s ease .25s forwards}
+  @keyframes aparece{to{opacity:1}}
 
   /* ===================== HERO: a aeronave se desenha ===================== */
   .hero{position:relative;overflow:hidden;color:#fff;padding:22px 0 0;
@@ -208,6 +212,59 @@
   .vrod{text-align:center;color:#4a6a8c;font-size:.74rem;margin-top:22px;letter-spacing:.06em}
   .carregando{text-align:center;padding:80px 20px;color:var(--muted)}
 
+  /* ============================================================
+     MOBILE — o celular é o palco principal desta página
+     ============================================================ */
+  /* barra que aparece ao rolar, com a aeronave e o estado sempre à mão */
+  .mini{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:11px;
+    padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));
+    background:rgba(7,18,40,.92);backdrop-filter:blur(12px);color:#fff;
+    border-bottom:1px solid rgba(127,212,255,.18);
+    transform:translateY(-105%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+  .mini.ver{transform:none}
+  .mini img{height:26px}
+  .mini b{font-family:var(--mono);font-size:.95rem;letter-spacing:.03em}
+  .mini span{margin-left:auto;font-size:.68rem;font-weight:800;padding:4px 11px;border-radius:999px;
+    border:1px solid currentColor;white-space:nowrap}
+  .mini .m-and{color:#ffd47a} .mini .m-lib{color:var(--ok)}
+
+  @media(max-width:640px){
+    .wrap{padding:0 14px 96px}
+    .hero{padding-top:calc(18px + env(safe-area-inset-top))}
+    .hero__in{padding:0 14px}
+    .marca img{height:38px}
+    .id{gap:10px;margin-bottom:2px}
+    .id__os{margin-left:0;text-align:left;width:100%;display:flex;align-items:baseline;gap:8px}
+    .id__os small{display:inline}
+    .desenho{margin:0 -14px}
+    .sit{padding-bottom:22px}
+    .agora{font-size:1rem}
+    .trilha i{height:7px}
+
+    .card{padding:19px 17px;border-radius:18px;margin-bottom:12px}
+    .card h2{font-size:.98rem}
+    .dl{grid-template-columns:1fr;gap:0}
+    .dl dt{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;margin-top:11px}
+    .dl dd{font-size:1rem;margin-bottom:2px}
+    .dl dt:first-child{margin-top:0}
+
+    /* galeria vira carrossel de arrastar */
+    .mid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:11px;
+      margin:0 -17px;padding:2px 17px 6px;scroll-padding-left:17px;
+      -webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .mid::-webkit-scrollbar{display:none}
+    .mi{flex:0 0 80%;scroll-snap-align:center}
+    .mi img,.mi video{aspect-ratio:1/1}
+    .gh{margin-left:0;margin-right:0}
+    .arrasta{font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;
+      font-family:var(--mono);letter-spacing:.06em}
+
+    .verif{padding:20px 17px}
+    .lb{padding:0}
+    .lb img,.lb video{max-height:72vh;border-radius:0}
+  }
+  @media(min-width:641px){ .mini,.arrasta{display:none} }
+
   /* botão de baixar */
   .baixar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
     border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;
@@ -215,6 +272,14 @@
     box-shadow:0 6px 18px rgba(18,33,46,.07);margin-bottom:14px;transition:.15s}
   .baixar:hover{border-color:var(--blue);box-shadow:0 10px 26px rgba(27,63,143,.15)}
   .baixar small{display:block;font-weight:600;color:var(--muted);font-size:.76rem;margin-top:1px}
+  /* no celular a ação principal fica fixa, ao alcance do polegar.
+     (esta regra vem DEPOIS da de cima de propósito: senão o width:100% dela vence) */
+  @media(max-width:640px){
+    .baixar{position:fixed;left:14px;right:14px;width:auto;
+      bottom:14px;                                    /* reserva: se o navegador não entender    */
+      bottom:calc(14px + env(safe-area-inset-bottom));/* env(), a linha de cima continua valendo */
+      z-index:35;margin:0;padding:16px;box-shadow:0 10px 30px rgba(18,33,46,.28)}
+  }
 
   /* ============================================================
      IMPRESSÃO — a própria página vira o documento (mesmo conteúdo,
@@ -358,6 +423,11 @@ function svgAeronave(cat){
   (c.hh||[]).forEach(function(h){ s += hel(h); });
   return s + '</svg>';
 }
+/* no celular o avião é aproximado: sem as margens, ele ocupa a tela e impressiona */
+function enquadra(){
+  var svg = document.querySelector('.dw'); if(!svg) return;
+  svg.setAttribute('viewBox', innerWidth <= 640 ? '120 30 660 440' : '0 0 900 500');
+}
 function medir(){
   document.querySelectorAll('.dw .ln').forEach(function(el,i){
     var L=600; try{ L = el.getTotalLength(); }catch(e){}
@@ -447,7 +517,7 @@ function desenha(d){
     var g=md.filter(function(m){return m.tipo===t;});
     if(!g.length) return '';
     return '<div class="gh '+cls+'"><b>'+lbl+'</b><i>'+sub+'</i></div><div class="mid">'+
-      g.map(function(m){
+      g.map(function(m,ix){
         var i = md.indexOf(m), url = PUB+m.caminho, v = m.midia==='video';
         return '<div class="mi'+(v?' mi--video':'')+'" data-i="'+i+'">'+
           (v?'<video preload="metadata" src="'+esc(url)+'#t=0.5" muted playsinline></video>'
@@ -455,13 +525,17 @@ function desenha(d){
             :'<img src="'+esc(url)+'" loading="lazy" alt="">')+
           '<div class="mi__c"><div class="mi__l">'+esc(m.legenda||'')+'</div>'+
           '<div class="mi__d">'+dataBR(m.quando)+(v?' · vídeo com som':'')+'</div></div></div>';
-      }).join('')+'</div>';
+      }).join('')+'</div>'+
+      (g.length>1 ? '<div class="arrasta">← arraste para ver as '+g.length+' →</div>' : '');
   }
   var midHtml = md.length
     ? grupo('antes','g-a','ANTES','como chegou') + grupo('depois','g-d','DEPOIS','o que foi feito')
     : '<div class="vazio-m">As fotos e vídeos do serviço aparecem aqui conforme ele avança.</div>';
 
   document.getElementById('tudo').innerHTML =
+    '<div class="mini" id="mini"><img src="assets/img/logo-branca.png" alt="">'+
+      '<b>'+esc(a.prefixo)+'</b><span class="'+(fim?'m-lib':'m-and')+'">'+
+      (fim?'Liberada':'Etapa '+o.etapa+'/11')+'</span></div>'+
     '<div class="hero"><div class="hero__in">'+
       '<div class="marca"><img src="assets/img/logo-branca.png" alt="Jusarah">'+
         '<div>Jusarah Manutenção<small>Acompanhamento de serviço</small></div></div>'+
@@ -480,7 +554,7 @@ function desenha(d){
     '</div></div>'+
 
     '<div class="wrap">'+
-      '<button class="baixar sobe" id="bt-baixar" style="animation-delay:.06s">📄 '+
+      '<button class="baixar aparece" id="bt-baixar">📄 '+
         '<span>Baixar este relatório<small>salve em PDF ou imprima</small></span></button>'+
       '<div class="card sobe" style="animation-delay:.1s"><h2>📋 A ordem de serviço</h2>'+
         '<div style="font-weight:700;font-size:1.05rem">'+esc(o.tipo||'Serviço')+'</div>'+
@@ -530,6 +604,25 @@ function desenha(d){
     '</div>';
 
   medir();
+  enquadra();                     /* no celular, aproxima o avião pra ele dominar a tela */
+  window.addEventListener('resize', enquadra);
+
+  /* a barra do topo entra quando o cabeçalho sai de vista.
+     Observador em vez de escutar rolagem: não roda a cada pixel e é mais confiável. */
+  var mini = document.getElementById('mini'), sit = document.querySelector('.sit');
+  if(sit){
+    var mostra = function(){ mini.classList.toggle('ver', sit.getBoundingClientRect().bottom < 0); };
+    /* os dois caminhos de propósito: o observador é eficiente, mas o ouvinte de rolagem
+       garante o comportamento onde o observador for limitado ou ficar em silêncio */
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(e){
+        mini.classList.toggle('ver', !e[0].isIntersecting);
+      }, {threshold:0}).observe(sit);
+    }
+    window.addEventListener('scroll', mostra, {passive:true});
+    mostra();
+  }
+
   document.getElementById('bt-baixar').onclick = function(){
     /* garante que o desenho apareça pronto no papel (a animação não roda na impressão) */
     document.querySelectorAll('.dw .ln').forEach(function(el){ el.style.strokeDashoffset = '0'; });
