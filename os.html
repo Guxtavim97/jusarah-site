@@ -96,6 +96,20 @@
   .sv__ic{width:28px;height:28px;flex:0 0 28px;border-radius:50%;display:grid;place-items:center;
     font-size:.82rem;font-weight:800;background:var(--paper);color:#9aa6ae}
   .sv__ic.ok{background:#e9f6ed;color:var(--green-d)}
+  .sv__ic.esp{background:#fdf4e3;color:var(--amber)}
+  /* detalhe técnico do serviço */
+  .sv__meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .sv__meta span{font-size:.76rem;color:var(--muted);background:var(--paper);
+    border-radius:7px;padding:2px 9px;font-family:var(--mono)}
+  /* quem executou · quem conferiu */
+  .assin2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+  @media(max-width:440px){ .assin2{grid-template-columns:1fr} }
+  .assin2 div{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff}
+  .assin2 div.ok{border-color:#cfe3d3;background:#f6fbf7}
+  .assin2 small{display:block;font-size:.62rem;font-weight:800;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted)}
+  .assin2 b{display:block;font-size:.88rem;line-height:1.25;margin-top:1px}
+  .assin2 span{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
   .sv__t{font-weight:600}
   .sv__s{font-size:.83rem;color:var(--muted)}
   .nota{background:var(--paper);border-radius:12px;padding:13px 15px;font-size:.88rem;
@@ -297,6 +311,10 @@ function pegaToken(){
   return m ? decodeURIComponent(m[1]) : (new URLSearchParams(location.search).get('t') || '');
 }
 
+var ZONA = {motor:'Motor / hélice', motor_esq:'Motor esquerdo', motor_dir:'Motor direito',
+  cabine:'Cabine / instrumentos', fuselagem:'Fuselagem', asa_esq:'Asa esquerda', asa_dir:'Asa direita',
+  empenagem:'Empenagem', trem:'Trem de pouso', hopper:'Hopper', barra:'Barra de pulverização'};
+
 /* o que está acontecendo agora, em português de gente */
 var ETAPA = [
   {n:'Recebimento',  d:'Sua aeronave chegou à oficina e foi registrada com fotos do estado em que chegou.'},
@@ -375,11 +393,55 @@ function desenha(d){
     (fim?'Liberada ✓':'Etapa '+o.etapa+' · '+esc(et.n))+'</span></div>';
 
   var svHtml = sv.length ? sv.map(function(t){
-    var ok=!!t.conferido_em;
+    var ok=!!t.conferido_em, feito=!!t.executado_em;
+    var det = '';
+    if(t.zona || t.referencia){
+      det += '<div class="sv__meta">'+
+        (t.zona?'<span>📍 '+esc(ZONA[t.zona]||t.zona)+'</span>':'')+
+        (t.referencia?'<span>📘 '+esc(t.referencia)+'</span>':'')+'</div>';
+    }
+    if(feito){
+      det += '<div class="assin2">'+
+        '<div><small>Executado por</small><b>'+esc(t.executor||'—')+'</b>'+
+          '<span>'+dataBR(t.executado_em)+'</span></div>'+
+        '<div class="'+(ok?'ok':'')+'"><small>Conferido por</small><b>'+
+          (ok?esc(t.conferente||'—'):'aguardando')+'</b>'+
+          '<span>'+(ok?dataBR(t.conferido_em):'2ª pessoa')+'</span></div></div>';
+    }
     return '<div class="sv"><div class="sv__ic'+(ok?' ok':'')+'">'+(ok?'✓':'·')+'</div>'+
-      '<div><div class="sv__t">'+esc(t.descricao)+'</div><div class="sv__s">'+
-      (ok?'executado e conferido por uma segunda pessoa':'em andamento')+'</div></div></div>';
+      '<div style="flex:1"><div class="sv__t">'+esc(t.descricao)+'</div>'+
+      (!feito?'<div class="sv__s">aguardando execução</div>':'')+det+'</div></div>';
   }).join('') : '<div class="sv__s">Os serviços aparecem aqui conforme são executados.</div>';
+
+  /* pendências — mostrar é o que explica a demora com honestidade */
+  var pd = d.pendencias || [];
+  var pdHtml = pd.length ? '<div class="card sobe" style="animation-delay:.19s">'+
+    '<h2>⏳ O que precisou ser resolvido<span class="c">'+pd.length+'</span></h2>'+
+    pd.map(function(p){
+      var res = !!p.resolvida_em;
+      return '<div class="sv"><div class="sv__ic'+(res?' ok':' esp')+'">'+(res?'✓':'!')+'</div>'+
+        '<div><div class="sv__t">'+esc(p.descricao)+'</div>'+
+        '<div class="sv__s">'+(p.motivo?esc(p.motivo)+' · ':'')+
+        (res?'resolvido em '+dataBR(p.resolvida_em):'<b style="color:var(--amber)">em resolução</b>')+
+        '</div></div></div>';
+    }).join('')+
+    '<div class="nota">Imprevisto acontece — falta de peça, prazo de fornecedor. '+
+    'Preferimos <b>mostrar</b> a esconder: é isso que explica o tempo da sua aeronave aqui.</div></div>' : '';
+
+  /* assinaturas do serviço */
+  var asn = (d.assinaturas||[]).filter(function(x){ return x.tipo!=='entrega' && x.tipo!=='retirada'; });
+  var AS_TX = {7:'Liberação do planejamento', 11:'Aprovação para retorno ao serviço'};
+  var asHtml = asn.length ? '<div class="card sobe" style="animation-delay:.25s">'+
+    '<h2>✍️ Assinaturas<span class="c">'+asn.length+'</span></h2>'+
+    asn.map(function(s){
+      var alerta = s.tipo==='retirada_excepcional';
+      return '<div class="sv"><div class="sv__ic'+(alerta?' esp':' ok')+'">'+(alerta?'!':'✓')+'</div>'+
+        '<div><div class="sv__t">'+(alerta?'Retirada autorizada antes da conclusão'
+          :esc(AS_TX[s.para_etapa]||'Assinatura'))+'</div>'+
+        '<div class="sv__s">'+esc(s.nome||'—')+' · '+dtBR(s.quando)+'</div></div></div>';
+    }).join('')+
+    '<div class="nota">Assinaturas eletrônicas, registradas com identificação de quem assinou, '+
+    'data e hora. <b>Não podem ser alteradas depois.</b></div></div>' : '';
 
   function grupo(t,cls,lbl,sub){
     var g=md.filter(function(m){return m.tipo===t;});
@@ -420,22 +482,39 @@ function desenha(d){
     '<div class="wrap">'+
       '<button class="baixar sobe" id="bt-baixar" style="animation-delay:.06s">📄 '+
         '<span>Baixar este relatório<small>salve em PDF ou imprima</small></span></button>'+
-      (o.tipo||o.descricao ? '<div class="card sobe" style="animation-delay:.1s">'+
-        '<h2>📋 O que veio fazer</h2><div style="font-weight:700;font-size:1.05rem">'+
-        esc(o.tipo||'Serviço')+'</div>'+
-        (o.descricao?'<div class="sv__s" style="margin-top:4px">'+esc(o.descricao)+'</div>':'')+
-        '</div>' : '')+
+      '<div class="card sobe" style="animation-delay:.1s"><h2>📋 A ordem de serviço</h2>'+
+        '<div style="font-weight:700;font-size:1.05rem">'+esc(o.tipo||'Serviço')+'</div>'+
+        (o.descricao?'<div class="sv__s" style="margin-top:2px;margin-bottom:14px">'+esc(o.descricao)+'</div>':'')+
+        '<dl class="dl">'+
+          '<dt>Matrícula</dt><dd>'+esc(a.prefixo)+'</dd>'+
+          '<dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd>'+
+          (a.numero_serie?'<dt>Nº de série</dt><dd>'+esc(a.numero_serie)+'</dd>':'')+
+          '<dt>Proprietário</dt><dd>'+esc(d.proprietario||'—')+'</dd>'+
+          (d.operador && d.operador!==d.proprietario?'<dt>Operador</dt><dd>'+esc(d.operador)+'</dd>':'')+
+          '<dt>Entrada na oficina</dt><dd>'+dataBR(o.aberta_em)+'</dd>'+
+          '<dt>'+(fim?'Retorno ao serviço':'Situação')+'</dt><dd>'+
+            (fim?dataBR(o.encerrada_em):'em manutenção')+'</dd>'+
+          '<dt>Permanência</dt><dd>'+(o.dias||1)+' dia(s)</dd>'+
+        '</dl></div>'+
 
       '<div class="card sobe" style="animation-delay:.16s"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+
         svHtml+'<div class="nota">Na Jusarah, <b>todo serviço é conferido por uma segunda pessoa</b> '+
         'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
 
+      pdHtml+
+
       '<div class="card sobe" style="animation-delay:.22s"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
+
+      asHtml+
 
       '<div class="card sobe" style="animation-delay:.28s"><h2>🛬 Entrada e saída</h2><dl class="dl">'+
         '<dt>Entregue por</dt><dd>'+esc(o.entrega_nome||'—')+
+          (o.entrega_doc||o.entrega_anac?'<br><span class="sv__s">'+esc(o.entrega_doc||'')+
+            (o.entrega_anac?' · ANAC '+esc(o.entrega_anac):'')+'</span>':'')+
           (o.entrega_em?'<br><span class="sv__s">'+dtBR(o.entrega_em)+'</span>':'')+'</dd>'+
         '<dt>Retirada por</dt><dd>'+esc(o.retirada_nome||'ainda na oficina')+
+          (o.retirada_doc||o.retirada_anac?'<br><span class="sv__s">'+esc(o.retirada_doc||'')+
+            (o.retirada_anac?' · ANAC '+esc(o.retirada_anac):'')+'</span>':'')+
           (o.retirada_em?'<br><span class="sv__s">'+dtBR(o.retirada_em)+'</span>':'')+'</dd>'+
       '</dl></div>'+
 
