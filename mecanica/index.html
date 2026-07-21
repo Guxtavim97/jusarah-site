@@ -181,9 +181,11 @@
       repeating-linear-gradient(90deg,rgba(127,212,255,.055) 0 1px,transparent 1px 32px),
       radial-gradient(130% 100% at 50% 0%, #0b1e42 0%, #071228 62%);
     box-shadow:inset 0 0 80px rgba(0,40,90,.5)}
+  .pr__desenho{position:relative}
   .pr__selo{position:absolute;left:13px;top:11px;font-family:var(--mono);font-size:.58rem;
-    color:#5c7da0;letter-spacing:.2em}
-  .pr__carimbo{position:absolute;right:11px;bottom:11px;border:1px solid rgba(127,212,255,.28);
+    color:#5c7da0;letter-spacing:.2em;z-index:2}
+  .pr__carimbo{position:absolute;right:11px;bottom:11px;z-index:2;background:rgba(7,18,40,.82);
+    border:1px solid rgba(127,212,255,.28);
     border-radius:5px;font-family:var(--mono);font-size:.58rem;color:#6f8db0;letter-spacing:.08em}
   .pr__carimbo div{padding:3px 8px;border-bottom:1px solid rgba(127,212,255,.16)}
   .pr__carimbo div:last-child{border:0}
@@ -604,10 +606,12 @@ function prancheta(aeronave, tarefas, os){
   var tot = tarefas.length, ok = tarefas.filter(function(t){ return t.conferido_em; }).length;
   var pctv = tot ? Math.round(ok/tot*100) : 0;
   return '<div class="pr'+(os && os.encerrada_em ? ' vivo' : '')+'" id="pr">'+
-    '<div class="pr__selo">JUSARAH · MANUTENÇÃO AERONÁUTICA</div>'+ s +
-    '<div class="pr__carimbo"><div><b>'+esc(aeronave.prefixo||'—')+'</b> · '+esc(aeronave.modelo||cat.nome)+'</div>'+
-      '<div>OS <b>'+(os?os.numero:'—')+'</b> · ETAPA <b>'+(os?os.etapa:'—')+'</b></div>'+
-      '<div>CHECKLIST GATE <b>v1</b></div></div>'+
+    '<div class="pr__desenho">'+
+      '<div class="pr__selo">JUSARAH · MANUTENÇÃO AERONÁUTICA</div>'+ s +
+      '<div class="pr__carimbo"><div><b>'+esc(aeronave.prefixo||'—')+'</b> · '+esc(aeronave.modelo||cat.nome)+'</div>'+
+        '<div>OS <b>'+(os?os.numero:'—')+'</b> · ETAPA <b>'+(os?os.etapa:'—')+'</b></div>'+
+        '<div>CHECKLIST GATE <b>v1</b></div></div>'+
+    '</div>'+
     '<div class="vida"><div class="vida__t"><b>◄ INOPERANTE</b>'+
       '<span>'+pctv+'% CONFERIDO ('+ok+'/'+tot+')</span><i>AERONAVEGÁVEL ►</i></div>'+
       '<div class="barra"><span style="width:'+pctv+'%"></span></div></div>'+
