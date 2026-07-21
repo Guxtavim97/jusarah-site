@@ -431,12 +431,18 @@
   .ft__img{width:132px;height:99px;border-radius:9px;background:var(--paper) center/cover no-repeat;
     border:1px solid var(--line)}
   .ft__l{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.25}
-  /* liga/desliga o envio da foto ao proprietário */
-  .ft__sh{display:block;width:100%;margin-top:5px;border:1px solid var(--line);background:#fff;
-    border-radius:7px;padding:4px 6px;font-size:.68rem;font-weight:700;color:var(--muted);
-    cursor:pointer;transition:.15s}
-  .ft__sh:hover{border-color:#9aa6ae}
-  .ft__sh.on{background:#eef7f0;border-color:#cfe3d3;color:var(--green-d)}
+  /* escolha explícita: enviar ao proprietário ou não */
+  .ft__sel{display:flex;margin-top:5px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .ft__sel button{flex:1;border:0;background:#fff;padding:5px 4px;font-size:.66rem;font-weight:800;
+    color:#9aa6ae;cursor:pointer;transition:.15s;white-space:nowrap}
+  .ft__sel button+button{border-left:1px solid var(--line)}
+  .ft__sel button:hover:not(.on):not(.off){background:var(--paper);color:var(--muted)}
+  .ft__sel button.on{background:var(--green);color:#fff}
+  .ft__sel button.off{background:#8a95a0;color:#fff}
+  .ft__sel button[disabled]{opacity:.6}
+  .ft__est{margin-top:5px;font-size:.66rem;font-weight:800;text-align:center;padding:4px;
+    border-radius:7px;background:var(--paper);color:var(--muted)}
+  .ft__est.on{background:#eef7f0;color:var(--green-d)}
 
   /* ============================================================
      RELATÓRIO DE SERVIÇO — documento A4. Invisível na tela,
@@ -1892,9 +1898,12 @@ async function abreOS(id, scrollRestaurar){
         return '<div class="ft" data-ft="'+esc(f.caminho)+'" title="'+esc(f.legenda||'')+'">'+
           '<div class="ft__img" id="ft-'+f.id+'"></div>'+
           (f.legenda?'<div class="ft__l">'+esc(f.legenda)+'</div>':'')+
-          (encerrada ? '' :
-            '<button class="ft__sh'+(vai?' on':'')+'" data-share="'+f.id+'" data-on="'+(vai?1:0)+'">'+
-            (vai ? '👁 vai pro cliente' : '🚫 não enviar')+'</button>')+
+          (encerrada
+            ? '<div class="ft__est'+(vai?' on':'')+'">'+(vai?'✓ enviada':'não enviada')+'</div>'
+            : '<div class="ft__sel" data-fid="'+f.id+'">'+
+                '<button data-sh="1" class="'+(vai?'on':'')+'">Enviar</button>'+
+                '<button data-sh="0" class="'+(vai?'':'off')+'">Não enviar</button>'+
+              '</div>')+
           '</div>';
       }).join('') +'</div></div>';
   }).join('');
@@ -1963,22 +1972,25 @@ async function abreOS(id, scrollRestaurar){
       if(f && f._url) window.open(f._url, '_blank');
     };
   });
-  /* liga/desliga o envio de cada foto ao proprietário (vale pro PDF e pro link) */
-  document.querySelectorAll('[data-share]').forEach(function(b){
-    b.onclick = async function(ev){
-      ev.stopPropagation();                       // não abrir a foto ao clicar aqui
-      var novo = b.dataset.on !== '1';
-      b.disabled = true;
-      var r = await sb.from('manut_os_fotos').update({compartilhada:novo}).eq('id', b.dataset.share);
-      b.disabled = false;
-      if(r.error){ toast(r.error.message,'err'); return; }
-      b.dataset.on = novo ? '1' : '0';
-      b.classList.toggle('on', novo);
-      b.textContent = novo ? '👁 vai pro cliente' : '🚫 não enviar';
-      var f = fotos.filter(function(x){ return x.id===b.dataset.share; })[0];
-      if(f) f.compartilhada = novo;               // reflete no relatório sem recarregar
-      toast(novo ? 'Foto entra no relatório.' : 'Foto fica só interna.', 'ok');
-    };
+  /* escolha explícita: Enviar / Não enviar (vale pro PDF e pro link) */
+  document.querySelectorAll('.ft__sel').forEach(function(sel){
+    var fid = sel.dataset.fid;
+    sel.querySelectorAll('button').forEach(function(b){
+      b.onclick = async function(ev){
+        ev.stopPropagation();                     // não abrir a foto ao clicar aqui
+        var novo = b.dataset.sh === '1';
+        var f = fotos.filter(function(x){ return x.id===fid; })[0];
+        if(f && f.compartilhada === novo) return; // já está nessa opção
+        sel.querySelectorAll('button').forEach(function(x){ x.disabled = true; });
+        var r = await sb.from('manut_os_fotos').update({compartilhada:novo}).eq('id', fid);
+        sel.querySelectorAll('button').forEach(function(x){ x.disabled = false; });
+        if(r.error){ toast(r.error.message,'err'); return; }
+        sel.querySelector('[data-sh="1"]').className = novo ? 'on' : '';
+        sel.querySelector('[data-sh="0"]').className = novo ? '' : 'off';
+        if(f) f.compartilhada = novo;             // reflete no relatório sem recarregar
+        toast(novo ? 'Foto entra no relatório.' : 'Foto fica só interna.', 'ok');
+      };
+    });
   });
   if($("add-foto")) $("add-foto").onclick = function(){
     abreModal('Nova foto',
