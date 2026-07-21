@@ -137,11 +137,16 @@
   .box h3{margin:0 0 12px;font-size:1rem;display:flex;align-items:center;gap:8px}
   .box h3 .c{margin-left:auto;font-size:.76rem;font-weight:800;color:var(--muted)}
   .steps{display:flex;flex-wrap:wrap;gap:6px}
+  /* régua de progresso — indicador, NÃO botão */
   .step{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 11px;
-    font-size:.82rem;font-weight:700;color:var(--muted)}
-  .step.is-now{background:var(--blue);color:#fff;border-color:var(--blue)}
+    font-size:.82rem;font-weight:700;color:#9aa6ae;cursor:default;user-select:none}
+  .step.is-now{background:var(--blue);color:#fff;border-color:var(--blue);
+    box-shadow:0 3px 10px rgba(27,63,143,.3)}
   .step.is-done{background:#eef4ec;color:var(--green-d);border-color:#cfe3d3}
-  .step:hover:not(.is-now){border-color:var(--blue);color:var(--blue)}
+  /* a ação: um caminho só */
+  .acoes-etapa{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;
+    padding-top:14px;border-top:1px solid var(--line)}
+  .acoes-etapa .btn--blue,.acoes-etapa .btn--green{font-size:1rem;padding:13px 22px}
 
   .blk{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
     color:var(--muted);margin:14px 0 7px}
@@ -1288,20 +1293,20 @@ var DECLARACAO = {
       'está em condições de <b>retornar ao serviço</b>. Esta assinatura constitui a aprovação para retorno ao serviço.' }
 };
 
-async function moverEtapa(osId, o, alvo, recarrega, senha){
+async function moverEtapa(osId, o, alvo, recarrega, senha, obs){
   if(alvo === o.etapa) return;
-  var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:null, p_senha:senha||null});
+  var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_senha:senha||null});
   if(r.error){
     var msg = r.error.message || '';
     var m = msg.match(/ASSINATURA_NECESSARIA:(\w+)/);
-    if(m){ pedeAssinatura(osId, o, alvo, m[1], recarrega); return; }
+    if(m){ pedeAssinatura(osId, o, alvo, m[1], recarrega, obs); return; }
     toast(msg, 'err'); return;
   }
   toast('Etapa '+alvo+' ✓', 'ok');
   recarrega();
 }
 
-function pedeAssinatura(osId, o, alvo, papel, recarrega){
+function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
   var dec = DECLARACAO[o.etapa+'-'+alvo] || {t:'Assinatura', d:'Confirme sua identidade para prosseguir.'};
   var d = document.createElement('div');
   d.className = 'ov';
@@ -1333,7 +1338,7 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega){
     var s = campo.value;
     if(!s){ toast('Digite sua senha para assinar.','err'); return; }
     var bt = d.querySelector('#as-ok'); bt.disabled = true; bt.textContent = 'Verificando…';
-    var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:null, p_senha:s});
+    var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_senha:s});
     bt.disabled = false; bt.textContent = 'Assinar e liberar';
     if(r.error){ toast(r.error.message,'err'); campo.value=''; campo.focus(); return; }
     fecha(); toast('Assinado ✓','ok'); recarrega();
@@ -1365,11 +1370,30 @@ async function abreOS(id, scrollRestaurar){
   var a=o.manut_aeronaves||{};
   var encerrada = !!o.encerrada_em;
 
-  /* --- etapas --- */
+  /* --- etapas: indicador de progresso (NÃO é botão) --- */
   var steps = ETAPAS.map(function(e){
     var cls = e.n===o.etapa?'is-now':(e.n<o.etapa?'is-done':'');
-    return '<button class="step '+cls+'" data-mv="'+e.n+'">'+e.n+'. '+esc(e.t)+(e.gate?' 🔒':'')+'</button>';
+    return '<span class="step '+cls+'">'+e.n+'. '+esc(e.t)+(e.gate?' 🔒':'')+'</span>';
   }).join('');
+
+  /* --- ação: UMA etapa por vez. Retroceder só chefe/diretor, com motivo. --- */
+  var podeVoltar = temPapel('chefe_manutencao') || temPapel('diretor_tecnico') || ehAdmin();
+  var prox = o.etapa + 1, acoes = '';
+  if(!encerrada){
+    if(prox <= 11){
+      var eProx = ETAPAS[prox-1], ehFim = (prox === 11);
+      acoes += '<button class="btn '+(ehFim?'btn--green':'btn--blue')+'" id="bt-avancar">'+
+        (ehFim ? '✍️ Encerrar e assinar retorno ao serviço'
+               : 'Avançar para '+prox+' · '+esc(eProx.t)+'  →')+'</button>';
+    }
+    if(podeVoltar && o.etapa > 1){
+      acoes += '<button class="btn btn--ghost btn--sm" id="bt-voltar">← Retroceder</button>';
+    }
+  }
+  acoes = '<div class="acoes-etapa">'+ (acoes || '<span class="no">Nenhuma ação disponível.</span>') +
+    (!encerrada && !podeVoltar && o.etapa>1
+      ? '<span class="no">Só o chefe de manutenção ou o diretor técnico podem retroceder.</span>' : '')+
+    '</div>';
 
   /* --- gate --- */
   var gateHtml='';
@@ -1465,7 +1489,8 @@ async function abreOS(id, scrollRestaurar){
     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      prancheta(a, tarefas, o)+
-     '<div class="box"><h3>Etapa do fluxo <span class="c">clique para mover</span></h3><div class="steps">'+steps+'</div>'+
+     '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 11')+'</span></h3>'+
+       '<div class="steps">'+steps+'</div>'+acoes+
        (o.prioridade_motivo?'<div class="no" style="margin-top:10px">Prioridade '+o.prioridade+' — '+esc(o.prioridade_motivo)+'</div>':'')+
        (o.descricao?'<div style="margin-top:10px">'+esc(o.descricao)+'</div>':'')+'</div>'+
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
@@ -1497,9 +1522,22 @@ async function abreOS(id, scrollRestaurar){
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
 
-  document.querySelectorAll('[data-mv]').forEach(function(b){
-    b.onclick = function(){ moverEtapa(id, o, parseInt(b.dataset.mv), recarrega); };
-  });
+  if($("bt-avancar")) $("bt-avancar").onclick = function(){
+    moverEtapa(id, o, o.etapa + 1, recarrega);
+  };
+  if($("bt-voltar")) $("bt-voltar").onclick = function(){
+    abreModal('Retroceder etapa',
+      '<div class="no" style="margin-bottom:12px">A OS volta da etapa <b>'+o.etapa+'</b> para a <b>'+(o.etapa-1)+'</b>.<br>'+
+      'O motivo fica no histórico com seu nome — e <b>não pode ser apagado</b>.</div>'+
+      '<label class="blk">Motivo *</label>'+
+      '<textarea class="in" id="v-motivo" rows="3" placeholder="Ex.: item do gate reprovado na conferência"></textarea>',
+      'Retroceder', async function(){
+        var m = $("v-motivo").value.trim();
+        if(!m){ toast('Informe o motivo do retrocesso.','err'); return false; }
+        await moverEtapa(id, o, o.etapa - 1, recarrega, null, m);
+        return true;
+      });
+  };
   /* Marcar item do gate NÃO recarrega a ficha: atualiza só a linha e o contador.
      (antes recarregava tudo e o avião se redesenhava, jogando a tela pro topo) */
   document.querySelectorAll('[data-item]').forEach(function(c){
