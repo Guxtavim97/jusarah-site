@@ -926,7 +926,7 @@ $("btn-nova-os").onclick = function(){
 };
 
 /* ---------------- FICHA DA OS ---------------- */
-async function abreOS(id){
+async function abreOS(id, scrollRestaurar){
   var o  = (await sb.from('manut_os').select('*, manut_aeronaves(*), clientes(nome)').eq('id',id).single()).data;
   if(!o){ toast('OS não encontrada.','err'); return; }
   var tarefas = (await sb.from('manut_os_tarefas').select('*').eq('os_id',id).order('criado_em')).data||[];
@@ -971,7 +971,7 @@ async function abreOS(id){
         (resp[i.id]?'<br><span class="no">✓ '+esc(nome(resp[i.id].respondido_por))+' · '+dt(resp[i.id].respondido_em)+'</span>':'')+
         '</span></label>';
     });
-    gateHtml = '<div class="no" style="margin-bottom:10px"><b>'+ok+' de '+vis+'</b> itens conferidos'+
+    gateHtml = '<div class="no" id="gate-cont" data-tot="'+vis+'" style="margin-bottom:10px"><b>'+ok+' de '+vis+'</b> itens conferidos'+
       (o.gate_liberado_em?' · <b style="color:var(--green-d)">liberado por '+esc(nome(o.gate_liberado_por))+' em '+dt(o.gate_liberado_em)+'</b>':'')+
       '</div>'+gateHtml;
   }
@@ -1036,9 +1036,24 @@ async function abreOS(id){
      '<div class="box"><h3>📜 Histórico</h3>'+hHtml+'</div>'+
    '</div></div></div>';
   $("modal").innerHTML = html;
-  medirTracos();   // faz cada traço da prancheta se desenhar sozinho
+  if(scrollRestaurar != null){
+    /* re-render: mostra o desenho JÁ PRONTO (sem reanimar) e devolve a pessoa
+       exatamente ao ponto onde ela estava na ficha */
+    document.querySelectorAll('.dw .ln').forEach(function(el){
+      el.style.animation='none'; el.style.strokeDashoffset='0'; });
+    document.querySelectorAll('.bl').forEach(function(el){
+      el.style.animation='none'; el.style.opacity='1'; });
+    var sh0 = document.querySelector('.sheet'); if(sh0) sh0.scrollTop = scrollRestaurar;
+  } else {
+    medirTracos();   // primeira abertura: o avião se desenha
+  }
 
-  var recarrega = async function(){ await carregaQuadro(); await carregaOficina(); abreOS(id); };
+  var recarrega = async function(){
+    var sh = document.querySelector('.sheet');
+    var topo = sh ? sh.scrollTop : 0;
+    await carregaQuadro(); await carregaOficina();
+    await abreOS(id, topo);
+  };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
 
@@ -1051,11 +1066,31 @@ async function abreOS(id){
       toast('Etapa '+alvo+'.','ok'); recarrega();
     };
   });
+  /* Marcar item do gate NÃO recarrega a ficha: atualiza só a linha e o contador.
+     (antes recarregava tudo e o avião se redesenhava, jogando a tela pro topo) */
   document.querySelectorAll('[data-item]').forEach(function(c){
     c.onchange = async function(){
+      c.disabled = true;
       var r = await sb.rpc('manut_gate_responder', {p_os:id, p_item:c.dataset.item, p_ok:c.checked, p_obs:null});
-      if(r.error){ toast(r.error.message,'err'); c.checked=!c.checked; return; }
-      recarrega();
+      c.disabled = false;
+      if(r.error){ toast(r.error.message,'err'); c.checked = !c.checked; return; }
+      var lab = c.closest('.chk');
+      if(lab){
+        lab.classList.toggle('ok', c.checked);
+        var assin = lab.querySelector('.assin');
+        if(c.checked){
+          if(!assin){ assin=document.createElement('span'); assin.className='no assin';
+            lab.querySelector('.tx').appendChild(document.createElement('br'));
+            lab.querySelector('.tx').appendChild(assin); }
+          assin.textContent = '✓ '+(PERFIL.nome||'você')+' · agora';
+        } else if(assin){ assin.textContent=''; }
+      }
+      var cont = $("gate-cont");
+      if(cont){
+        var tot = cont.getAttribute('data-tot');
+        var marc = document.querySelectorAll('[data-item]:checked').length;
+        cont.querySelector('b').textContent = marc+' de '+tot;
+      }
     };
   });
   document.querySelectorAll('[data-exec]').forEach(function(b){
