@@ -855,7 +855,7 @@ function prancheta(aeronave, tarefas, os){
     '<div class="pr__desenho">'+
       '<div class="pr__selo">JUSARAH · MANUTENÇÃO AERONÁUTICA</div>'+ s +
       '<div class="pr__carimbo"><div><b>'+esc(aeronave.prefixo||'—')+'</b> · '+esc(aeronave.modelo||cat.nome)+'</div>'+
-        '<div>OS <b>'+(os?os.numero:'—')+'</b> · ETAPA <b>'+(os?os.etapa:'—')+'</b></div>'+
+        '<div>'+(os?esc(codOS(os)):'—')+' · ETAPA <b>'+(os?os.etapa:'—')+'</b></div>'+
         '<div>CHECKLIST GATE <b>v1</b></div></div>'+
     '</div>'+
     '<div class="vida"><div class="vida__t"><b>◄ INOPERANTE</b>'+
@@ -960,7 +960,8 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
     '<div class="rp-cab">'+
       '<img src="../assets/img/logo.png" alt="">'+
       '<div class="emp"><b>Jusarah Manutenção</b><span>Manutenção Aeronáutica · Cerejeiras–RO</span></div>'+
-      '<div class="num"><small>Ordem de Serviço</small><b>'+o.numero+'</b></div>'+
+      '<div class="num"><small>Ordem de Serviço</small><b>'+
+        esc(codOS(o).replace(/^OS\s*/,''))+'</b></div>'+
     '</div><div class="rp-fina"></div>'+
     '<h1>Relatório de Serviço</h1>'+
 
@@ -998,7 +999,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
     fotosHtml+
 
     '<div class="rp-rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
-      'Documento gerado pelo sistema em '+dt(new Date().toISOString())+' · OS '+o.numero+' · '+esc(a.prefixo||'')+
+      'Documento gerado pelo sistema em '+dt(new Date().toISOString())+' · '+esc(codOS(o))+' · '+esc(a.prefixo||'')+
       '</div>'+
    '</div>';
 }
@@ -1084,6 +1085,8 @@ function toast(msg, tipo){
 function dt(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
+/* número da OS: usa o código por ano (OS 2026-0042); cai no sequencial antigo se faltar */
+function codOS(o){ return (o && o.codigo) ? o.codigo : ('OS ' + ((o && o.numero) || '?')); }
 /* conta separando foto de vídeo: "2 fotos", "1 vídeo", "2 fotos · 1 vídeo" */
 function contaMidia(lista){
   var v = lista.filter(function(x){ return x.midia === 'video'; }).length;
@@ -1342,7 +1345,7 @@ async function abreAeronave(id){
 
   var osHtml = oss.length ? oss.map(function(o){
     var fechada = !!o.encerrada_em;
-    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">OS '+o.numero+'</span>'+
+    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">'+esc(codOS(o))+'</span>'+
       '<div class="oshist__b"><div class="oshist__t">'+esc(o.tipo||'Serviço')+'</div>'+
       '<div class="oshist__s">'+(o.descricao?esc(o.descricao)+' · ':'')+
         'aberta '+dataBR(o.aberta_em)+(fechada?' · encerrada '+dataBR(o.encerrada_em):'')+'</div></div>'+
@@ -1441,7 +1444,7 @@ function renderQuadro(pend){
         var a=o.manut_aeronaves||{};
         h += '<div class="card" data-os="'+o.id+'">'+
              '<div class="card__top"><span class="card__pref">'+esc(a.prefixo||'?')+'</span>'+
-             '<span class="card__os">OS '+o.numero+'</span></div>'+
+             '<span class="card__os">'+esc(codOS(o))+'</span></div>'+
              '<div class="card__d">'+esc(o.tipo||'Serviço')+(o.descricao?' · '+esc(o.descricao.slice(0,52)):'')+'</div>'+
              '<div class="card__f">'+
                '<span class="tag '+(o.terceiro?'tag--terc':'tag--prop')+'">'+(o.terceiro?'Terceiro':'Própria')+'</span>'+
@@ -1469,6 +1472,7 @@ function renderArquivo(){
     if(!q) return true;
     var a=o.manut_aeronaves||{};
     return (a.prefixo||'').toLowerCase().indexOf(q)>=0
+        || codOS(o).toLowerCase().indexOf(q)>=0
         || String(o.numero).indexOf(q)>=0
         || (o.tipo||'').toLowerCase().indexOf(q)>=0
         || (o.descricao||'').toLowerCase().indexOf(q)>=0;
@@ -1478,7 +1482,7 @@ function renderArquivo(){
   if(!lista.length){ $("arq-lista").innerHTML='<div class="empty">Nada encontrado.</div>'; return; }
   $("arq-lista").innerHTML = lista.map(function(o){
     var a=o.manut_aeronaves||{};
-    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">OS '+o.numero+'</span>'+
+    return '<div class="oshist" data-os="'+o.id+'"><span class="oshist__n">'+esc(codOS(o))+'</span>'+
       '<div class="oshist__b"><div class="oshist__t">'+esc(a.prefixo||'?')+' · '+esc(o.tipo||'Serviço')+'</div>'+
       '<div class="oshist__s">'+(o.descricao?esc(o.descricao)+' · ':'')+
       'aberta '+dataBR(o.aberta_em)+' · encerrada '+dataBR(o.encerrada_em)+'</div></div>'+
@@ -1559,7 +1563,7 @@ async function carregaOficina(){
       '<div class="pav" data-os="'+o.id+'" style="animation-delay:'+(i*70)+'ms">'+
         '<span class="etq e-'+o._etq+'">'+etqTx+'</span>'+
         '<div class="pav__p">'+esc(a.prefixo||'?')+'</div>'+
-        '<div class="pav__d">OS '+o.numero+' · '+o._dias+'d parada'+
+        '<div class="pav__d">'+esc(codOS(o))+' · '+o._dias+'d parada'+
           (o._pend?'<br>⚠️ '+o._pend+' pendência(s)':'')+
           (o.etapa===6 ? '<br>🔒 gate '+o._gateOk+'/'+o._gateTot : '')+'</div>'+
         trilha+'</div>');
@@ -1684,7 +1688,7 @@ function montaFila(oss){
 
   oss.forEach(function(o){
     var pref = (o.manut_aeronaves||{}).prefixo || '?';
-    var ref  = pref+' · OS '+o.numero;
+    var ref  = pref+' · '+codOS(o);
 
     if(tem('gatekeeper') && o.etapa===6){
       var falta = o._gateTot - o._gateOk;
@@ -1757,7 +1761,7 @@ $("btn-nova-os").onclick = function(){
       if(r.error){ toast('Erro: '+r.error.message,'err'); return false; }
       await sb.rpc('manut_mover_etapa', {p_os:r.data.id, p_etapa:1, p_obs:'OS aberta'});
       await carregaQuadro(); await carregaOficina();
-      toast('OS '+r.data.numero+' aberta.','ok'); return true;
+      toast(codOS(r.data)+' aberta.','ok'); return true;
     });
 };
 
@@ -1805,7 +1809,7 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
     '<div class="sheet assin-sheet">'+
       '<div class="assin-h"><div class="assin-ic">✍️</div>'+
         '<div><h2>'+esc(dec.t)+'</h2>'+
-        '<div class="assin-sub">OS '+o.numero+' · etapa '+o.etapa+' → '+alvo+' · exige o papel <b>'+
+        '<div class="assin-sub">'+esc(codOS(o))+' · etapa '+o.etapa+' → '+alvo+' · exige o papel <b>'+
           esc(PAPEL_LBL[papel]||papel)+'</b></div></div></div>'+
       '<div class="assin-b">'+
         '<div class="assin-dec">'+dec.d+'</div>'+
@@ -2061,7 +2065,7 @@ async function abreOS(id, scrollRestaurar){
 
   var html =
    '<div class="ov" id="ov"><div class="sheet"><div class="sheet__h">'+
-    '<div><h2>OS '+o.numero+' · '+esc(a.prefixo||'')+'</h2>'+
+    '<div><h2>'+esc(codOS(o))+' · '+esc(a.prefixo||'')+'</h2>'+
     '<div class="sub">'+esc(a.modelo||'')+' · '+(o.terceiro?'Aeronave de terceiro':'Frota própria')+
     (o.clientes&&o.clientes.nome?' · '+esc(o.clientes.nome):'')+
     (encerrada?' · <b style="color:var(--green-d)">ENCERRADA em '+dt(o.encerrada_em)+'</b>':'')+'</div></div>'+
