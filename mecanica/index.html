@@ -422,6 +422,12 @@
   .ft__img{width:132px;height:99px;border-radius:9px;background:var(--paper) center/cover no-repeat;
     border:1px solid var(--line)}
   .ft__l{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.25}
+  /* liga/desliga o envio da foto ao proprietário */
+  .ft__sh{display:block;width:100%;margin-top:5px;border:1px solid var(--line);background:#fff;
+    border-radius:7px;padding:4px 6px;font-size:.68rem;font-weight:700;color:var(--muted);
+    cursor:pointer;transition:.15s}
+  .ft__sh:hover{border-color:#9aa6ae}
+  .ft__sh.on{background:#eef7f0;border-color:#cfe3d3;color:var(--green-d)}
 
   /* ============================================================
      RELATÓRIO DE SERVIÇO — documento A4. Invisível na tela,
@@ -874,7 +880,8 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
     assinBloco('retirada','Aeronave retirada por');
 
   var FT = {recebimento:'Recebimento', problema:'Problema encontrado', resolucao:'Serviço executado', entrega:'Entrega'};
-  var comFoto = fotos.filter(function(f){ return f._url; });
+  /* MESMA regra do link: só vai pro proprietário o que estiver marcado como compartilhado */
+  var comFoto = fotos.filter(function(f){ return f._url && f.compartilhada !== false; });
   var fotosHtml = comFoto.length
     ? '<div class="rp-quebra"></div><h2>Registro fotográfico</h2><div class="rp-fotos">'+
       comFoto.map(function(f){
@@ -1852,9 +1859,14 @@ async function abreOS(id, scrollRestaurar){
     if(!fs.length) return '';
     return '<div class="gal-g"><div class="gal-t">'+FT_LBL[t]+' <span>'+fs.length+'</span></div>'+
       '<div class="gal">'+ fs.map(function(f){
+        var vai = f.compartilhada !== false;
         return '<div class="ft" data-ft="'+esc(f.caminho)+'" title="'+esc(f.legenda||'')+'">'+
           '<div class="ft__img" id="ft-'+f.id+'"></div>'+
-          (f.legenda?'<div class="ft__l">'+esc(f.legenda)+'</div>':'')+'</div>';
+          (f.legenda?'<div class="ft__l">'+esc(f.legenda)+'</div>':'')+
+          (encerrada ? '' :
+            '<button class="ft__sh'+(vai?' on':'')+'" data-share="'+f.id+'" data-on="'+(vai?1:0)+'">'+
+            (vai ? '👁 vai pro cliente' : '🚫 não enviar')+'</button>')+
+          '</div>';
       }).join('') +'</div></div>';
   }).join('');
   if(!fotos.length) galeria = '<div class="no">Nenhuma foto ainda. Registre o antes e o depois — é o que o proprietário mais valoriza no relatório.</div>';
@@ -1920,6 +1932,23 @@ async function abreOS(id, scrollRestaurar){
     el.onclick = function(){
       var f = fotos.filter(function(x){ return x.caminho===el.dataset.ft; })[0];
       if(f && f._url) window.open(f._url, '_blank');
+    };
+  });
+  /* liga/desliga o envio de cada foto ao proprietário (vale pro PDF e pro link) */
+  document.querySelectorAll('[data-share]').forEach(function(b){
+    b.onclick = async function(ev){
+      ev.stopPropagation();                       // não abrir a foto ao clicar aqui
+      var novo = b.dataset.on !== '1';
+      b.disabled = true;
+      var r = await sb.from('manut_os_fotos').update({compartilhada:novo}).eq('id', b.dataset.share);
+      b.disabled = false;
+      if(r.error){ toast(r.error.message,'err'); return; }
+      b.dataset.on = novo ? '1' : '0';
+      b.classList.toggle('on', novo);
+      b.textContent = novo ? '👁 vai pro cliente' : '🚫 não enviar';
+      var f = fotos.filter(function(x){ return x.id===b.dataset.share; })[0];
+      if(f) f.compartilhada = novo;               // reflete no relatório sem recarregar
+      toast(novo ? 'Foto entra no relatório.' : 'Foto fica só interna.', 'ok');
     };
   });
   if($("add-foto")) $("add-foto").onclick = function(){
