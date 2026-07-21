@@ -71,7 +71,8 @@
 
   /* ---------- APP ---------- */
   .top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
-  .top__in{max-width:1600px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:14px}
+  .top__in{max-width:1600px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  @media(max-width:620px){ .top__in .who{order:3;text-align:left} .top__in .spacer{display:none} }
   .top__logo{height:38px;width:auto}
   .top__t{font-weight:800;color:var(--blue);font-size:1.05rem;letter-spacing:.01em}
   .top__t small{display:block;font-size:.68rem;font-weight:700;letter-spacing:.16em;
@@ -464,6 +465,7 @@
     <div class="top__t">Manutenção<small>Ordens de Serviço</small></div>
     <div class="spacer"></div>
     <div class="who"><b id="u-nome">—</b><div class="papeis" id="u-papeis"></div></div>
+    <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
     <button class="btn btn--ghost btn--sm" id="btn-sair">Sair</button>
   </div></div>
   <div class="navs">
@@ -529,10 +531,8 @@
 
     <!-- ================= VISÃO DO PROCESSO ================= -->
     <section id="view-quadro" class="hidden">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="margin-bottom:16px">
         <div class="no">Só OS <b>em andamento</b>. As encerradas vão para o <b>Arquivo</b>.</div>
-        <div class="spacer"></div>
-        <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
       </div>
       <div class="fbloco"><div class="fase-tit f1">Fase 1 · Recebimento e Inspeção</div>
         <div class="etapas" id="fase1"></div></div>
