@@ -193,6 +193,88 @@
   .vlink:hover{background:rgba(79,224,138,.1)}
   .vrod{text-align:center;color:#4a6a8c;font-size:.74rem;margin-top:22px;letter-spacing:.06em}
   .carregando{text-align:center;padding:80px 20px;color:var(--muted)}
+
+  /* botão de baixar */
+  .baixar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+    border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;
+    font-family:inherit;font-size:.95rem;font-weight:800;color:var(--blue);cursor:pointer;
+    box-shadow:0 6px 18px rgba(18,33,46,.07);margin-bottom:14px;transition:.15s}
+  .baixar:hover{border-color:var(--blue);box-shadow:0 10px 26px rgba(27,63,143,.15)}
+  .baixar small{display:block;font-weight:600;color:var(--muted);font-size:.76rem;margin-top:1px}
+
+  /* ============================================================
+     IMPRESSÃO — a própria página vira o documento (mesmo conteúdo,
+     sem uma segunda versão do relatório pra divergir)
+     ============================================================ */
+  @media print{
+    @page{size:A4;margin:13mm 12mm}
+    body{background:#fff;color:#12212e;font-family:Georgia,'Times New Roman',serif}
+    .baixar,.lb,.mi__play,.rod{display:none!important}
+    .wrap{max-width:none;padding:0}
+
+    /* timbre */
+    .hero{background:#fff!important;color:#12212e;padding:0;border-bottom:2.5px solid #1B3F8F}
+    .hero__in{padding:0}
+    .marca{padding-bottom:8px;border-bottom:2px solid #1B6E3B;margin-bottom:12px}
+    .marca img{height:52px;filter:none}
+    .marca div{color:#1B3F8F;font-size:13pt}
+    .marca small{color:#5b6b78}
+    .id__pref{font-size:26pt;color:#12212e;text-shadow:none;font-family:Consolas,monospace}
+    .id__mod{color:#5b6b78}
+    .id__os small{color:#5b6b78} .id__os b{color:#1B3F8F;font-size:12pt}
+
+    /* o desenho técnico em tinta escura */
+    .desenho{margin:0;max-height:62mm;overflow:hidden}
+    .dw{max-height:62mm}
+    .dw .ln{stroke:#1B3F8F!important;stroke-dashoffset:0!important;animation:none!important}
+    .dw .fina{stroke:#7f97b5!important}
+    .dw .eixo{stroke:#c9d3da!important}
+    .dw .pin{display:none}
+
+    .sit{padding-bottom:10px}
+    .selo{border:1.5px solid #1B6E3B!important;background:#fff!important;color:#1B6E3B!important;
+      padding:6px 14px;font-size:10pt}
+    .selo .pt{display:none}
+    .agora{color:#12212e;font-size:10pt;max-width:none}
+    .trilha i{background:#dde3e9!important}
+    .trilha i.on,.trilha i.fim{background:#1B3F8F!important;transform:none!important;animation:none!important}
+    .trilha-l{color:#5b6b78}
+
+    /* seções */
+    .card,.verif{box-shadow:none!important;border:0;border-top:1px solid #c9d3da;border-radius:0;
+      padding:12px 0 6px;margin:0;background:#fff!important;color:#12212e!important;
+      opacity:1!important;transform:none!important;animation:none!important;break-inside:avoid}
+    .card h2{font-size:10pt;letter-spacing:.14em;text-transform:uppercase;color:#1B3F8F;
+      border:0;margin-bottom:8px}
+    .card h2 .c{background:none;color:#5b6b78}
+    .sv{padding:7px 0;border-bottom:1px solid #eef1f4}
+    .sv__ic{border:1px solid #9aa6ae;background:#fff!important;color:#1B6E3B!important;
+      width:20px;height:20px;flex:0 0 20px;font-size:8pt}
+    .nota{background:#f6f8fa!important;font-size:9pt;border-left:3px solid #1B3F8F}
+
+    /* mídias */
+    .gh{background:#f6f8fa!important;color:#12212e!important;border-left:3px solid #1B3F8F;
+      border-radius:0;padding:6px 10px;font-size:9pt}
+    .mid{grid-template-columns:1fr 1fr 1fr;gap:7px}
+    .mi{box-shadow:none;border:1px solid #c9d3da;border-radius:3px;background:#fff;break-inside:avoid}
+    .mi img{aspect-ratio:4/3;object-fit:cover}
+    .mi__c{position:static;background:none!important;color:#12212e!important;padding:5px 7px}
+    .mi__l{font-size:8.5pt} .mi__d{font-size:7pt;color:#5b6b78}
+    /* vídeo não existe em papel */
+    .mi--video video{display:none}
+    .mi--video::before{content:"🎥  VÍDEO COM SOM — disponível no link online";
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      aspect-ratio:4/3;background:#f6f8fa;border-bottom:1px dashed #9aa6ae;
+      font-size:7.5pt;color:#5b6b78;padding:8px;font-family:Georgia,serif}
+
+    .verif{text-align:left;border-top:1.5px solid #1B3F8F;margin-top:8px}
+    .verif small{color:#5b6b78;opacity:1}
+    .verif b{color:#12212e;font-size:15pt;display:inline;margin-right:10px}
+    .verif span{color:#5b6b78;font-size:8.5pt}
+    .impresso{display:block!important;margin-top:12px;padding-top:8px;
+      border-top:1px solid #c9d3da;font-size:7.5pt;color:#5b6b78;text-align:center;line-height:1.5}
+  }
+  .impresso{display:none}
 </style>
 </head>
 <body>
@@ -305,7 +387,7 @@ function desenha(d){
     return '<div class="gh '+cls+'"><b>'+lbl+'</b><i>'+sub+'</i></div><div class="mid">'+
       g.map(function(m){
         var i = md.indexOf(m), url = PUB+m.caminho, v = m.midia==='video';
-        return '<div class="mi" data-i="'+i+'">'+
+        return '<div class="mi'+(v?' mi--video':'')+'" data-i="'+i+'">'+
           (v?'<video preload="metadata" src="'+esc(url)+'#t=0.5" muted playsinline></video>'
              +'<div class="mi__play"><span>▶</span></div>'
             :'<img src="'+esc(url)+'" loading="lazy" alt="">')+
@@ -336,6 +418,8 @@ function desenha(d){
     '</div></div>'+
 
     '<div class="wrap">'+
+      '<button class="baixar sobe" id="bt-baixar" style="animation-delay:.06s">📄 '+
+        '<span>Baixar este relatório<small>salve em PDF ou imprima</small></span></button>'+
       (o.tipo||o.descricao ? '<div class="card sobe" style="animation-delay:.1s">'+
         '<h2>📋 O que veio fazer</h2><div style="font-weight:700;font-size:1.05rem">'+
         esc(o.tipo||'Serviço')+'</div>'+
@@ -361,9 +445,17 @@ function desenha(d){
 
       '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
         'Qualquer dúvida sobre o serviço, fale com a gente.</div>'+
+      '<div class="impresso"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+        'Documento emitido em '+dtBR(new Date().toISOString())+' · '+esc(o.codigo||'')+' · '+esc(a.prefixo)+
+        '<br>Confira a autenticidade em jusarah.com.br/verificar</div>'+
     '</div>';
 
   medir();
+  document.getElementById('bt-baixar').onclick = function(){
+    /* garante que o desenho apareça pronto no papel (a animação não roda na impressão) */
+    document.querySelectorAll('.dw .ln').forEach(function(el){ el.style.strokeDashoffset = '0'; });
+    setTimeout(function(){ window.print(); }, 120);
+  };
   if(fim) setTimeout(function(){ document.querySelector('.hero').classList.add('vivo'); }, 2300);
   document.querySelectorAll('.mi').forEach(function(el){
     el.onclick = function(){ lightbox(MID[+el.dataset.i]); };
