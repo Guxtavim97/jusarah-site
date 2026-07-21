@@ -449,6 +449,17 @@
   .ft__cap{padding:11px 13px 9px}
   .ft__l{font-size:.92rem;font-weight:700;color:var(--ink);line-height:1.3}
   .ft__meta{font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:3px}
+  /* vídeo na galeria */
+  .ft__vid{position:relative;width:100%;aspect-ratio:4/3;background:#0e1a26;
+    border-bottom:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+  .ft__vid video{width:100%;height:100%;object-fit:cover;display:block;background:#0e1a26}
+  .ft__tag{position:absolute;left:8px;top:8px;z-index:2;background:rgba(10,20,32,.8);color:#fff;
+    font-size:.66rem;font-weight:800;padding:3px 9px;border-radius:999px;pointer-events:none}
+  /* envio travado pelo fluxo */
+  .mid-fix{background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:11px 14px;font-size:.95rem}
+  .aviso-suave{background:#fff8e8;border-left:4px solid var(--amber);border-radius:0 10px 10px 0;
+    padding:12px 15px;font-size:.92rem;line-height:1.5;margin-bottom:14px;color:#6b5518}
   .gal-vazio{text-align:center;padding:28px 16px;color:var(--muted)}
   .gal-vazio b{display:block;font-size:2rem;margin-bottom:6px}
   .gal-vazio span{font-size:.86rem}
@@ -509,6 +520,11 @@
     .rp-fotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
     .rp-fotos figure{margin:0;break-inside:avoid}
     .rp-fotos img{width:100%;height:52mm;object-fit:cover;border:1px solid #c9d3da}
+    .rp-video{width:100%;height:52mm;border:1px dashed #9aa6ae;background:#f6f8fa;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      font-size:20pt;color:#5b6b78}
+    .rp-video span{font-size:9pt;font-weight:bold;margin-top:4px}
+    .rp-video small{font-size:7.5pt}
     .rp-fotos figcaption{font-size:8pt;color:#5b6b78;margin-top:2px;line-height:1.25}
     .rp-nota{margin-top:16px;padding:9px 12px;background:#f6f8fa;border-left:3px solid #1B3F8F;font-size:8.5pt}
     .rp-rod{margin-top:20px;padding-top:9px;border-top:1px solid #c9d3da;
@@ -915,15 +931,29 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
     assinBloco('entrega','Aeronave entregue na oficina por')+
     assinBloco('retirada','Aeronave retirada por');
 
-  var FT = {recebimento:'Recebimento', problema:'Problema encontrado', resolucao:'Serviço executado', entrega:'Entrega'};
   /* MESMA regra do link: só vai pro proprietário o que estiver marcado como compartilhado */
-  var comFoto = fotos.filter(function(f){ return f._url && f.compartilhada !== false; });
-  var fotosHtml = comFoto.length
-    ? '<div class="rp-quebra"></div><h2>Registro fotográfico</h2><div class="rp-fotos">'+
-      comFoto.map(function(f){
-        return '<figure><img src="'+f._url+'"><figcaption><b>'+(FT[f.tipo]||f.tipo)+'</b>'+
-          (f.legenda?'<br>'+esc(f.legenda):'')+'</figcaption></figure>';
-      }).join('')+'</div>' : '';
+  var FT = {antes:'ANTES', depois:'DEPOIS'};
+  var mid = fotos.filter(function(f){ return f._url && f.compartilhada !== false; });
+  var nVideo = mid.filter(function(f){ return f.midia==='video'; }).length;
+  function grupoMidia(t){
+    var g = mid.filter(function(f){ return f.tipo===t; });
+    if(!g.length) return '';
+    return '<h2>'+FT[t]+' — '+(t==='antes'?'como a aeronave chegou':'como ficou depois do serviço')+'</h2>'+
+      '<div class="rp-fotos">'+ g.map(function(f){
+        return '<figure>'+
+          (f.midia==='video'
+            ? '<div class="rp-video">🎥<span>Vídeo com som</span><small>disponível no link online</small></div>'
+            : '<img src="'+f._url+'">')+
+          '<figcaption>'+esc(f.legenda||FT[t])+
+          '<br><span style="font-size:7.5pt">'+dataBR(f.quando)+'</span></figcaption></figure>';
+      }).join('') +'</div>';
+  }
+  var fotosHtml = mid.length
+    ? '<div class="rp-quebra"></div><h1 style="margin-bottom:10px">Registro do Serviço</h1>'+
+      grupoMidia('antes') + grupoMidia('depois')+
+      (nVideo ? '<div class="rp-nota">Esta OS tem <b>'+nVideo+' vídeo(s) com áudio</b> que não podem ser '+
+        'reproduzidos em papel. Eles ficam disponíveis no link online desta ordem de serviço.</div>' : '')
+    : '';
 
   $("doc").innerHTML =
    '<div class="rp">'+
@@ -971,6 +1001,68 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
       'Documento gerado pelo sistema em '+dt(new Date().toISOString())+' · OS '+o.numero+' · '+esc(a.prefixo||'')+
       '</div>'+
    '</div>';
+}
+
+/* ============================================================
+   ENVIO DE MÍDIA — foto ou vídeo (som é evidência: motor batendo,
+   vibração, ruído de vazamento). `forcar` trava o momento quando
+   o sistema está exigindo a mídia pra avançar de etapa.
+   ============================================================ */
+var MAX_VIDEO_MB = 40;
+function novaMidia(osId, o, recarrega, forcar, depois){
+  var trava = !!forcar;
+  var opTipo = trava
+    ? '<div class="mid-fix">'+(forcar==='antes'
+        ? '📥 <b>ANTES</b> — como a aeronave está agora'
+        : '📤 <b>DEPOIS</b> — como ficou depois do serviço')+'</div>'
+    : '<label class="blk">Momento</label><select class="in" id="f-tipo">'+
+      '<option value="antes">📥 ANTES — como a aeronave estava</option>'+
+      '<option value="depois">📤 DEPOIS — como ficou</option></select>';
+
+  abreModal(trava ? 'Registre a mídia para avançar' : 'Nova foto ou vídeo',
+    (trava ? '<div class="aviso-suave">Esta etapa só avança com o registro de <b>'+
+       (forcar==='antes'?'como a aeronave chegou':'como o serviço ficou')+'</b>. '+
+       'É esse registro que protege a oficina e comprova o trabalho.</div>' : '')+
+    opTipo+
+    '<label class="blk" style="margin-top:10px">Legenda *</label>'+
+    '<input class="in" id="f-leg" placeholder="Ex.: vazamento no comando do profundor">'+
+    '<label class="blk" style="margin-top:10px">Foto ou vídeo *</label>'+
+    '<input class="in" id="f-arq" type="file" accept="image/*,video/*" capture="environment">'+
+    '<div class="no" style="margin-top:8px">📷 Foto é reduzida no aparelho antes de subir.<br>'+
+    '🎥 Vídeo (com som) até <b>'+MAX_VIDEO_MB+' MB</b> — uns 30 segundos de celular. '+
+    'Grave só o sintoma; vídeo longo não sobe com sinal ruim.<br>'+
+    'Tudo fica em área privada, visível só para a oficina.</div>',
+    'Enviar', async function(){
+      var arq = $("f-arq").files[0];
+      if(!arq){ toast('Escolha uma foto ou vídeo.','err'); return false; }
+      var leg = $("f-leg").value.trim();
+      if(!leg){ toast('Escreva a legenda — é ela que explica o registro.','err'); return false; }
+      var tipo = trava ? forcar : $("f-tipo").value;
+      var ehVideo = (arq.type||'').indexOf('video') === 0;
+
+      var blob, ext, ctype;
+      if(ehVideo){
+        if(arq.size > MAX_VIDEO_MB*1024*1024){
+          toast('Vídeo tem '+Math.round(arq.size/1048576)+' MB. O limite é '+MAX_VIDEO_MB+' MB — grave um trecho menor.','err');
+          return false;
+        }
+        blob = arq; ctype = arq.type || 'video/mp4';
+        ext = (arq.name.split('.').pop() || 'mp4').toLowerCase();
+        toast('Enviando vídeo… pode demorar um pouco.');
+      } else {
+        blob = await comprimeImagem(arq); ctype = 'image/jpeg'; ext = 'jpg';
+        toast('Enviando foto…');
+      }
+      var caminho = osId + '/' + tipo + '-' + Date.now() + '.' + ext;
+      var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:ctype});
+      if(up.error){ toast('Erro ao subir: '+up.error.message,'err'); return false; }
+      var r = await sb.from('manut_os_fotos').insert({os_id:osId, tipo:tipo, caminho:caminho,
+        legenda:leg, etapa:o.etapa, midia: ehVideo ? 'video' : 'foto'});
+      if(r.error){ toast(r.error.message,'err'); return false; }
+      toast(ehVideo ? 'Vídeo registrado.' : 'Foto registrada.','ok');
+      if(depois) depois(); else recarrega();
+      return true;
+    });
 }
 
 /* mede cada traço pra ele se desenhar sozinho */
@@ -1680,6 +1772,15 @@ async function moverEtapa(osId, o, alvo, recarrega, senha, obs){
   var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_senha:senha||null});
   if(r.error){
     var msg = r.error.message || '';
+    /* o banco pede a mídia da etapa: abre a câmera já no momento certo
+       e, assim que enviar, tenta avançar de novo sozinho */
+    var f = msg.match(/FOTO_NECESSARIA:(\w+)/);
+    if(f){
+      novaMidia(osId, o, recarrega, f[1], function(){
+        moverEtapa(osId, o, alvo, recarrega, senha, obs);
+      });
+      return;
+    }
     var m = msg.match(/ASSINATURA_NECESSARIA:(\w+)/);
     if(m){ pedeAssinatura(osId, o, alvo, m[1], recarrega, obs); return; }
     toast(msg, 'err'); return;
@@ -1912,12 +2013,10 @@ async function abreOS(id, scrollRestaurar){
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
   var GAL_META = {
-    recebimento:{n:'01', lbl:'Recebimento',        sub:'como a aeronave chegou',   cls:'g-rec'},
-    problema:   {n:'02', lbl:'Problema encontrado',sub:'o que motivou o serviço',  cls:'g-pro'},
-    resolucao:  {n:'03', lbl:'Resolução',          sub:'o serviço executado',      cls:'g-res'},
-    entrega:    {n:'04', lbl:'Entrega',            sub:'como a aeronave saiu',     cls:'g-ent'}
+    antes: {n:'01', lbl:'ANTES',  sub:'como a aeronave chegou e o que foi encontrado', cls:'g-pro'},
+    depois:{n:'02', lbl:'DEPOIS', sub:'o serviço executado e o estado na saída',       cls:'g-res'}
   };
-  var galeria = ['recebimento','problema','resolucao','entrega'].map(function(t){
+  var galeria = ['antes','depois'].map(function(t){
     var fs = fotos.filter(function(f){ return f.tipo===t; });
     if(!fs.length) return '';
     var m = GAL_META[t];
@@ -1927,9 +2026,12 @@ async function abreOS(id, scrollRestaurar){
         '<span class="gal-c">'+fs.length+(fs.length>1?' fotos':' foto')+'</span></header>'+
       '<div class="gal">'+ fs.map(function(f){
         var vai = f.compartilhada !== false;
+        var eVideo = f.midia === 'video';
         return '<figure class="ft'+(vai?'':' ft--off')+'">'+
-          '<div class="ft__img" id="ft-'+f.id+'" data-ft="'+esc(f.caminho)+'">'+
-            '<span class="ft__lupa">ampliar</span></div>'+
+          (eVideo
+            ? '<div class="ft__vid" id="ft-'+f.id+'"><span class="ft__tag">🎥 vídeo com som</span></div>'
+            : '<div class="ft__img" id="ft-'+f.id+'" data-ft="'+esc(f.caminho)+'">'+
+              '<span class="ft__lupa">ampliar</span></div>')+
           '<figcaption class="ft__cap">'+
             '<div class="ft__l">'+esc(f.legenda || m.lbl)+'</div>'+
             '<div class="ft__meta">'+dataBR(f.quando)+
@@ -2002,8 +2104,13 @@ async function abreOS(id, scrollRestaurar){
 
   /* --- fotos: carrega as miniaturas por URL assinada (bucket é privado) --- */
   fotos.forEach(function(f){
-    var el = $("ft-"+f.id);
-    if(el && f._url) el.style.backgroundImage = 'url("'+f._url+'")';
+    var el = $("ft-"+f.id); if(!el || !f._url) return;
+    if(f.midia === 'video'){
+      el.insertAdjacentHTML('afterbegin',
+        '<video controls preload="metadata" playsinline src="'+f._url+'"></video>');
+    } else {
+      el.style.backgroundImage = 'url("'+f._url+'")';
+    }
   });
   document.querySelectorAll('[data-ft]').forEach(function(el){
     el.onclick = function(){
@@ -2031,35 +2138,7 @@ async function abreOS(id, scrollRestaurar){
       };
     });
   });
-  if($("add-foto")) $("add-foto").onclick = function(){
-    abreModal('Nova foto',
-      '<label class="blk">O que esta foto mostra?</label>'+
-      '<select class="in" id="f-tipo">'+
-        '<option value="problema">🔴 Problema encontrado</option>'+
-        '<option value="resolucao">🟢 Resolução / serviço feito</option>'+
-        '<option value="recebimento">🛬 Estado no recebimento</option>'+
-        '<option value="entrega">🛫 Estado na entrega</option>'+
-      '</select>'+
-      '<label class="blk" style="margin-top:10px">Legenda</label>'+
-      '<input class="in" id="f-leg" placeholder="Ex.: vazamento no comando do profundor">'+
-      '<label class="blk" style="margin-top:10px">Imagem *</label>'+
-      '<input class="in" id="f-arq" type="file" accept="image/*" capture="environment">'+
-      '<div class="no" style="margin-top:8px">A foto é reduzida antes de subir e fica em área privada — '+
-      'só quem tem acesso à oficina consegue ver.</div>',
-      'Enviar', async function(){
-        var arq = $("f-arq").files[0];
-        if(!arq){ toast('Escolha uma imagem.','err'); return false; }
-        toast('Enviando foto…');
-        var blob = await comprimeImagem(arq);
-        var caminho = id + '/' + $("f-tipo").value + '-' + Date.now() + '.jpg';
-        var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:'image/jpeg'});
-        if(up.error){ toast('Erro ao subir: '+up.error.message,'err'); return false; }
-        var r = await sb.from('manut_os_fotos').insert({os_id:id, tipo:$("f-tipo").value,
-          caminho:caminho, legenda:$("f-leg").value.trim()||null, etapa:o.etapa});
-        if(r.error){ toast(r.error.message,'err'); return false; }
-        toast('Foto registrada.','ok'); recarrega(); return true;
-      });
-  };
+  if($("add-foto")) $("add-foto").onclick = function(){ novaMidia(id, o, recarrega, null); };
 
   /* --- cadeia de custódia: assinatura presencial do piloto --- */
   document.querySelectorAll('[data-cust]').forEach(function(b){
