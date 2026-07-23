@@ -51,7 +51,7 @@
 <div id="app" class="hidden">
   <div class="top">
     <h1>👥 Gestão de Equipe</h1>
-    <a href="index.html">← Voltar à oficina</a>
+    <a href="/mecanica/">← Voltar à oficina</a>
   </div>
   <div class="wrap">
     <div class="aviso">
@@ -204,7 +204,7 @@
   (async function init(){
     var s = await sb.auth.getSession();
     var session = s && s.data ? s.data.session : null;
-    if(!session){ bloqueio('Entre primeiro', 'Faça login em <a href="index.html">jusarah.com.br/mecanica</a> e depois abra esta página.'); return; }
+    if(!session){ bloqueio('Entre primeiro', 'Faça login em <a href="/mecanica/">jusarah.com.br/mecanica</a> e depois abra esta página.'); return; }
     TOKEN = session.access_token;
     var uid = session.user.id;
     var p = await sb.from('perfis').select('papeis, nivel').eq('id', uid).maybeSingle();
