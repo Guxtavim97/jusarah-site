@@ -638,6 +638,7 @@
     <div class="spacer"></div>
     <div class="who"><b id="u-nome">—</b><div class="papeis" id="u-papeis"></div></div>
     <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
+    <button class="btn btn--ghost btn--sm" id="btn-senha">🔑 Senha</button>
     <button class="btn btn--ghost btn--sm" id="btn-sair">Sair</button>
   </div></div>
   <div class="navs">
@@ -1190,6 +1191,40 @@ $("btn-entrar").onclick = async function(){
 };
 $("btn-sair").onclick  = async function(){ await sb.auth.signOut(); location.reload(); };
 $("btn-sair2").onclick = async function(){ await sb.auth.signOut(); location.reload(); };
+
+// trocar a própria senha (qualquer usuário logado)
+if($("btn-senha")) $("btn-senha").onclick = function(){
+  if(document.getElementById('ov-senha')) return;
+  var inp = 'width:100%;box-sizing:border-box;background:#0b1a2e;border:1px solid rgba(127,212,255,.2);border-radius:9px;padding:11px;color:#eaf2fb;font-family:inherit';
+  var ov = document.createElement('div');
+  ov.id = 'ov-senha';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(4,10,22,.72);display:grid;place-items:center;padding:16px';
+  ov.innerHTML =
+    '<div style="background:#0b1e42;border:1px solid rgba(127,212,255,.2);border-radius:14px;max-width:360px;width:100%;padding:20px;color:#e6eef7;font-family:inherit">'+
+      '<h3 style="margin:0 0 4px;font-size:1.05rem">🔑 Trocar minha senha</h3>'+
+      '<p style="margin:0 0 14px;color:#8fb4d6;font-size:.85rem">Escolha uma senha nova (mínimo 6 caracteres).</p>'+
+      '<input id="ns1" type="password" placeholder="Nova senha" style="'+inp+';margin-bottom:9px">'+
+      '<input id="ns2" type="password" placeholder="Repita a nova senha" style="'+inp+'">'+
+      '<div id="ns-msg" style="font-size:.83rem;margin-top:9px;min-height:1em"></div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px">'+
+        '<button id="ns-salvar" style="flex:1;border:0;border-radius:9px;padding:11px;background:#1B6E3B;color:#fff;font-weight:700;cursor:pointer">Salvar</button>'+
+        '<button id="ns-cancel" style="border:0;border-radius:9px;padding:11px 14px;background:#26364a;color:#fff;cursor:pointer">Cancelar</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+  document.getElementById('ns-cancel').onclick = function(){ ov.remove(); };
+  document.getElementById('ns-salvar').onclick = async function(){
+    var b = this, msg = document.getElementById('ns-msg');
+    var a = document.getElementById('ns1').value, c = document.getElementById('ns2').value;
+    if(a.length < 6){ msg.style.color='#ff9a8a'; msg.textContent='A senha precisa ter ao menos 6 caracteres.'; return; }
+    if(a !== c){ msg.style.color='#ff9a8a'; msg.textContent='As senhas não são iguais.'; return; }
+    b.disabled = true; msg.style.color='#8fb4d6'; msg.textContent='Salvando…';
+    var r = await sb.auth.updateUser({ password: a });
+    if(r.error){ msg.style.color='#ff9a8a'; msg.textContent='Erro: '+r.error.message; b.disabled=false; return; }
+    msg.style.color='#9be3b6'; msg.textContent='Senha alterada com sucesso! ✓';
+    setTimeout(function(){ ov.remove(); }, 1300);
+  };
+};
 $("lg-senha").addEventListener('keydown', function(e){ if(e.key==='Enter') $("btn-entrar").click(); });
 
 async function entrar(){
