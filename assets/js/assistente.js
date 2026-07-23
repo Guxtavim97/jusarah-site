@@ -32,6 +32,8 @@
   + '.ia-msg.a{align-self:flex-start;background:#13253d;color:#e6eef7;border:1px solid rgba(127,212,255,.14);border-bottom-left-radius:4px}'
   + '.ia-msg.sys{align-self:center;background:rgba(255,196,77,.12);color:#ffd98a;font-size:.8rem;text-align:center;border-radius:10px}'
   + '.ia-msg img.foto{display:block;max-width:100%;border-radius:9px;margin-bottom:6px}'
+  + '.ia-msg a{color:#8fd0ff;text-decoration:underline;word-break:break-word}'
+  + '.ia-msg b{color:#fff}'
   + '.ia-msg .font{display:block;margin-top:6px;font-size:.72rem;color:#8fb4d6;font-style:italic}'
   + '.ia-typ{align-self:flex-start;display:flex;gap:4px;padding:12px 14px}'
   + '.ia-typ i{width:7px;height:7px;border-radius:50%;background:#4a9fd4;animation:iablink 1.2s infinite}'
@@ -153,10 +155,25 @@
     addMsg('a', 'Oi! Sou a assistente da Jusarah. Pergunte por texto, fale no microfone 🎤 ou tire uma foto 📷 de uma peça.');
   }
 
+  // markdown leve e seguro: negrito, links clicáveis e quebras de linha
+  function mdToHtml(s){
+    s = esc(s);
+    s = s.replace(/(https?:\/\/[^\s<]+)/g, function(u){
+      var t = u.replace(/[.,);]+$/,'');
+      return '<a href="'+t+'" target="_blank" rel="noopener">'+t+'</a>';
+    });
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+  }
   function addMsg(tipo, texto, fonte, imgUrl){
     var m = el('div','ia-msg '+tipo);
     if(imgUrl){ var im = el('img'); im.className='foto'; im.src=imgUrl; im.alt=''; m.appendChild(im); }
-    if(texto){ var tx = document.createElement('div'); tx.textContent = texto; m.appendChild(tx); }
+    if(texto){
+      var tx = document.createElement('div');
+      if(tipo === 'a') tx.innerHTML = mdToHtml(texto); else tx.textContent = texto;
+      m.appendChild(tx);
+    }
     if(fonte){ var f = el('span','font','Fonte: '+esc(fonte)); m.appendChild(f); }
     body.appendChild(m); body.scrollTop = body.scrollHeight;
     return m;
@@ -272,7 +289,8 @@
   function fala(txt){
     if(!('speechSynthesis' in window) || !txt) return;
     pararVoz();
-    var u = new SpeechSynthesisUtterance(txt.replace(/\s+/g,' ').slice(0,600));
+    var limpo = txt.replace(/\*+/g,'').replace(/https?:\/\/\S+/g,'link').replace(/\s+/g,' ').trim().slice(0,600);
+    var u = new SpeechSynthesisUtterance(limpo);
     u.lang = 'pt-BR'; u.rate = 1.02;
     window.speechSynthesis.speak(u);
   }
