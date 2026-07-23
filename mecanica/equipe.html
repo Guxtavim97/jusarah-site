@@ -202,7 +202,7 @@
         e.stopPropagation();
         if(!confirm('EXCLUIR esta pessoa de vez? A conta e o login serão apagados. Isso não pode ser desfeito.')) return;
         var b=this; b.disabled=true;
-        try{ await chama('excluir', { id:id }); carrega(); }
+        try{ var d = await chama('excluir', { id:id }); if(d && d.aviso) alert(d.aviso); carrega(); }
         catch(err){ msg.className='msg err'; msg.textContent=err.message; b.disabled=false; }
       };
       el.querySelector('.p-senha').onclick = async function(e){
