@@ -6,7 +6,7 @@
      o painel funciona e avisa que o cérebro ainda não foi ligado.
    ============================================================ */
 (function(){
-  var A = { sb:null, url:'', nome:'Assistente', contexto:'geral', falar:true, ouvindo:false, rec:null, pensando:false, imgPend:null };
+  var A = { sb:null, url:'', nome:'Assistente', contexto:'geral', falar:true, ouvindo:false, rec:null, pensando:false, imgPend:null, historico:[] };
 
   var CSS = ''
   + '.ia-fab{position:fixed;right:18px;bottom:18px;z-index:9000;width:60px;height:60px;border:0;'
@@ -23,7 +23,7 @@
   + '.ia-hd b{font-size:1rem;line-height:1.1}'
   + '.ia-hd span{font-size:.72rem;color:#a9d8bf;display:block}'
   + '.ia-hd .x{margin-left:auto;background:none;border:0;color:#cfe3f5;font-size:1.4rem;cursor:pointer;line-height:1}'
-  + '.ia-hd .spk{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;'
+  + '.ia-hd .spk,.ia-hd .nov{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;'
   +   'cursor:pointer;font-size:.9rem;width:32px;height:30px}'
   + '.ia-hd .spk.off{opacity:.4}'
   + '.ia-body{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:11px;background:#0b1a2e}'
@@ -94,6 +94,7 @@
     wrap.innerHTML =
       '<div class="ia-hd"><span class="av">✨</span>'+
         '<div><b>'+esc(A.nome)+'</b><span>assistente da Jusarah</span></div>'+
+        '<button class="nov" title="Nova conversa">🔄</button>'+
         '<button class="spk" title="Ler as respostas em voz alta">🔊</button>'+
         '<button class="x" title="Fechar">×</button></div>'+
       '<div class="ia-body"></div>'+
@@ -117,6 +118,7 @@
     fileInput= wrap.querySelector('.ia-file');
 
     wrap.querySelector('.x').onclick = function(){ wrap.classList.remove('open'); pararVoz(); };
+    wrap.querySelector('.nov').onclick = function(){ A.novaConversa(); body.innerHTML=''; saudou=false; saudacao(); };
     wrap.querySelector('.ia-send').onclick = enviar;
     input.addEventListener('keydown', function(e){ if(e.key==='Enter') enviar(); });
     micBtn.onclick = toggleMic;
@@ -192,28 +194,40 @@
     input.value = '';
     var img = A.imgPend; A.imgPend = null; prev.classList.remove('on'); fileInput.value='';
     addMsg('u', q, null, img ? img.url : null);
-    pergunta(q, img);
+    // monta a mensagem no formato da IA e guarda no histórico (assim ela mantém o contexto)
+    var content = img
+      ? [ { type:'image', source:{ type:'base64', media_type:img.media_type, data:img.data } },
+          { type:'text', text: q || 'O que você vê nesta foto? Se houver PN, plaqueta ou etiqueta, transcreva exatamente.' } ]
+      : q;
+    A.historico.push({ role:'user', content: content });
+    responder();
   }
 
-  async function pergunta(q, img){
+  // mantém só as últimas mensagens e garante que começa por 'user'
+  function trimHist(h){
+    var arr = h.slice(-12);
+    while(arr.length && arr[0].role !== 'user') arr.shift();
+    return arr;
+  }
+
+  A.novaConversa = function(){ A.historico = []; };
+
+  async function responder(){
     A.pensando = true; typing(true);
     try{
       var sess = await A.sb.auth.getSession();
       var token = sess && sess.data && sess.data.session ? sess.data.session.access_token : null;
       if(!token){ typing(false); addMsg('sys','Você precisa estar logado para usar o assistente.'); A.pensando=false; return; }
 
-      var payload = { pergunta:q, contexto:A.contexto };
-      if(img) payload.imagem = { media_type:img.media_type, data:img.data };
-
       var resp = await fetch(A.url + '/functions/v1/assistente', {
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ messages: trimHist(A.historico), contexto:A.contexto })
       });
 
       typing(false);
       if(resp.status === 404){
-        addMsg('sys','O cérebro do assistente ainda não foi publicado. A conversa já funciona — falta ligar a IA (publicar a função e a chave).');
+        addMsg('sys','O cérebro do assistente ainda não foi publicado.');
         A.pensando=false; return;
       }
       var data = await resp.json().catch(function(){ return null; });
@@ -221,11 +235,13 @@
         addMsg('sys', (data && data.erro) ? data.erro : 'Não consegui responder agora. Tente de novo em instantes.');
         A.pensando=false; return;
       }
-      addMsg('a', data.resposta || '(sem resposta)', data.fonte);
-      if(A.falar) fala(data.resposta || '');
+      var texto = data.resposta || '(sem resposta)';
+      A.historico.push({ role:'assistant', content: texto });
+      addMsg('a', texto, data.fonte);
+      if(A.falar) fala(texto);
     }catch(err){
       typing(false);
-      addMsg('sys','O cérebro do assistente ainda não está ligado. Assim que publicarmos a função e a chave, ele passa a responder.');
+      addMsg('sys','O cérebro do assistente ainda não está ligado.');
     }
     A.pensando = false;
   }
