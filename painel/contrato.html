@@ -60,6 +60,7 @@
   /* cabeçalho / timbre */
   .lh{text-align:center;padding-bottom:16px;margin-bottom:20px;position:relative}
   .lh .plane{width:52px;height:auto;margin:2px auto 8px;display:block;color:var(--green)}
+  .lh .lg{height:104px;width:auto;max-width:80%;margin:0 auto 6px;display:block}
   .lh .brand{font-family:var(--serif);font-size:1.9rem;font-weight:700;letter-spacing:.16em;
     color:var(--green-d);line-height:1}
   .lh .brand span{color:var(--brass)}
@@ -250,7 +251,7 @@ var EMPRESA = {
   socia:'TAYLLA LARA SCHERWINSKI', socia_q:'brasileira, casada, empresária',
   socia_cpf:'015.552.091-14', socia_rg:'17171261 SSP/MT'
 };
-var FOOT_ADDR = 'Estrada Linha 02, Lote 09 R2, s/n – Zona Rural – Cerejeiras-RO · Fone (69) 99325-7000 · r.f.comando1@hotmail.com';
+var FOOT_ADDR = 'Estrada Linha 02, Lote 09 R2, s/n – Zona Rural – Cerejeiras-RO · Fone (69) 99325-7000 · financeiro@voejusarah.com';
 
 /* avião line-art (timbre) */
 var PLANE = '<svg class="plane" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">'+
@@ -325,9 +326,9 @@ function render(){
   var h = '';
 
   /* ---- timbre ---- */
-  h += '<div class="lh">'+PLANE+
-    '<div class="brand">JUSARAH<span>.</span></div>'+
-    '<div class="tagline">Aeroagrícola · Pulverização de Precisão</div>'+
+  h += '<div class="lh">'+
+    '<img class="lg" src="../assets/img/logo.png" alt="Jusarah Aeroagrícola">'+
+    '<div class="tagline">Pulverização Aeroagrícola de Precisão</div>'+
     '<div class="rule"></div>'+
     '<div class="meta"><b>'+E.nome+'</b> · CNPJ '+E.cnpj+'<br>'+
     'Estrada Linha 02, Lote 09 R2, s/n · Zona Rural · Cerejeiras-RO · CEP 76.997-000</div></div>';
@@ -364,7 +365,7 @@ function render(){
   h += '<p>Em caso de divergência na interpretação dos dispositivos do presente contrato, a ordem de procedência deve ser, respectivamente, do contrato pura e simplesmente, dos anexos e dos outros documentos incluídos por referência, todos interpretados subsidiariamente em conformidade com a legislação aplicável.</p>';
   h += '<p style="margin-bottom:4px">Pelo presente instrumento particular, de um lado,</p>';
 
-  h += '<div class="party contratante">Eu '+fld(d.nome,'nome do contratante')+', nacionalidade: '+fld(d.nac)+', profissão: '+fld(d.prof)+
+  h += '<div class="party contratante">'+fld(d.nome,'nome do contratante')+', nacionalidade: '+fld(d.nac)+', profissão: '+fld(d.prof)+
        ', inscrito(a) no CPF/MF sob o número '+fld(d.cpf,'CPF')+', portador(a) da Cédula de Identidade RG nº '+fld(d.rg,'RG')+
        ', expedida pelo órgão '+fld(d.org,'órgão')+', com endereço situado à '+fld(d.end,'endereço')+
        ', denominados como <b>CONTRATANTES</b>; e de outro</div>';
