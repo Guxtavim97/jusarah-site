@@ -13,35 +13,41 @@
   .top{background:linear-gradient(135deg,#123f6b,#0d3d20);padding:16px 18px;display:flex;align-items:center;gap:12px}
   .top h1{font-size:1.1rem;margin:0}
   .top a{margin-left:auto;color:#cfe3f5;text-decoration:none;font-size:.85rem;border:1px solid rgba(255,255,255,.25);padding:7px 12px;border-radius:8px}
-  .wrap{max-width:820px;margin:0 auto;padding:18px}
+  .wrap{max-width:860px;margin:0 auto;padding:18px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
   .card h2{font-size:.98rem;margin:0 0 12px;color:#bcd6ee}
-  label{display:block;font-size:.75rem;color:var(--mut);margin:8px 0 3px}
+  label{display:block;font-size:.74rem;color:var(--mut);margin:8px 0 3px}
   input{width:100%;background:#0b1a2e;border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--txt);font-size:.92rem;font-family:inherit}
   input:focus{outline:none;border-color:var(--azul)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .paps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  @media(max-width:560px){.row{grid-template-columns:1fr}}
+  .paps{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
   .pap{display:inline-flex;align-items:center;gap:6px;background:#13253d;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.8rem;cursor:pointer;user-select:none}
   .pap input{width:auto;margin:0}
   .btn{border:0;border-radius:9px;padding:10px 14px;font-weight:700;font-size:.9rem;cursor:pointer;color:#fff}
-  .btn--v{background:var(--verde)} .btn--a{background:#1e5a8a} .btn--g{background:#26364a}
-  .btn--sm{padding:7px 11px;font-size:.8rem}
+  .btn--v{background:var(--verde)} .btn--a{background:#1e5a8a} .btn--g{background:#26364a} .btn--r{background:#7a2a24}
+  .btn--sm{padding:7px 11px;font-size:.8rem;font-weight:600}
   .btn:disabled{opacity:.6}
-  .pessoa{border-top:1px solid var(--line);padding:13px 0}
+  .pessoa{border-top:1px solid var(--line);padding:14px 0}
   .pessoa:first-of-type{border-top:0}
-  .pessoa .cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pessoa .cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer}
   .pessoa b{font-size:.98rem}
   .pessoa .em{color:var(--mut);font-size:.82rem}
-  .pessoa .acts{margin-left:auto;display:flex;gap:7px}
-  .aviso{background:rgba(255,196,77,.12);border:1px solid rgba(255,196,77,.3);color:#ffd98a;border-radius:10px;padding:11px 13px;font-size:.86rem;margin-bottom:12px}
+  .pessoa .tags{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+  .tag{background:#13253d;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.7rem;color:#bcd6ee}
+  .det{margin-top:12px;display:none}
+  .pessoa.open .det{display:block}
+  .arrow{color:var(--mut);transition:transform .15s}
+  .pessoa.open .arrow{transform:rotate(90deg)}
+  .acts{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .aviso{background:rgba(255,196,77,.1);border:1px solid rgba(255,196,77,.3);color:#ffd98a;border-radius:10px;padding:11px 13px;font-size:.86rem;margin-bottom:12px}
   .senha-box{background:#0e2a1a;border:1px solid #1f6e3b;border-radius:11px;padding:14px;margin-top:12px}
-  .senha-box b{font-size:1.3rem;font-family:monospace;letter-spacing:1px;color:#9be3b6}
-  .senha-box p{margin:6px 0 0;font-size:.82rem;color:var(--mut)}
-  .msg{font-size:.85rem;margin-top:8px}
+  .senha-box b{font-size:1.25rem;font-family:monospace;letter-spacing:1px;color:#9be3b6}
+  .senha-box p{margin:6px 0 0;font-size:.8rem;color:var(--mut)}
+  .msg{font-size:.85rem;margin-top:8px;min-height:1em}
   .msg.err{color:#ff9a8a} .msg.ok{color:#9be3b6}
   .center{max-width:440px;margin:16vh auto;text-align:center;padding:24px}
-  .center h1{font-size:1.3rem}
-  .center a{color:var(--azul)}
+  .center h1{font-size:1.3rem} .center a{color:var(--azul)}
   .hidden{display:none}
   .copiar{background:none;border:1px solid var(--line);color:var(--mut);border-radius:7px;padding:4px 9px;font-size:.75rem;cursor:pointer;margin-left:8px}
 </style>
@@ -55,19 +61,25 @@
   </div>
   <div class="wrap">
     <div class="aviso">
-      Aqui você cria o acesso de cada funcionário e define o que ele pode fazer.
-      Cada função (papel) enxerga só o que precisa. A senha aparece <b>uma vez</b> — copie e entregue ao funcionário.
+      Cadastre cada funcionário e defina as funções dele. Se o e-mail já tiver conta, ele é <b>adicionado à equipe</b> automaticamente.
+      A senha provisória aparece <b>uma vez</b> — copie e entregue. O funcionário troca a própria senha depois, na oficina (botão 🔑 Senha).
     </div>
 
     <div class="card">
-      <h2>➕ Adicionar pessoa</h2>
+      <h2>➕ Cadastrar funcionário</h2>
       <div class="row">
-        <div><label>Nome</label><input id="n-nome" placeholder="Ex: Carlos Souza"></div>
-        <div><label>E-mail (será o login)</label><input id="n-email" placeholder="carlos@exemplo.com" inputmode="email"></div>
+        <div><label>Nome completo *</label><input id="n-nome" placeholder="Ex: Carlos Souza"></div>
+        <div><label>E-mail (será o login) *</label><input id="n-email" placeholder="carlos@exemplo.com" inputmode="email"></div>
       </div>
+      <div class="row">
+        <div><label>Telefone</label><input id="n-tel" placeholder="(69) 9 9999-9999" inputmode="tel"></div>
+        <div><label>CPF</label><input id="n-cpf" placeholder="000.000.000-00" inputmode="numeric"></div>
+      </div>
+      <label>Registro / Licença ANAC <span style="color:var(--mut)">(se tiver)</span></label>
+      <input id="n-lic" placeholder="Ex: CANAC / código da habilitação">
       <label>Funções</label>
       <div class="paps" id="n-paps"></div>
-      <div style="margin-top:12px"><button class="btn btn--v" id="btn-criar">Criar acesso</button></div>
+      <div style="margin-top:14px"><button class="btn btn--v" id="btn-criar">Criar acesso</button></div>
       <div id="n-msg" class="msg"></div>
       <div id="n-senha" class="senha-box hidden"></div>
     </div>
@@ -97,8 +109,10 @@
     { k:'chefe_manutencao', n:'Chefe' },
     { k:'diretor_tecnico', n:'Diretor técnico' }
   ];
+  var LBL = {}; PAPEIS.forEach(function(p){ LBL[p.k]=p.n; });
   var TOKEN = null;
 
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function bloqueio(t, p){ $('app').classList.add('hidden'); $('bloq-t').textContent=t; $('bloq-p').innerHTML=p; $('bloqueio').classList.remove('hidden'); }
 
   function chips(container, marcados){
@@ -108,75 +122,97 @@
       return '<label class="pap"><input type="checkbox" value="'+p.k+'"'+on+'>'+p.n+'</label>';
     }).join('');
   }
-  function lidos(container){
-    return Array.prototype.map.call(container.querySelectorAll('input:checked'), function(c){ return c.value; });
-  }
+  function lidos(container){ return Array.prototype.map.call(container.querySelectorAll('input:checked'), function(c){ return c.value; }); }
 
   async function chama(acao, extra){
-    var payload = Object.assign({ acao: acao }, extra||{});
     var r = await fetch(SB_URL + '/functions/v1/equipe', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(Object.assign({ acao: acao }, extra||{}))
     });
     if(r.status===404) throw new Error('A função de equipe ainda não foi publicada no Supabase.');
     var data = await r.json().catch(function(){ return null; });
     if(!r.ok || !data || data.erro) throw new Error((data && data.erro) || 'Falha na operação.');
     return data;
   }
-
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function botaoCopiar(box){
+    var b = box.querySelector('.copiar');
+    if(b) b.onclick = function(){ navigator.clipboard.writeText(this.getAttribute('data-s')); this.textContent='copiado ✓'; };
+  }
 
   async function carrega(){
     try{
       var data = await chama('listar');
       var lista = $('lista');
-      if(!data.equipe.length){ lista.innerHTML = '<div style="color:var(--mut)">Ninguém cadastrado ainda. Adicione a primeira pessoa acima.</div>'; return; }
+      if(!data.equipe.length){ lista.innerHTML='<div style="color:var(--mut)">Ninguém cadastrado ainda. Adicione a primeira pessoa acima.</div>'; return; }
       lista.innerHTML = data.equipe.map(function(p){
+        var tags = (p.papeis||[]).map(function(k){ return '<span class="tag">'+esc(LBL[k]||k)+'</span>'; }).join('');
         return '<div class="pessoa" data-id="'+p.id+'">'+
           '<div class="cab"><b>'+esc(p.nome||'(sem nome)')+'</b><span class="em">'+esc(p.email||'')+'</span>'+
-            '<span class="acts">'+
-              '<button class="btn btn--a btn--sm p-salvar">Salvar funções</button>'+
-              '<button class="btn btn--g btn--sm p-senha">Nova senha</button>'+
+            '<span class="tags">'+tags+'</span><span class="arrow">▶</span></div>'+
+          '<div class="det">'+
+            '<div class="row">'+
+              '<div><label>Nome</label><input class="d-nome" value="'+esc(p.nome||'')+'"></div>'+
+              '<div><label>Telefone</label><input class="d-tel" value="'+esc(p.telefone||'')+'"></div>'+
+            '</div>'+
+            '<div class="row">'+
+              '<div><label>CPF</label><input class="d-cpf" value="'+esc(p.cpf||'')+'"></div>'+
+              '<div><label>Licença ANAC</label><input class="d-lic" value="'+esc(p.licenca_anac||'')+'"></div>'+
+            '</div>'+
+            '<label>E-mail (login)</label><input value="'+esc(p.email||'')+'" disabled style="opacity:.6">'+
+            '<label>Funções</label><div class="paps"></div>'+
+            '<div class="acts">'+
+              '<button class="btn btn--v btn--sm p-salvar">Salvar</button>'+
+              '<button class="btn btn--a btn--sm p-senha">Nova senha</button>'+
               '<button class="btn btn--g btn--sm p-desativar">Desativar</button>'+
-            '</span></div>'+
-          '<div class="paps"></div>'+
-          '<div class="msg"></div>'+
-          '<div class="senha-box hidden"></div>'+
-        '</div>';
+              '<button class="btn btn--r btn--sm p-excluir">Excluir</button>'+
+            '</div>'+
+            '<div class="msg"></div>'+
+            '<div class="senha-box hidden"></div>'+
+          '</div></div>';
       }).join('');
       Array.prototype.forEach.call(lista.querySelectorAll('.pessoa'), function(el, i){
-        chips(el.querySelector('.paps'), data.equipe[i].papeis || []);
+        chips(el.querySelector('.det .paps'), data.equipe[i].papeis || []);
       });
-      ligaLista();
+      liga();
     }catch(e){ $('lista').innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
   }
 
-  function ligaLista(){
+  function liga(){
     Array.prototype.forEach.call(document.querySelectorAll('.pessoa'), function(el){
       var id = el.getAttribute('data-id');
-      var msg = el.querySelector('.msg');
-      el.querySelector('.p-salvar').onclick = async function(){
-        var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Salvando…';
-        try{ await chama('papeis', { id:id, papeis: lidos(el.querySelector('.paps')) }); msg.className='msg ok'; msg.textContent='Funções salvas ✓'; }
-        catch(e){ msg.className='msg err'; msg.textContent=e.message; }
-        b.disabled=false;
+      var msg = el.querySelector('.det .msg');
+      el.querySelector('.cab').onclick = function(){ el.classList.toggle('open'); };
+
+      el.querySelector('.p-salvar').onclick = async function(e){
+        e.stopPropagation(); var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Salvando…';
+        try{
+          await chama('dados', { id:id, nome:el.querySelector('.d-nome').value, telefone:el.querySelector('.d-tel').value, cpf:el.querySelector('.d-cpf').value, licenca:el.querySelector('.d-lic').value });
+          await chama('papeis', { id:id, papeis: lidos(el.querySelector('.det .paps')) });
+          msg.className='msg ok'; msg.textContent='Salvo ✓'; setTimeout(carrega, 700);
+        }catch(err){ msg.className='msg err'; msg.textContent=err.message; b.disabled=false; }
       };
-      el.querySelector('.p-desativar').onclick = async function(){
-        if(!confirm('Desativar o acesso desta pessoa? Ela não conseguirá mais entrar na oficina.')) return;
-        var b=this; b.disabled=true;
+      el.querySelector('.p-desativar').onclick = async function(e){
+        e.stopPropagation();
+        if(!confirm('Desativar o acesso desta pessoa? Ela não conseguirá mais entrar (mas continua cadastrada).')) return;
         try{ await chama('desativar', { id:id }); carrega(); }
-        catch(e){ msg.className='msg err'; msg.textContent=e.message; b.disabled=false; }
+        catch(err){ msg.className='msg err'; msg.textContent=err.message; }
       };
-      el.querySelector('.p-senha').onclick = async function(){
-        var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Gerando…';
+      el.querySelector('.p-excluir').onclick = async function(e){
+        e.stopPropagation();
+        if(!confirm('EXCLUIR esta pessoa de vez? A conta e o login serão apagados. Isso não pode ser desfeito.')) return;
+        var b=this; b.disabled=true;
+        try{ await chama('excluir', { id:id }); carrega(); }
+        catch(err){ msg.className='msg err'; msg.textContent=err.message; b.disabled=false; }
+      };
+      el.querySelector('.p-senha').onclick = async function(e){
+        e.stopPropagation(); var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Gerando…';
         try{
           var d = await chama('senha', { id:id });
           var box = el.querySelector('.senha-box'); box.classList.remove('hidden');
-          box.innerHTML = 'Nova senha provisória: <b>'+esc(d.senha)+'</b><button class="copiar" data-s="'+esc(d.senha)+'">copiar</button><p>Entregue ao funcionário. Ela substitui a senha anterior.</p>';
-          box.querySelector('.copiar').onclick = function(){ navigator.clipboard.writeText(this.getAttribute('data-s')); this.textContent='copiado ✓'; };
-          msg.textContent='';
-        }catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+          box.innerHTML = 'Nova senha provisória: <b>'+esc(d.senha)+'</b><button class="copiar" data-s="'+esc(d.senha)+'">copiar</button><p>Entregue ao funcionário. Ele pode trocar depois pelo botão 🔑 Senha na oficina.</p>';
+          botaoCopiar(box); msg.textContent='';
+        }catch(err){ msg.className='msg err'; msg.textContent=err.message; }
         b.disabled=false;
       };
     });
@@ -184,18 +220,22 @@
 
   $('btn-criar').onclick = async function(){
     var b=this, msg=$('n-msg'), box=$('n-senha');
-    var nome = $('n-nome').value.trim(), email = $('n-email').value.trim();
+    var nome=$('n-nome').value.trim(), email=$('n-email').value.trim();
     if(!nome || !email){ msg.className='msg err'; msg.textContent='Preencha nome e e-mail.'; return; }
-    b.disabled=true; msg.className='msg'; msg.textContent='Criando acesso…'; box.classList.add('hidden');
+    b.disabled=true; msg.className='msg'; msg.textContent='Cadastrando…'; box.classList.add('hidden');
     try{
-      var d = await chama('criar', { nome:nome, email:email, papeis: lidos($('n-paps')) });
-      msg.className='msg ok'; msg.textContent='Acesso criado para '+email+' ✓';
-      box.classList.remove('hidden');
-      box.innerHTML = 'Login: <b style="font-size:1rem">'+esc(d.email)+'</b><br>Senha provisória: <b>'+esc(d.senha)+'</b>'+
-        '<button class="copiar" data-s="'+esc(d.senha)+'">copiar senha</button>'+
-        '<p>Entregue login e senha ao funcionário. Ele entra em jusarah.com.br/mecanica.</p>';
-      box.querySelector('.copiar').onclick = function(){ navigator.clipboard.writeText(this.getAttribute('data-s')); this.textContent='copiado ✓'; };
-      $('n-nome').value=''; $('n-email').value=''; chips($('n-paps'), []);
+      var d = await chama('criar', { nome:nome, email:email, telefone:$('n-tel').value, cpf:$('n-cpf').value, licenca:$('n-lic').value, papeis: lidos($('n-paps')) });
+      if(d.existente){
+        msg.className='msg ok'; msg.textContent='Essa pessoa já tinha conta — foi adicionada à equipe ✓ (mantém a senha atual dela; se precisar, use "Nova senha" na lista).';
+      } else {
+        msg.className='msg ok'; msg.textContent='Cadastrado ✓';
+        box.classList.remove('hidden');
+        box.innerHTML = 'Login: <b style="font-size:1rem">'+esc(d.email)+'</b><br>Senha provisória: <b>'+esc(d.senha)+'</b>'+
+          '<button class="copiar" data-s="'+esc(d.senha)+'">copiar senha</button>'+
+          '<p>Entregue login e senha. Ele entra em jusarah.com.br/mecanica e troca a senha no botão 🔑 Senha.</p>';
+        botaoCopiar(box);
+      }
+      $('n-nome').value=''; $('n-email').value=''; $('n-tel').value=''; $('n-cpf').value=''; $('n-lic').value=''; chips($('n-paps'), []);
       carrega();
     }catch(e){ msg.className='msg err'; msg.textContent=e.message; }
     b.disabled=false;
@@ -206,12 +246,10 @@
     var session = s && s.data ? s.data.session : null;
     if(!session){ bloqueio('Entre primeiro', 'Faça login em <a href="/mecanica/">jusarah.com.br/mecanica</a> e depois abra esta página.'); return; }
     TOKEN = session.access_token;
-    var uid = session.user.id;
-    var p = await sb.from('perfis').select('papeis, nivel').eq('id', uid).maybeSingle();
+    var p = await sb.from('perfis').select('papeis, nivel').eq('id', session.user.id).maybeSingle();
     var papeis = (p.data && p.data.papeis) || [];
     var nivel = (p.data && p.data.nivel) || 0;
-    var ehDiretor = papeis.indexOf('diretor_tecnico')>=0 || nivel>=3;
-    if(!ehDiretor){ bloqueio('Acesso restrito', 'Só o diretor técnico pode gerir a equipe.'); return; }
+    if(papeis.indexOf('diretor_tecnico')<0 && nivel<3){ bloqueio('Acesso restrito', 'Só o diretor técnico pode gerir a equipe.'); return; }
     $('app').classList.remove('hidden');
     chips($('n-paps'), []);
     carrega();
