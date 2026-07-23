@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Gestão de Equipe · Jusarah Manutenção</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{ --bg:#071228; --card:#0b1e42; --line:rgba(127,212,255,.16); --azul:#4a9fd4; --verde:#1B6E3B; --txt:#e6eef7; --mut:#8fb4d6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.5}
+  .top{background:linear-gradient(135deg,#123f6b,#0d3d20);padding:16px 18px;display:flex;align-items:center;gap:12px}
+  .top h1{font-size:1.1rem;margin:0}
+  .top a{margin-left:auto;color:#cfe3f5;text-decoration:none;font-size:.85rem;border:1px solid rgba(255,255,255,.25);padding:7px 12px;border-radius:8px}
+  .wrap{max-width:820px;margin:0 auto;padding:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .card h2{font-size:.98rem;margin:0 0 12px;color:#bcd6ee}
+  label{display:block;font-size:.75rem;color:var(--mut);margin:8px 0 3px}
+  input{width:100%;background:#0b1a2e;border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--txt);font-size:.92rem;font-family:inherit}
+  input:focus{outline:none;border-color:var(--azul)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .paps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .pap{display:inline-flex;align-items:center;gap:6px;background:#13253d;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.8rem;cursor:pointer;user-select:none}
+  .pap input{width:auto;margin:0}
+  .btn{border:0;border-radius:9px;padding:10px 14px;font-weight:700;font-size:.9rem;cursor:pointer;color:#fff}
+  .btn--v{background:var(--verde)} .btn--a{background:#1e5a8a} .btn--g{background:#26364a}
+  .btn--sm{padding:7px 11px;font-size:.8rem}
+  .btn:disabled{opacity:.6}
+  .pessoa{border-top:1px solid var(--line);padding:13px 0}
+  .pessoa:first-of-type{border-top:0}
+  .pessoa .cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pessoa b{font-size:.98rem}
+  .pessoa .em{color:var(--mut);font-size:.82rem}
+  .pessoa .acts{margin-left:auto;display:flex;gap:7px}
+  .aviso{background:rgba(255,196,77,.12);border:1px solid rgba(255,196,77,.3);color:#ffd98a;border-radius:10px;padding:11px 13px;font-size:.86rem;margin-bottom:12px}
+  .senha-box{background:#0e2a1a;border:1px solid #1f6e3b;border-radius:11px;padding:14px;margin-top:12px}
+  .senha-box b{font-size:1.3rem;font-family:monospace;letter-spacing:1px;color:#9be3b6}
+  .senha-box p{margin:6px 0 0;font-size:.82rem;color:var(--mut)}
+  .msg{font-size:.85rem;margin-top:8px}
+  .msg.err{color:#ff9a8a} .msg.ok{color:#9be3b6}
+  .center{max-width:440px;margin:16vh auto;text-align:center;padding:24px}
+  .center h1{font-size:1.3rem}
+  .center a{color:var(--azul)}
+  .hidden{display:none}
+  .copiar{background:none;border:1px solid var(--line);color:var(--mut);border-radius:7px;padding:4px 9px;font-size:.75rem;cursor:pointer;margin-left:8px}
+</style>
+</head>
+<body>
+
+<div id="app" class="hidden">
+  <div class="top">
+    <h1>👥 Gestão de Equipe</h1>
+    <a href="index.html">← Voltar à oficina</a>
+  </div>
+  <div class="wrap">
+    <div class="aviso">
+      Aqui você cria o acesso de cada funcionário e define o que ele pode fazer.
+      Cada função (papel) enxerga só o que precisa. A senha aparece <b>uma vez</b> — copie e entregue ao funcionário.
+    </div>
+
+    <div class="card">
+      <h2>➕ Adicionar pessoa</h2>
+      <div class="row">
+        <div><label>Nome</label><input id="n-nome" placeholder="Ex: Carlos Souza"></div>
+        <div><label>E-mail (será o login)</label><input id="n-email" placeholder="carlos@exemplo.com" inputmode="email"></div>
+      </div>
+      <label>Funções</label>
+      <div class="paps" id="n-paps"></div>
+      <div style="margin-top:12px"><button class="btn btn--v" id="btn-criar">Criar acesso</button></div>
+      <div id="n-msg" class="msg"></div>
+      <div id="n-senha" class="senha-box hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>Equipe da oficina</h2>
+      <div id="lista"><div style="color:var(--mut)">Carregando…</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="bloqueio" class="center hidden">
+  <h1 id="bloq-t">Acesso restrito</h1>
+  <p id="bloq-p" style="color:#8fb4d6"></p>
+</div>
+
+<script>
+  var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+  var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+  var sb = window.supabase.createClient(SB_URL, SB_KEY);
+  var $ = function(id){ return document.getElementById(id); };
+
+  var PAPEIS = [
+    { k:'gatekeeper', n:'Gatekeeper' },
+    { k:'controle_tecnico', n:'Controle técnico' },
+    { k:'mecanico', n:'Mecânico' },
+    { k:'chefe_manutencao', n:'Chefe' },
+    { k:'diretor_tecnico', n:'Diretor técnico' }
+  ];
+  var TOKEN = null;
+
+  function bloqueio(t, p){ $('app').classList.add('hidden'); $('bloq-t').textContent=t; $('bloq-p').innerHTML=p; $('bloqueio').classList.remove('hidden'); }
+
+  function chips(container, marcados){
+    marcados = marcados || [];
+    container.innerHTML = PAPEIS.map(function(p){
+      var on = marcados.indexOf(p.k)>=0 ? ' checked' : '';
+      return '<label class="pap"><input type="checkbox" value="'+p.k+'"'+on+'>'+p.n+'</label>';
+    }).join('');
+  }
+  function lidos(container){
+    return Array.prototype.map.call(container.querySelectorAll('input:checked'), function(c){ return c.value; });
+  }
+
+  async function chama(acao, extra){
+    var payload = Object.assign({ acao: acao }, extra||{});
+    var r = await fetch(SB_URL + '/functions/v1/equipe', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
+      body: JSON.stringify(payload)
+    });
+    if(r.status===404) throw new Error('A função de equipe ainda não foi publicada no Supabase.');
+    var data = await r.json().catch(function(){ return null; });
+    if(!r.ok || !data || data.erro) throw new Error((data && data.erro) || 'Falha na operação.');
+    return data;
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  async function carrega(){
+    try{
+      var data = await chama('listar');
+      var lista = $('lista');
+      if(!data.equipe.length){ lista.innerHTML = '<div style="color:var(--mut)">Ninguém cadastrado ainda. Adicione a primeira pessoa acima.</div>'; return; }
+      lista.innerHTML = data.equipe.map(function(p){
+        return '<div class="pessoa" data-id="'+p.id+'">'+
+          '<div class="cab"><b>'+esc(p.nome||'(sem nome)')+'</b><span class="em">'+esc(p.email||'')+'</span>'+
+            '<span class="acts">'+
+              '<button class="btn btn--a btn--sm p-salvar">Salvar funções</button>'+
+              '<button class="btn btn--g btn--sm p-senha">Nova senha</button>'+
+              '<button class="btn btn--g btn--sm p-desativar">Desativar</button>'+
+            '</span></div>'+
+          '<div class="paps"></div>'+
+          '<div class="msg"></div>'+
+          '<div class="senha-box hidden"></div>'+
+        '</div>';
+      }).join('');
+      Array.prototype.forEach.call(lista.querySelectorAll('.pessoa'), function(el, i){
+        chips(el.querySelector('.paps'), data.equipe[i].papeis || []);
+      });
+      ligaLista();
+    }catch(e){ $('lista').innerHTML = '<div class="msg err">'+esc(e.message)+'</div>'; }
+  }
+
+  function ligaLista(){
+    Array.prototype.forEach.call(document.querySelectorAll('.pessoa'), function(el){
+      var id = el.getAttribute('data-id');
+      var msg = el.querySelector('.msg');
+      el.querySelector('.p-salvar').onclick = async function(){
+        var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Salvando…';
+        try{ await chama('papeis', { id:id, papeis: lidos(el.querySelector('.paps')) }); msg.className='msg ok'; msg.textContent='Funções salvas ✓'; }
+        catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+        b.disabled=false;
+      };
+      el.querySelector('.p-desativar').onclick = async function(){
+        if(!confirm('Desativar o acesso desta pessoa? Ela não conseguirá mais entrar na oficina.')) return;
+        var b=this; b.disabled=true;
+        try{ await chama('desativar', { id:id }); carrega(); }
+        catch(e){ msg.className='msg err'; msg.textContent=e.message; b.disabled=false; }
+      };
+      el.querySelector('.p-senha').onclick = async function(){
+        var b=this; b.disabled=true; msg.className='msg'; msg.textContent='Gerando…';
+        try{
+          var d = await chama('senha', { id:id });
+          var box = el.querySelector('.senha-box'); box.classList.remove('hidden');
+          box.innerHTML = 'Nova senha provisória: <b>'+esc(d.senha)+'</b><button class="copiar" data-s="'+esc(d.senha)+'">copiar</button><p>Entregue ao funcionário. Ela substitui a senha anterior.</p>';
+          box.querySelector('.copiar').onclick = function(){ navigator.clipboard.writeText(this.getAttribute('data-s')); this.textContent='copiado ✓'; };
+          msg.textContent='';
+        }catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+        b.disabled=false;
+      };
+    });
+  }
+
+  $('btn-criar').onclick = async function(){
+    var b=this, msg=$('n-msg'), box=$('n-senha');
+    var nome = $('n-nome').value.trim(), email = $('n-email').value.trim();
+    if(!nome || !email){ msg.className='msg err'; msg.textContent='Preencha nome e e-mail.'; return; }
+    b.disabled=true; msg.className='msg'; msg.textContent='Criando acesso…'; box.classList.add('hidden');
+    try{
+      var d = await chama('criar', { nome:nome, email:email, papeis: lidos($('n-paps')) });
+      msg.className='msg ok'; msg.textContent='Acesso criado para '+email+' ✓';
+      box.classList.remove('hidden');
+      box.innerHTML = 'Login: <b style="font-size:1rem">'+esc(d.email)+'</b><br>Senha provisória: <b>'+esc(d.senha)+'</b>'+
+        '<button class="copiar" data-s="'+esc(d.senha)+'">copiar senha</button>'+
+        '<p>Entregue login e senha ao funcionário. Ele entra em jusarah.com.br/mecanica.</p>';
+      box.querySelector('.copiar').onclick = function(){ navigator.clipboard.writeText(this.getAttribute('data-s')); this.textContent='copiado ✓'; };
+      $('n-nome').value=''; $('n-email').value=''; chips($('n-paps'), []);
+      carrega();
+    }catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+    b.disabled=false;
+  };
+
+  (async function init(){
+    var s = await sb.auth.getSession();
+    var session = s && s.data ? s.data.session : null;
+    if(!session){ bloqueio('Entre primeiro', 'Faça login em <a href="index.html">jusarah.com.br/mecanica</a> e depois abra esta página.'); return; }
+    TOKEN = session.access_token;
+    var uid = session.user.id;
+    var p = await sb.from('perfis').select('papeis, nivel').eq('id', uid).maybeSingle();
+    var papeis = (p.data && p.data.papeis) || [];
+    var nivel = (p.data && p.data.nivel) || 0;
+    var ehDiretor = papeis.indexOf('diretor_tecnico')>=0 || nivel>=3;
+    if(!ehDiretor){ bloqueio('Acesso restrito', 'Só o diretor técnico pode gerir a equipe.'); return; }
+    $('app').classList.remove('hidden');
+    chips($('n-paps'), []);
+    carrega();
+  })();
+</script>
+</body>
+</html>

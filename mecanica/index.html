@@ -1222,6 +1222,15 @@ async function entrar(){
     window.__ia_init = true;
     Assistente.init(sb, SB_URL, { nome:'Assistente', contexto:'mecanica' });
   }
+
+  // botão de Gestão de Equipe — só para o diretor técnico
+  if((temPapel('diretor_tecnico') || ehAdmin()) && !document.getElementById('fab-equipe')){
+    var ge = document.createElement('a');
+    ge.id = 'fab-equipe'; ge.href = 'equipe.html'; ge.textContent = '👥 Gestão de Equipe';
+    ge.style.cssText = 'position:fixed;left:14px;bottom:14px;z-index:8000;background:#123f6b;color:#fff;'+
+      'padding:10px 14px;border-radius:10px;text-decoration:none;font-size:.85rem;box-shadow:0 6px 18px rgba(0,0,0,.35)';
+    document.body.appendChild(ge);
+  }
 }
 
 /* ---------------- NAVEGAÇÃO ---------------- */
