@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrato de Prestação de Serviços — Jusarah</title>
+<style>
+  :root{
+    --ink:#21261d; --green:#1f5130; --green-d:#143620; --green-700:#1B6E3B;
+    --brass:#a9843f; --brass-l:#c7a86a; --brass-soft:#cbb488;
+    --paper:#faf8f2; --paper-2:#f2eee2; --line:#e3dfd0; --muted:#6f6a5b;
+    --bg:#e9e6dc;
+    --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --sans:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg)}
+  .wrap{max-width:1220px;margin:0 auto;padding:20px;display:grid;
+    grid-template-columns:380px 1fr;gap:22px;align-items:start}
+
+  /* ---------- painel de campos (uso interno) ---------- */
+  .form{position:sticky;top:20px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:18px;max-height:calc(100vh - 40px);overflow:auto;
+    box-shadow:0 6px 24px rgba(33,38,29,.08)}
+  .form h1{font-family:var(--serif);font-size:1.15rem;margin:0 0 3px;color:var(--green-d)}
+  .form .lead{color:var(--muted);font-size:.82rem;margin:0 0 14px}
+  .who{background:#f0f5ef;border:1px solid #d4e2d2;border-radius:10px;padding:9px 11px;
+    font-size:.82rem;margin-bottom:14px;color:var(--green-700)}
+  .who b{color:var(--ink)}
+  .grp{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+  .grp:first-of-type{border-top:0;padding-top:0;margin-top:0}
+  .grp h2{font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;color:var(--brass);
+    font-weight:700;margin:0 0 9px}
+  label{display:block;font-size:.74rem;color:var(--muted);margin:8px 0 3px}
+  input,select,textarea{width:100%;font-family:var(--sans);font-size:.86rem;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fcfbf7}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green-700);background:#fff}
+  textarea{resize:vertical;min-height:50px;line-height:1.4}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .ext{font-size:.72rem;color:var(--green-700);cursor:pointer;user-select:none;margin-top:4px;display:inline-block;font-weight:600}
+  .acts{position:sticky;bottom:-18px;background:#fff;padding:12px 0 2px;margin-top:14px;
+    border-top:1px solid var(--line);display:flex;gap:8px}
+  .btn{flex:1;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:.9rem;cursor:pointer}
+  .btn--print{background:var(--green);color:#fff}
+  .btn--print:hover{background:var(--green-d)}
+  .btn--back{flex:0 0 auto;background:#eceadf;color:var(--ink);text-decoration:none;
+    display:grid;place-items:center;padding:12px 15px;border-radius:9px}
+
+  /* ---------- o documento ---------- */
+  .sheet{background:var(--paper);border-radius:4px;
+    box-shadow:0 2px 4px rgba(33,38,29,.08),0 18px 50px rgba(33,38,29,.14);
+    padding:24mm 22mm 20mm;position:relative;overflow:hidden}
+  .sheet::before{ /* barra superior em latão */
+    content:"";position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,var(--green) 0%,var(--green) 40%,var(--brass) 40%,var(--brass) 100%)}
+
+  .doc{font-family:var(--sans);font-size:10.6pt;line-height:1.62;color:#2a2f24}
+
+  /* cabeçalho / timbre */
+  .lh{text-align:center;padding-bottom:16px;margin-bottom:20px;position:relative}
+  .lh .plane{width:52px;height:auto;margin:2px auto 8px;display:block;color:var(--green)}
+  .lh .brand{font-family:var(--serif);font-size:1.9rem;font-weight:700;letter-spacing:.16em;
+    color:var(--green-d);line-height:1}
+  .lh .brand span{color:var(--brass)}
+  .lh .tagline{font-size:.62rem;letter-spacing:.34em;text-transform:uppercase;color:var(--brass);
+    margin-top:5px;font-weight:600}
+  .lh .rule{width:64px;height:2px;background:var(--brass);margin:13px auto 11px;border-radius:2px}
+  .lh .meta{font-size:.72rem;color:var(--muted);line-height:1.7}
+  .lh .meta b{color:var(--ink)}
+
+  .doctit{text-align:center;margin:8px 0 4px}
+  .doctit .k{font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .doctit h1{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--green-d);
+    margin:5px 0 0;letter-spacing:.02em}
+  .doctit .num{font-size:.72rem;color:var(--muted);margin-top:5px;font-family:var(--sans)}
+
+  /* resumo em linguagem clara */
+  .resumo{background:linear-gradient(180deg,#fff 0%,var(--paper-2) 100%);
+    border:1px solid var(--line);border-left:4px solid var(--green);border-radius:12px;
+    padding:16px 18px;margin:20px 0 6px}
+  .resumo .rh{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .resumo .rh .ic{width:26px;height:26px;flex:none;border-radius:50%;background:var(--green);
+    color:#fff;display:grid;place-items:center;font-size:.82rem}
+  .resumo .rh b{font-family:var(--serif);font-size:1.02rem;color:var(--green-d)}
+  .resumo .rh span{font-size:.68rem;color:var(--muted);margin-left:auto;text-align:right;max-width:20ch;line-height:1.3}
+  .rg2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .ri{background:var(--paper);padding:9px 12px}
+  .ri.full{grid-column:1 / -1}
+  .ri .l{font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .ri .v{font-size:.92rem;color:var(--ink);margin-top:2px;line-height:1.35}
+  .ri .v.big{font-family:var(--serif);font-weight:700;color:var(--green-d);font-size:1.12rem}
+  .ri .v .bl{color:#b23a2f;font-style:italic;font-weight:400;font-size:.82rem}
+
+  /* corpo jurídico */
+  .body{margin-top:22px}
+  .body p{margin:0 0 9px;text-align:justify;hyphens:auto}
+  .lead-p{color:#3a3f30}
+  .party{background:var(--paper-2);border:1px solid var(--line);border-radius:9px;
+    padding:11px 14px;margin:10px 0}
+  .party.contratada{border-left:3px solid var(--brass)}
+  .party.contratante{border-left:3px solid var(--green)}
+  .cl{font-family:var(--serif);font-weight:700;color:var(--green-d);font-size:1.02rem;
+    margin:18px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;gap:9px}
+  .cl .cn{font-size:.66rem;letter-spacing:.14em;color:#fff;background:var(--green);
+    padding:3px 8px;border-radius:5px;font-family:var(--sans);font-weight:700;flex:none;letter-spacing:.08em}
+  .fill{font-weight:700;color:var(--green-d)}
+  .blank{color:#b23a2f;font-weight:700}
+  .valorbox{display:inline}
+
+  /* assinaturas */
+  .close-p{margin:16px 0 4px}
+  .assin{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:22px 44px}
+  .sig{text-align:center}
+  .sig .ln{border-top:1.4px solid var(--ink);margin-bottom:6px;padding-top:0}
+  .sig b{font-family:var(--serif);display:block;font-size:.94rem;color:var(--ink)}
+  .sig span{display:block;color:var(--muted);font-size:.78rem;margin-top:1px}
+  .sig .role{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);
+    font-weight:700;margin-bottom:4px}
+  .tst{margin-top:26px}
+  .tst .lbl{font-family:var(--serif);font-weight:700;color:var(--green-d);font-size:.92rem;
+    margin-bottom:16px;text-align:center;letter-spacing:.06em}
+
+  .seal{text-align:center;margin-top:26px;color:var(--muted);font-size:.72rem}
+  .seal .s{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--brass-soft);
+    color:var(--brass);border-radius:999px;padding:5px 14px;font-weight:600;letter-spacing:.04em}
+  .foot{margin-top:16px;border-top:1px solid var(--line);padding-top:9px;
+    text-align:center;font-size:.68rem;color:var(--muted);font-style:italic;line-height:1.6}
+
+  @media(max-width:920px){
+    .wrap{grid-template-columns:1fr}
+    .form{position:static;max-height:none}
+    .sheet{padding:16mm 12mm}
+  }
+
+  /* ---------- impressão / PDF ---------- */
+  @media print{
+    @page{ size:A4; margin:12mm 14mm 16mm }
+    body{background:#fff}
+    .wrap{display:block;max-width:none;padding:0}
+    .form{display:none !important}
+    .sheet{box-shadow:none;border-radius:0;padding:0;background:#fff}
+    .sheet::before{display:none}
+    .lh .rule::before{content:""}
+    .doc{font-size:10.3pt;color:#000}
+    .resumo{background:#fff;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cl,.party,.assin,.tst,.sig,.resumo,.seal{break-inside:avoid}
+    .cl{break-after:avoid}
+    .cl .cn,.resumo .rh .ic,.sig .role,.ri .l,.lh .tagline,.doctit .k{
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .foot{position:fixed;bottom:5mm;left:0;right:0;border:0;margin:0}
+    .sheet::after{ /* filete de topo impresso */
+      content:"";position:fixed;top:0;left:0;right:0;height:3px;
+      background:var(--green);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ CAMPOS (uso interno) ============ -->
+  <aside class="form">
+    <h1>Gerar contrato</h1>
+    <p class="lead">Preencha e clique em imprimir para salvar o PDF. Campos vazios aparecem em vermelho no documento.</p>
+    <div class="who" id="who" hidden></div>
+
+    <div class="grp">
+      <h2>Contratante</h2>
+      <label>Nome completo</label>
+      <input id="f_nome" placeholder="Nome do produtor(a)">
+      <div class="row">
+        <div><label>Nacionalidade</label><input id="f_nac" value="brasileiro(a)"></div>
+        <div><label>Profissão</label><input id="f_prof" value="produtor(a) rural"></div>
+      </div>
+      <div class="row">
+        <div><label>CPF/MF</label><input id="f_cpf" placeholder="000.000.000-00"></div>
+        <div><label>RG</label><input id="f_rg" placeholder="0.000.000"></div>
+      </div>
+      <label>Órgão expedidor do RG</label>
+      <input id="f_org" placeholder="Ex: SSP/RO">
+      <label>Endereço completo</label>
+      <textarea id="f_end" placeholder="Rua/estrada, nº, bairro/zona, cidade-UF, CEP"></textarea>
+    </div>
+
+    <div class="grp">
+      <h2>Objeto (Cláusula 1ª)</h2>
+      <label>Culturas</label>
+      <input id="f_cult" placeholder="Ex: soja e milho">
+      <div class="row">
+        <div><label>Ano-safra</label><input id="f_safra" placeholder="2025/2026"></div>
+        <div><label>Área total (ha)</label><input id="f_area" placeholder="Ex: 1.200"></div>
+      </div>
+      <label>Imóveis / fazendas</label>
+      <textarea id="f_imoveis" placeholder="Ex: Fazenda Santa Maria; Fazenda Boa Vista"></textarea>
+    </div>
+
+    <div class="grp">
+      <h2>Prazos (Cláusula 3ª)</h2>
+      <div class="row">
+        <div><label>Início do período</label><input id="f_ini" placeholder="Ex: outubro/2025"></div>
+        <div><label>Fim do período</label><input id="f_fim" placeholder="Ex: março/2026"></div>
+      </div>
+    </div>
+
+    <div class="grp">
+      <h2>Valor (Cláusula 4ª)</h2>
+      <label>Valor total (R$)</label>
+      <input id="f_valor" placeholder="Ex: 150.000,00" inputmode="decimal">
+      <span class="ext" id="btn_ext">↳ gerar valor por extenso automaticamente</span>
+      <label>Valor por extenso</label>
+      <textarea id="f_ext" placeholder="cento e cinquenta mil reais"></textarea>
+      <label>Vencimento</label>
+      <input id="f_venc" placeholder="Ex: 30/04/2026">
+    </div>
+
+    <div class="grp">
+      <h2>Assinatura</h2>
+      <label>Nº do contrato <span style="text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
+      <input id="f_num" placeholder="Ex: 2026-014">
+      <div class="row-3">
+        <div><label>Dia</label><input id="f_dia" placeholder="00"></div>
+        <div><label>Mês</label><input id="f_mes" placeholder="mês"></div>
+        <div><label>Ano</label><input id="f_ano" placeholder="0000"></div>
+      </div>
+      <label>Testemunha 1 — nome</label>
+      <input id="f_t1n" placeholder="Nome">
+      <div class="row"><div><label>RG</label><input id="f_t1rg"></div><div><label>CPF</label><input id="f_t1cpf"></div></div>
+      <label>Testemunha 2 — nome</label>
+      <input id="f_t2n" placeholder="Nome">
+      <div class="row"><div><label>RG</label><input id="f_t2rg"></div><div><label>CPF</label><input id="f_t2cpf"></div></div>
+    </div>
+
+    <div class="acts">
+      <a class="btn--back" href="index.html" title="Voltar ao painel">←</a>
+      <button class="btn btn--print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    </div>
+  </aside>
+
+  <!-- ============ DOCUMENTO ============ -->
+  <div class="sheet"><article class="doc" id="doc"></article></div>
+</div>
+
+<script>
+/* ---------- dados fixos da CONTRATADA ---------- */
+var EMPRESA = {
+  nome:'JUSARAH AEROAGRICOLA LTDA', cnpj:'46.691.888/0001-57',
+  sede:'Estrada Linha 02, Lote 09 R2, s/n, Zona Rural do município de Cerejeiras-RO, CEP 76.997-000',
+  socia:'TAYLLA LARA SCHERWINSKI', socia_q:'brasileira, casada, empresária',
+  socia_cpf:'015.552.091-14', socia_rg:'17171261 SSP/MT'
+};
+var FOOT_ADDR = 'Estrada Linha 02, Lote 09 R2, s/n – Zona Rural – Cerejeiras-RO · Fone (69) 99325-7000 · r.f.comando1@hotmail.com';
+
+/* avião line-art (timbre) */
+var PLANE = '<svg class="plane" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">'+
+  '<path d="M60 12 c4 0 6 5 6 13 l0 20 40 16 0 9 -40 -9 0 24 12 8 0 7 -18 -4 -18 4 0 -7 12 -8 0 -24 -40 9 0 -9 40 -16 0 -20 c0 -8 2 -13 6 -13z"/></svg>';
+
+/* ---------- valor por extenso (reais) ---------- */
+function extenso(n){
+  n = Math.round(n*100)/100;
+  var inteiro = Math.floor(n), cent = Math.round((n-inteiro)*100);
+  function ate999(x){
+    if(x===0) return '';
+    if(x===100) return 'cem';
+    var u=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+    var d=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+    var c=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+    var partes=[], centena=Math.floor(x/100), resto=x%100;
+    if(centena) partes.push(c[centena]);
+    if(resto){
+      if(resto<20) partes.push(u[resto]);
+      else{ var dez=Math.floor(resto/10), un=resto%10; partes.push(un? d[dez]+' e '+u[un] : d[dez]); }
+    }
+    return partes.join(' e ');
+  }
+  function grupo(x, sing, plur){ if(x===0) return ''; if(x===1) return 'um '+sing; return ate999(x)+' '+plur; }
+  if(inteiro===0 && cent===0) return 'zero reais';
+  var milhoes=Math.floor(inteiro/1000000), milhares=Math.floor((inteiro%1000000)/1000), unidades=inteiro%1000;
+  var blocos=[];
+  if(milhoes) blocos.push(grupo(milhoes,'milhão','milhões'));
+  if(milhares) blocos.push(milhares===1?'mil':ate999(milhares)+' mil');
+  if(unidades) blocos.push(ate999(unidades));
+  var reaisTxt='';
+  if(inteiro>0){
+    var conector = (milhoes>0 && milhares===0 && unidades===0) ? ' de ' : ' ';
+    reaisTxt = blocos.join(' e ') + conector + (inteiro===1?'real':'reais');
+  }
+  var centTxt='';
+  if(cent>0){ centTxt = ate999(cent) + ' ' + (cent===1?'centavo':'centavos'); }
+  if(reaisTxt && centTxt) return reaisTxt+' e '+centTxt;
+  return reaisTxt || centTxt;
+}
+function parseValor(s){
+  if(!s) return NaN;
+  s = String(s).replace(/[^\d,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.');
+  return parseFloat(s);
+}
+
+/* ---------- helpers ---------- */
+function v(id){ return (document.getElementById(id).value||'').trim(); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+function fld(val, ph){
+  val = (val||'').trim();
+  return val ? '<b class="fill">'+esc(val)+'</b>' : '<b class="blank">'+esc(ph||'_______________')+'</b>';
+}
+function resumoVal(val, ph){
+  val = (val||'').trim();
+  return val ? esc(val) : '<span class="bl">'+esc(ph||'a preencher')+'</span>';
+}
+
+/* ---------- render do contrato ---------- */
+function render(){
+  var d = {
+    nome:v('f_nome'), nac:v('f_nac'), prof:v('f_prof'), cpf:v('f_cpf'), rg:v('f_rg'),
+    org:v('f_org'), end:v('f_end'), cult:v('f_cult'), safra:v('f_safra'), area:v('f_area'),
+    imoveis:v('f_imoveis'), ini:v('f_ini'), fim:v('f_fim'), valor:v('f_valor'), ext:v('f_ext'),
+    venc:v('f_venc'), num:v('f_num'), dia:v('f_dia'), mes:v('f_mes'), ano:v('f_ano'),
+    t1n:v('f_t1n'), t1rg:v('f_t1rg'), t1cpf:v('f_t1cpf'), t2n:v('f_t2n'), t2rg:v('f_t2rg'), t2cpf:v('f_t2cpf')
+  };
+  var E = EMPRESA;
+  var valorTxt = d.valor ? ('<b class="fill">R$ '+esc(d.valor)+'</b>'+(d.ext?(' (<b class="fill">'+esc(d.ext)+'</b>)'):'')) : fld('', 'valor total');
+  var periodoResumo = (d.ini||d.fim) ? (resumoVal(d.ini,'início')+' a '+resumoVal(d.fim,'fim')) : '<span class="bl">a preencher</span>';
+
+  var h = '';
+
+  /* ---- timbre ---- */
+  h += '<div class="lh">'+PLANE+
+    '<div class="brand">JUSARAH<span>.</span></div>'+
+    '<div class="tagline">Aeroagrícola · Pulverização de Precisão</div>'+
+    '<div class="rule"></div>'+
+    '<div class="meta"><b>'+E.nome+'</b> · CNPJ '+E.cnpj+'<br>'+
+    'Estrada Linha 02, Lote 09 R2, s/n · Zona Rural · Cerejeiras-RO · CEP 76.997-000</div></div>';
+
+  /* ---- título ---- */
+  h += '<div class="doctit"><div class="k">Instrumento Particular</div>'+
+    '<h1>Contrato de Prestação de Serviços</h1>'+
+    '<div class="num">Pulverização Aeroagrícola'+(d.num?(' · Contrato nº <b>'+esc(d.num)+'</b>'):'')+'</div></div>';
+
+  /* ---- resumo em linguagem clara ---- */
+  h += '<div class="resumo">'+
+    '<div class="rh"><span class="ic">✓</span><b>Em resumo, em linguagem clara</b>'+
+    '<span>Um guia rápido. O que vale juridicamente são as cláusulas adiante.</span></div>'+
+    '<div class="rg2">'+
+      '<div class="ri"><div class="l">Quem contrata</div><div class="v">'+resumoVal(d.nome,'o produtor')+'</div></div>'+
+      '<div class="ri"><div class="l">Quem executa</div><div class="v">Jusarah Aeroagrícola</div></div>'+
+      '<div class="ri"><div class="l">Serviço</div><div class="v">Pulverização aérea nas suas lavouras</div></div>'+
+      '<div class="ri"><div class="l">Culturas</div><div class="v">'+resumoVal(d.cult,'a definir')+'</div></div>'+
+      '<div class="ri"><div class="l">Área</div><div class="v">'+resumoVal(d.area,'—')+' hectares</div></div>'+
+      '<div class="ri"><div class="l">Safra</div><div class="v">'+resumoVal(d.safra,'—')+'</div></div>'+
+      '<div class="ri full"><div class="l">Fazendas atendidas</div><div class="v">'+resumoVal(d.imoveis,'a definir')+'</div></div>'+
+      '<div class="ri"><div class="l">Período do serviço</div><div class="v">'+periodoResumo+'</div></div>'+
+      '<div class="ri"><div class="l">Vencimento</div><div class="v">'+resumoVal(d.venc,'—')+'</div></div>'+
+      '<div class="ri full"><div class="l">Valor total</div><div class="v big">'+
+        (d.valor?('R$ '+esc(d.valor)):'<span class="bl">a preencher</span>')+
+        (d.ext?(' <span style="font-size:.7rem;font-weight:400;color:var(--muted)">('+esc(d.ext)+')</span>'):'')+'</div></div>'+
+      '<div class="ri"><div class="l">Atendimento</div><div class="v">Voo em até 48h após o pedido (24h em urgência)</div></div>'+
+      '<div class="ri"><div class="l">Proteção dos dois lados</div><div class="v">Multa de 30% a quem descumprir</div></div>'+
+    '</div></div>';
+
+  /* ---- corpo jurídico ---- */
+  h += '<div class="body">';
+  h += '<p class="lead-p">Pelo presente instrumento particular e na melhor forma de direito, as partes têm, entre si, como justo o presente Contrato de Prestação de Serviços de Pulverização Aeroagrícola, que se regerá pelas cláusulas seguintes e condições descritas.</p>';
+  h += '<p>Em caso de divergência na interpretação dos dispositivos do presente contrato, a ordem de procedência deve ser, respectivamente, do contrato pura e simplesmente, dos anexos e dos outros documentos incluídos por referência, todos interpretados subsidiariamente em conformidade com a legislação aplicável.</p>';
+  h += '<p style="margin-bottom:4px">Pelo presente instrumento particular, de um lado,</p>';
+
+  h += '<div class="party contratante">Eu '+fld(d.nome,'nome do contratante')+', nacionalidade: '+fld(d.nac)+', profissão: '+fld(d.prof)+
+       ', inscrito(a) no CPF/MF sob o número '+fld(d.cpf,'CPF')+', portador(a) da Cédula de Identidade RG nº '+fld(d.rg,'RG')+
+       ', expedida pelo órgão '+fld(d.org,'órgão')+', com endereço situado à '+fld(d.end,'endereço')+
+       ', denominados como <b>CONTRATANTES</b>; e de outro</div>';
+
+  h += '<div class="party contratada"><b>'+E.nome+'</b> pessoa jurídica de direito privado, inscrita sob CNPJ nº '+E.cnpj+
+       ', com sede a '+E.sede+', neste ato representada por sua sócia administradora <b>'+E.socia+'</b>, '+E.socia_q+
+       ', inscrita no CPF/MF nº '+E.socia_cpf+' e portadora do documento de identidade RG nº '+E.socia_rg+
+       ', denominada <b>CONTRATADA</b>.</div>';
+
+  h += cl(1,'DO OBJETO DO CONTRATO')+
+    '<p>1.1 O presente contrato tem por objeto a prestação de serviços profissionais especializados em discriminação e controle de agricultura agrícola.</p>'+
+    '<p>1.2 Os serviços descritos neste contrato serão desenvolvidos nas culturas de '+fld(d.cult,'culturas')+
+      ' ano safra '+fld(d.safra,'ano-safra')+' em uma área total de '+fld(d.area,'área')+
+      ' hectares nos imóveis denominados: '+fld(d.imoveis,'imóveis')+'.</p>';
+
+  h += cl(2,'DOS SERVIÇOS')+
+    '<p>2.1 A CONTRATADA obriga-se a realizar os serviços de interferência aérea nas áreas acima descritas, de acordo com as orientações técnicas necessárias, utilizando equipamentos e produtos adequados, bem como observar os prazos propostos em comum acordo com os CONTRATANTES.</p>'+
+    '<p>2.2 Os serviços de fornecimento aéreo serão realizados de acordo com as boas práticas do setor e as legislações vigentes, mantendo-se em conformidade com as recomendações dos órgãos competentes para uso de produtos químicos, se necessário.</p>';
+
+  h += cl(3,'DOS PRAZOS')+
+    '<p>3.1 Os serviços de transferência aérea serão realizados no ano safra '+fld(d.safra,'ano-safra')+
+      ', no período compreendido entre '+fld(d.ini,'início')+' e '+fld(d.fim,'fim')+'.</p>'+
+    '<p>3.2 Conforme as partes puderem, de comum acordo, prorrogar ou antecipar os prazos previstos nesta cláusula, mediante aditivo contratual.</p>';
+
+  h += cl(4,'DOS PREÇOS E CONDIÇÕES DE PAGAMENTO')+
+    '<p>4.1 Pela prestação dos serviços de transferência aérea, os CONTRATANTES pagarão à CONTRATADA o valor total de '+valorTxt+
+      ', com vencimento em '+fld(d.venc,'vencimento')+'.</p>'+
+    '<p>4.2 Os valores mencionados na cláusula anterior serão reajustados anualmente, com base na variação do IGP-M.</p>'+
+    '<p>4.3 O pagamento deverá ser realizado em conta bancária a ser indicado pela CONTRATADA, mediante boletos bancários a serem emitidos e encaminhados pelos meios e endereços de contato indicados pelos CONTRATANTES.</p>';
+
+  h += cl(5,'DAS OBRIGAÇÕES DA CONTRATADA')+
+    '<p>5.1 A CONTRATADA compromete-se a realizar o serviço observando as boas técnicas, normativas ambientais e operacionais e os mais rígidos controles de segurança de voo e pulverização agrícola, e seguirá com rigor a recomendação técnica da consultoria técnica especializada dos engenheiros agrônomos responsáveis pelos CONTRATANTES;</p>'+
+    '<p>5.2 A CONTRATADA fornecerá piloto agrícola devidamente habilitado, 01 (uma) aeronave Embraer 203 Ipanema e toda a documentação/autorizações/licenças necessárias a pulverização;</p>'+
+    '<p>5.3 Geração obrigatória de mapas DGPS para toda aplicação realizada;</p>'+
+    '<p>5.4 Fornecerá os equipamentos necessários, tais quais: motobombas, misturador, bicos hidráulicos e rotativos, distribuidora de sementes e sólidos e todos os demais derivados necessários para o bom funcionamento da aeronave;</p>'+
+    '<p>5.5 As pulverizações serão realizadas em até 48 (quarenta e oito) horas após a solicitação dos CONTRATANTES efetivada por e-mail ou via aplicativo de mensagens (Whatsapp) informando o produto a ser utilizado e o local da pulverização e enviado o receituário agronômico com a descrição dos produtos e dosagens a serem aplicados, com indicação de aplicação aérea, bem como o mapa da área onde será realizado a pulverização, cabendo aos CONTRATANTES verificar se há culturas vizinhas possivelmente incompatíveis com os produtos e informar ao piloto para fazer o planejamento da operação;</p>'+
+    '<p>5.6 Em caso de urgência, devidamente justificada por parecer agronômico, os CONTRATANTES poderão solicitar pulverização de urgência a qual será realizada em até 24 (vinte e quatro) horas após a solicitação formalizada na forma do item 6.5;</p>'+
+    '<p>5.7 A CONTRATADA fica responsável por eventuais danos decorrentes das atividades desenvolvidas por suas aeronaves e seus prepostos para cumprimento do objeto aqui contratado, devendo arcar com indenizações à danos causados aos CONTRATANTES e/ou à terceiros, mediante comprovação de que tais danos decorreram de erros do piloto nas aplicações pulverizadas;</p>'+
+    '<p>5.8 Nos casos em que durante a execução dos serviços aqui contratados, a(s) aeronave(s) precisar se deslocar das bases (localizadas nas áreas que serão pulverizadas) para realização de manutenção, o combustível de deslocamento será de responsabilidade e custeado pela CONTRATADA;</p>'+
+    '<p>5.9 Não será de responsabilidade da CONTRATADA a ineficiência de ação de produtos incompatíveis.</p>';
+
+  h += cl(6,'DAS OBRIGAÇÕES DOS CONTRATANTES')+
+    '<p>6.1 O CONTRATANTE se obriga a assegurar todo suporte necessário às atividades a serem executadas pela CONTRATADA, sendo primordiais a disponibilização de informações pertinentes para a elaboração do trabalho, com a disponibilização de todos os materiais e equipamentos necessários para realização do serviço;</p>'+
+    '<p>6.2 Efetuar o pagamento pelo serviço conforme estabelecido na cláusula 3ª e 4ª do presente contrato;</p>'+
+    '<p>6.3 Fornecer a CONTRATADA todas as informações e elementos necessários ao início e ao desenvolvimento do objeto deste contrato, dentro de um tempo razoável para evitar atrasos ou interrupções dos procedimentos;</p>'+
+    '<p>6.5 Comunicar sobre eventuais reclamações que possam ser feitas em relação aos seus subordinados em relação a CONTRATADA, como, também sobre possíveis danos que podem ter sido causados por eles;</p>'+
+    '<p>6.6 Arcar com eventuais despesas de natureza tributária ou previdenciária que sejam de sua responsabilidade, relacionadas aos serviços especificados neste contrato;</p>'+
+    '<p>6.7 Serão de responsabilidade dos CONTRATANTES o custeio do combustível etanol para realização das aplicações pela aeronave, sendo a compra e a logística ser coordenada pela CONTRATADA;</p>'+
+    '<p>6.8 Serão de responsabilidade dos CONTRATANTES o fornecimento de pista de decolagem e pouso em condições operáveis, as quais serão avaliadas pelo piloto nos dias de operação;</p>'+
+    '<p>6.9 Deverá fornecer local apropriado para o repouso da equipe de trabalho, bem como, água e produtos no local das operações;</p>'+
+    '<p>6.10 Fica vedado aos CONTRATANTES negociar abatimentos, descontos ou dilações de prazo para o pagamento ou execuções dos serviços, sem o prévio conhecimento e autorização da CONTRATADA.</p>';
+
+  h += cl(7,'DO DESCUMPRIMENTO CONTRATUAL')+
+    '<p>7.1 Em caso de descumprimento de qualquer cláusula deste contrato, a parte prejudicada poderá rescindir imediatamente o contrato, não isentando a CONTRATADA de suas responsabilidades referentes ao zelo com informações e dados dos CONTRATANTES;</p>'+
+    '<p>7.2 Em caso de descumprimento contratual, será devida pela parte que lhe deu causa, multa contratual no valor de 30% (trinta por cento) sobre o valor do presente contrato;</p>'+
+    '<p>7.3 A rescisão por descumprimento contratual não exime os CONTRATANTES do pagamento das retribuições já vencidas, em favor da CONTRATADA;</p>'+
+    '<p>7.4 No caso de descumprimento contratual realizada pela CONTRATADA, esta será de igual forma obrigada a realizar a devolução dos valores já pagos referentes a serviços ainda não realizados ao CONTRATANTE.</p>';
+
+  h += cl(8,'DAS DISPOSIÇÕES GERAIS')+
+    '<p>8.1 A CONTRATADA não poderá, de nenhuma forma ou meio, transferir suas responsabilidades e obrigações assumidas, por força deste contrato à terceiros, a não ser com prévia concordância dos CONTRATANTES;</p>'+
+    '<p>8.2 As partes do presente contrato asseguram serem os fiéis representantes legais competentes para assumir as obrigações descritas neste contrato e representar de forma efetiva seus interesses;</p>'+
+    '<p>8.3 A declaração de nulidade de qualquer das cláusulas contidas no presente Contrato não implicará na nulidade das demais.</p>'+
+    '<p>8.4 A responsabilidade administrativa e civil das partes será apurada nos termos da legislação e da regulamentação aplicáveis, independentemente da existência de cláusula que disponha sobre limitação de responsabilidade deste contrato.</p>'+
+    '<p>8.5 O serviço da Pulverização Aérea será prestado somente com misturas compatíveis;</p>'+
+    '<p>8.6 Os herdeiros ou sucessores das partes contratantes se obrigam desde já ao inteiro teor deste contrato.</p>';
+
+  h += cl(9,'DA ELEIÇÃO DE FORO')+
+    '<p>Para dirimir quaisquer controvérsias oriundas do contrato, as partes elegem o foro da comarca de Cerejeiras-RO.</p>'+
+    '<p class="close-p">Por estarem assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor, juntamente com 2 (duas) testemunhas.</p>';
+
+  h += '<p style="margin-top:12px;text-align:center">Cerejeiras, '+fld(d.dia,'___')+' de '+fld(d.mes,'________')+' de '+fld(d.ano,'____')+'.</p>';
+
+  h += '<div class="assin">'+
+    '<div class="sig"><div class="ln"></div><div class="role">Contratada</div><b>'+esc(E.nome)+'</b><span>CNPJ '+esc(E.cnpj)+'</span><span>Taylla Lara Scherwinski · sócia administradora</span></div>'+
+    '<div class="sig"><div class="ln"></div><div class="role">Contratante</div><b>'+esc(d.nome||'—')+'</b><span>CPF '+esc(d.cpf||'nº')+'</span></div>'+
+    '</div>';
+
+  h += '<div class="tst"><div class="lbl">Testemunhas</div><div class="assin" style="margin-top:0">'+
+    '<div class="sig"><div class="ln"></div><b>'+esc(d.t1n||'&nbsp;')+'</b><span>RG '+esc(d.t1rg||'____')+' · CPF '+esc(d.t1cpf||'____')+'</span></div>'+
+    '<div class="sig"><div class="ln"></div><b>'+esc(d.t2n||'&nbsp;')+'</b><span>RG '+esc(d.t2rg||'____')+' · CPF '+esc(d.t2cpf||'____')+'</span></div>'+
+    '</div></div>';
+
+  h += '<div class="seal"><span class="s">✈ Documento emitido pela Jusarah Aeroagrícola</span></div>';
+  h += '</div>'; // .body
+
+  h += '<div class="foot">'+FOOT_ADDR+'<br>Este instrumento é firmado em 2 (duas) vias de igual teor e forma.</div>';
+
+  document.getElementById('doc').innerHTML = h;
+}
+function cl(n, titulo){
+  return '<div class="cl"><span class="cn">CLÁUSULA '+n+'ª</span>'+esc(titulo)+'</div>';
+}
+
+/* ---------- por extenso automático ---------- */
+document.getElementById('btn_ext').addEventListener('click', function(){
+  var n = parseValor(v('f_valor'));
+  if(isNaN(n)){ alert('Digite o valor numérico primeiro (ex: 150.000,00).'); return; }
+  document.getElementById('f_ext').value = extenso(n);
+  render();
+});
+
+/* ---------- auto-preenchimento a partir do painel ---------- */
+(function preencheCliente(){
+  var raw; try{ raw = sessionStorage.getItem('contrato_cliente'); }catch(e){}
+  if(raw){
+    var c; try{ c = JSON.parse(raw); }catch(e){ c=null; }
+    if(c){
+      if(c.nome) document.getElementById('f_nome').value = (c.tipo==='fisica') ? (c.nome||'') : (c.razao_social||c.nome||'');
+      if(c.cpf_cnpj) document.getElementById('f_cpf').value = c.cpf_cnpj;
+      if(c.nacionalidade) document.getElementById('f_nac').value = c.nacionalidade;
+      if(c.profissao) document.getElementById('f_prof').value = c.profissao;
+      if(c.rg) document.getElementById('f_rg').value = c.rg;
+      if(c.rg_orgao) document.getElementById('f_org').value = c.rg_orgao;
+      if(c.endereco) document.getElementById('f_end').value = c.endereco;
+      if(c.fazendas && c.fazendas.length){
+        var nomes = c.fazendas.map(function(f){ return f.nome; }).filter(Boolean);
+        document.getElementById('f_imoveis').value = nomes.join('; ');
+        var soma = c.fazendas.reduce(function(a,f){ return a + (parseFloat(f.hectares)||0); }, 0);
+        if(soma>0) document.getElementById('f_area').value = soma.toLocaleString('pt-BR');
+      }
+      if(c.tipo && c.tipo!=='fisica'){
+        if(!c.nacionalidade) document.getElementById('f_nac').value = '';
+        if(!c.profissao) document.getElementById('f_prof').value = '';
+      }
+      var who = document.getElementById('who');
+      who.hidden = false;
+      who.innerHTML = 'Dados carregados de <b>'+esc(c.nome||'cliente')+'</b>. Complete o que falta abaixo.';
+    }
+  }
+})();
+
+/* ---------- data de hoje pré-preenchida ---------- */
+(function dataHoje(){
+  var m=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var t=new Date();
+  if(!v('f_dia')) document.getElementById('f_dia').value = String(t.getDate());
+  if(!v('f_mes')) document.getElementById('f_mes').value = m[t.getMonth()];
+  if(!v('f_ano')) document.getElementById('f_ano').value = String(t.getFullYear());
+})();
+
+/* ---------- liga inputs ---------- */
+document.querySelectorAll('input,textarea,select').forEach(function(el){ el.addEventListener('input', render); });
+render();
+</script>
+</body>
+</html>

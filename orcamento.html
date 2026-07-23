@@ -211,6 +211,7 @@
             <select id="uf" name="uf">
               <option value="">Escolha o estado</option>
               <option value="RO">Rondônia</option>
+              <option value="AC">Acre</option>
               <option value="MT">Mato Grosso</option>
               <option value="RR">Roraima</option>
               <option value="AM">Amazonas</option>
@@ -338,6 +339,7 @@
     function tratsSel(){ return Array.prototype.slice.call(document.querySelectorAll('input[name="trat"]:checked')).map(function(c){ return c.value; }); }
     var cidades = {
       RO:["Cerejeiras","Vilhena","Colorado do Oeste","Cabixi","Corumbiara","Pimenteiras do Oeste","Chupinguaia","Porto Velho","Ji-Paraná","Ariquemes","Cacoal","Rolim de Moura"],
+      AC:["Acrelândia","Plácido de Castro","Senador Guiomard","Capixaba","Rio Branco","Bujari","Porto Acre","Brasiléia","Epitaciolândia","Xapuri","Assis Brasil","Sena Madureira","Feijó","Cruzeiro do Sul","Tarauacá","Mâncio Lima","Manoel Urbano"],
       MT:["Cuiabá","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Primavera do Leste","Campo Novo do Parecis","Sapezal","Nova Mutum","Tangará da Serra","Campo Verde","Diamantino"],
       RR:["Boa Vista","Cantá","Bonfim","Mucajaí","Alto Alegre","Caracaraí","Rorainópolis","Amajari","Iracema","Normandia","Pacaraima","São Luiz"],
       AM:["Humaitá","Apuí","Lábrea","Boca do Acre","Canutama","Manicoré","Manaus","Itacoatiara","Presidente Figueiredo","Autazes","Careiro","Rio Preto da Eva","Parintins"]

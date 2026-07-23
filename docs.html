@@ -117,6 +117,19 @@
             <div class="fld"><label id="lbl-doc">CPF</label><input type="text" id="f-doc" inputmode="numeric" placeholder="000.000.000-00"></div>
             <div class="fld"><label>Inscrição Estadual <span class="opt">(se tiver)</span></label><input type="text" id="f-ie"></div>
           </div>
+
+          <!-- dados que vão no contrato (pessoa física) -->
+          <div id="pf-extra">
+            <div class="row2">
+              <div class="fld"><label>RG</label><input type="text" id="f-rg" placeholder="0.000.000"></div>
+              <div class="fld"><label>Órgão do RG <span class="opt">(ex: SSP/RO)</span></label><input type="text" id="f-rgorg" placeholder="SSP/RO"></div>
+            </div>
+            <div class="row2">
+              <div class="fld"><label>Nacionalidade</label><input type="text" id="f-nac" placeholder="brasileiro(a)"></div>
+              <div class="fld"><label>Profissão</label><input type="text" id="f-prof" placeholder="produtor(a) rural"></div>
+            </div>
+          </div>
+
           <div class="fld"><label>Endereço completo</label><input type="text" id="f-end" placeholder="Rua/estrada, nº, zona"></div>
           <div class="row2">
             <div class="fld"><label>Cidade</label><input type="text" id="f-cid"></div>
@@ -223,6 +236,7 @@
       $('f-doc').placeholder = pj ? '00.000.000/0000-00' : '000.000.000-00';
       $('fld-rs').classList.toggle('d-hidden', !pj);
       $('rep-box').classList.toggle('d-hidden', !pj);
+      $('pf-extra').classList.toggle('d-hidden', pj); // nacionalidade/profissão/RG só pra PF
       var lista = pj ? DOCS_PJ : DOCS_PF;
       $('d-checklist').innerHTML = '<b>Pra fechar o contrato, a gente precisa destes documentos:</b><br>' +
         lista.map(function(d){ return d.ic + ' ' + d.t; }).join(' &nbsp;·&nbsp; ');
@@ -281,7 +295,8 @@
         // 2) dados + representante
         var dados = {
           cpf_cnpj: val('f-doc'), razao_social: val('f-rs'), inscricao_estadual: val('f-ie'),
-          endereco: val('f-end'), cidade: val('f-cid'), uf: val('f-uf')
+          endereco: val('f-end'), cidade: val('f-cid'), uf: val('f-uf'),
+          rg: val('f-rg'), rg_orgao: val('f-rgorg'), nacionalidade: val('f-nac'), profissao: val('f-prof')
         };
         var rep = (TIPO === 'juridica' && val('r-nome')) ? { nome:val('r-nome'), cpf:val('r-cpf'), telefone:val('r-fone') } : null;
         var r = await sb.rpc('docs_salvar', {

@@ -2387,6 +2387,7 @@ function cardCliente(x){
         '<div><label>E-mail</label><input class="cd-mail" type="text" value="'+esc(c.email||'')+'"></div>' +
       '</div>' +
       '<div class="faz__acts" style="margin-top:10px"><button class="btn btn--green btn--sm cli-save">Salvar dados</button>' +
+        '<button class="btn btn--ghost btn--sm cli-contrato">📄 Gerar contrato</button>' +
         (c.token ? '<button class="btn btn--blue btn--sm cli-doclink" data-t="'+esc(c.token)+'">📎 Copiar link de documentos</button>' : '') +
       '</div>' +
 
@@ -2444,6 +2445,32 @@ function wireClientes(){
       b.disabled = false; b.textContent = 'Salvar dados';
       if(r.error) toast('Erro ao salvar: '+r.error.message, 'err');
       else { toast('Cliente atualizado ✓', 'ok'); loadClientes(); }
+    });
+  });
+
+  // 📄 gerar contrato — leva os dados do cliente para a página do contrato
+  document.querySelectorAll('.cli-contrato').forEach(function(b){
+    b.addEventListener('click', function(){
+      var card = b.closest('.cli'), id = card.getAttribute('data-id');
+      var x = CLIENTES.filter(function(o){ return String(o.c.id) === String(id); })[0];
+      if(!x){ toast('Cliente não encontrado.', 'err'); return; }
+      // monta o endereço completo a partir das partes que o cliente tem
+      var endParts = [x.c.endereco, x.c.bairro, (x.c.cidade && x.c.uf) ? (x.c.cidade+'-'+x.c.uf) : (x.c.cidade||x.c.uf), x.c.cep]
+        .map(function(s){ return (s||'').trim(); }).filter(Boolean);
+      var payload = {
+        tipo: x.c.tipo || 'fisica',
+        nome: x.c.nome || '',
+        razao_social: x.c.razao_social || '',
+        cpf_cnpj: x.c.cpf_cnpj || '',
+        nacionalidade: x.c.nacionalidade || '',
+        profissao: x.c.profissao || '',
+        rg: x.c.rg || '',
+        rg_orgao: x.c.rg_orgao || '',
+        endereco: endParts.join(', '),
+        fazendas: (x.fz || []).map(function(f){ return { nome:f.nome||'', hectares:f.hectares||'', local:f.local||'' }; })
+      };
+      try{ sessionStorage.setItem('contrato_cliente', JSON.stringify(payload)); }catch(e){}
+      window.open('contrato.html', '_blank');
     });
   });
 
