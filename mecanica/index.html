@@ -7,6 +7,7 @@
 <title>Manutenção · Jusarah</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/js/qr.js"></script>
+<script src="../assets/js/assistente.js"></script>
 <style>
   :root{
     --blue:#1B3F8F; --blue-d:#122a5f; --sky:#2E86C1; --green:#2f9e44; --green-d:#1B6E3B;
@@ -1215,6 +1216,12 @@ async function entrar(){
   await carregaAeronaves();
   await carregaQuadro();
   await carregaOficina();
+
+  // assistente de IA (aparece só depois de logado)
+  if(window.Assistente && !window.__ia_init){
+    window.__ia_init = true;
+    Assistente.init(sb, SB_URL, { nome:'Assistente', contexto:'mecanica' });
+  }
 }
 
 /* ---------------- NAVEGAÇÃO ---------------- */
