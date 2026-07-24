@@ -2136,12 +2136,17 @@ async function abreOS(id, scrollRestaurar){
     } else {
       acao = '<button class="btn btn--ghost btn--sm" data-cust="'+tipo+'">Registrar</button>';
     }
+    // link com Face ID para o piloto/proprietário assinar pelo celular
+    var linkBtn = '';
+    if(tipo === 'entrega' || (tipo === 'retirada' && encerrada)){
+      linkBtn = '<button class="btn btn--blue btn--sm" data-linkass="'+tipo+'">🔗 Link p/ assinar (Face ID)</button>';
+    }
     return '<div class="cust'+(tipo==='retirada' && !encerrada ? ' cust--bloq' : '')+'">'+
       '<div class="cust__ic">'+ic+'</div><div class="cust__b">'+
       '<div class="cust__t">'+rotulo+'</div><div class="cust__s">'+
       (tipo==='retirada' && !encerrada
         ? 'processo em andamento — etapa '+o.etapa+' de 11'
-        : 'ainda não registrado')+'</div></div>'+acao+'</div>';
+        : 'ainda não registrado')+'</div></div>'+acao+linkBtn+'</div>';
   }
   var custHtml =
     blocoCustodia('entrega',  o.entrega_nome,  o.entrega_doc,  o.entrega_anac,  o.entrega_em,
@@ -2356,6 +2361,42 @@ async function abreOS(id, scrollRestaurar){
   if($("add-foto")) $("add-foto").onclick = function(){ novaMidia(id, o, recarrega, null); };
 
   /* --- cadeia de custódia: assinatura presencial do piloto --- */
+  document.querySelectorAll('[data-linkass]').forEach(function(b){
+    b.onclick = async function(){
+      var tipo = b.dataset.linkass, txt = b.textContent;
+      b.disabled = true; b.textContent = 'Gerando…';
+      try{
+        var sess = await sb.auth.getSession();
+        var tok = sess.data.session.access_token;
+        var r = await fetch(SB_URL + '/functions/v1/assinatura', {
+          method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+tok },
+          body: JSON.stringify({ acao:'gerar', os_id:o.id, tipo:tipo })
+        });
+        var d = await r.json().catch(function(){ return null; });
+        if(r.status===404) throw new Error('A função de assinatura ainda não foi publicada no Supabase.');
+        if(!r.ok || !d || d.erro) throw new Error((d && d.erro) || 'Falha ao gerar o link.');
+        var link = location.origin + '/a/' + d.token;
+        var wa = 'https://wa.me/?text=' + encodeURIComponent('Assinatura da ' + (tipo==='entrega'?'entrega':'retirada') + ' da aeronave — Jusarah Manutenção:\n' + link);
+        var ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:9600;background:rgba(4,10,22,.72);display:grid;place-items:center;padding:16px';
+        ov.innerHTML = '<div style="background:#0b1e42;border:1px solid rgba(127,212,255,.2);border-radius:14px;max-width:400px;width:100%;padding:20px;color:#e6eef7;font-family:inherit">'+
+          '<h3 style="margin:0 0 4px;font-size:1.05rem">🔗 Link de assinatura — '+(tipo==='entrega'?'entrega':'retirada')+'</h3>'+
+          '<p style="margin:0 0 12px;color:#8fb4d6;font-size:.85rem">Mande para o piloto/proprietário. Ele assina no celular com Face ID.</p>'+
+          '<input id="lk-url" value="'+link+'" readonly style="width:100%;box-sizing:border-box;background:#0b1a2e;border:1px solid rgba(127,212,255,.2);border-radius:9px;padding:11px;color:#eaf2fb;font-size:.82rem">'+
+          '<div style="display:flex;gap:8px;margin-top:12px">'+
+            '<button id="lk-cop" style="flex:1;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">📋 Copiar</button>'+
+            '<a href="'+wa+'" target="_blank" rel="noopener" style="flex:1;text-align:center;border-radius:9px;padding:12px;background:#1B6E3B;color:#fff;font-weight:700;text-decoration:none">💬 WhatsApp</a>'+
+          '</div>'+
+          '<button id="lk-fecha" style="width:100%;margin-top:8px;border:0;border-radius:9px;padding:10px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
+        '</div>';
+        document.body.appendChild(ov);
+        ov.querySelector('#lk-cop').onclick = function(){ navigator.clipboard.writeText(link); this.textContent='✓ Copiado'; };
+        ov.querySelector('#lk-fecha').onclick = function(){ ov.remove(); };
+      }catch(e){ toast(e.message, 'err'); }
+      b.disabled = false; b.textContent = txt;
+    };
+  });
+
   document.querySelectorAll('[data-cust]').forEach(function(b){
     b.onclick = function(){
       var tipo = b.dataset.cust;

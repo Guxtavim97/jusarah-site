@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Assinatura · Jusarah Manutenção</title>
+<style>
+  :root{ --bg:#071228; --card:#0b1e42; --line:rgba(127,212,255,.16); --azul:#4a9fd4; --verde:#1B6E3B; --txt:#e6eef7; --mut:#8fb4d6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#0b2942,#071228);color:var(--txt);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.55;min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:22px 18px 40px}
+  .marca{text-align:center;padding:8px 0 4px}
+  .marca img{height:64px}
+  .marca .n{font-weight:800;letter-spacing:.16em;color:#cfe3f5;font-size:1.1rem;margin-top:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:16px}
+  .kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--azul);font-weight:700}
+  h1{font-size:1.35rem;margin:6px 0 4px}
+  .av{font-size:1.05rem;color:#bcd6ee;margin:2px 0 0}
+  .decl{background:rgba(127,212,255,.06);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:16px;font-size:.92rem;color:#d7e6f5}
+  label{display:block;font-size:.76rem;color:var(--mut);margin:12px 0 4px}
+  input{width:100%;background:#0b1a2e;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--txt);font-size:1rem;font-family:inherit}
+  input:focus{outline:none;border-color:var(--azul)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{width:100%;border:0;border-radius:12px;padding:15px;font-weight:800;font-size:1.05rem;cursor:pointer;color:#fff;margin-top:18px;background:var(--verde)}
+  .btn:disabled{opacity:.6}
+  .msg{font-size:.9rem;margin-top:12px;min-height:1.2em}
+  .err{color:#ff9a8a} .ok{color:#9be3b6}
+  .seg{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:.78rem;margin-top:14px;justify-content:center;text-align:center}
+  .comprov{text-align:center;padding:10px 0}
+  .comprov .ok-ic{width:82px;height:82px;border-radius:50%;background:var(--verde);display:grid;place-items:center;font-size:2.6rem;margin:0 auto 14px}
+  .comprov .selo{font-family:monospace;font-size:1.5rem;letter-spacing:2px;color:#9be3b6;margin:8px 0}
+  .comprov .info{color:var(--mut);font-size:.9rem}
+  .center{text-align:center;margin-top:16vh;color:var(--mut)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marca">
+    <img src="/assets/img/logo-branca.png" alt="Jusarah" onerror="this.style.display='none'">
+    <div class="n">JUSARAH · MANUTENÇÃO</div>
+  </div>
+
+  <div id="carregando" class="center">Carregando…</div>
+
+  <div id="form" class="card hidden">
+    <div class="kicker" id="k-tipo">Assinatura</div>
+    <h1 id="titulo">—</h1>
+    <div class="av" id="aeronave">—</div>
+
+    <div class="decl" id="decl"></div>
+
+    <div class="row">
+      <div><label>Nome completo *</label><input id="f-nome" placeholder="Seu nome"></div>
+      <div><label>CPF *</label><input id="f-cpf" placeholder="000.000.000-00" inputmode="numeric"></div>
+    </div>
+    <div class="row">
+      <div><label>Código ANAC</label><input id="f-anac" placeholder="CANAC"></div>
+      <div><label>Matrícula da aeronave</label><input id="f-mat" placeholder="PS-XXX"></div>
+    </div>
+
+    <button class="btn" id="btn-assinar">🔐 Assinar com Face ID</button>
+    <div id="msg" class="msg"></div>
+    <div class="seg">🔒 Sua biometria fica no seu celular. Registramos apenas a prova da assinatura, com data, hora e aparelho.</div>
+  </div>
+
+  <div id="pronto" class="card hidden">
+    <div class="comprov">
+      <div class="ok-ic">✓</div>
+      <h1 id="p-titulo">Assinatura registrada!</h1>
+      <div class="selo" id="p-selo">—</div>
+      <div class="info" id="p-info"></div>
+      <div class="seg" style="margin-top:18px">Guarde este comprovante. A oficina recebeu sua assinatura.</div>
+    </div>
+  </div>
+
+  <div id="erro" class="center hidden"></div>
+</div>
+
+<script>
+  var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+  var TK = new URLSearchParams(location.search).get('t') || (location.pathname.match(/\/a\/([^\/?#]+)/)||[])[1] || '';
+  function $(id){ return document.getElementById(id); }
+</script>
+<script type="module">
+  import { startRegistration } from "https://esm.sh/@simplewebauthn/browser@13";
+
+  var DECL = {
+    entrega: 'Declaro que estou <b>entregando esta aeronave</b> à Jusarah Manutenção para o serviço, e que as informações acima são verdadeiras.',
+    retirada: 'Declaro que estou <b>retirando esta aeronave</b> da Jusarah Manutenção, ciente da conclusão do serviço registrada no sistema, e que as informações acima são verdadeiras.'
+  };
+
+  async function chama(acao, extra){
+    var r = await fetch(SB_URL + '/functions/v1/assinatura', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(Object.assign({ acao:acao, token:TK }, extra||{}))
+    });
+    var data = await r.json().catch(function(){ return null; });
+    if(!r.ok || !data || data.erro) throw new Error((data && data.erro) || 'Falha na operação.');
+    return data;
+  }
+  function mostraErro(txt){ $('carregando').classList.add('hidden'); $('form').classList.add('hidden'); var e=$('erro'); e.classList.remove('hidden'); e.innerHTML='<h1 style="color:#ff9a8a">Ops</h1><p>'+txt+'</p>'; }
+
+  (async function init(){
+    if(!TK){ mostraErro('Link inválido.'); return; }
+    try{
+      var i = await chama('info');
+      $('carregando').classList.add('hidden');
+      if(i.assinado){
+        $('pronto').classList.remove('hidden');
+        $('p-titulo').textContent = 'Este documento já foi assinado';
+        $('p-selo').textContent = i.selo || '';
+        $('p-info').textContent = i.rotulo + ' · OS ' + (i.numero||'?');
+        return;
+      }
+      $('form').classList.remove('hidden');
+      $('k-tipo').textContent = i.tipo === 'entrega' ? 'Entrega da aeronave' : 'Retirada da aeronave';
+      $('titulo').textContent = i.rotulo;
+      $('aeronave').textContent = 'Aeronave: ' + (i.prefixo || '') + (i.modelo ? ' · '+i.modelo : '') + ' · OS ' + (i.numero||'?');
+      $('decl').innerHTML = DECL[i.tipo] || '';
+      if(i.prefixo) $('f-mat').value = i.prefixo;
+    }catch(e){ mostraErro(e.message); }
+  })();
+
+  $('btn-assinar').onclick = async function(){
+    var b=this, msg=$('msg');
+    var nome=$('f-nome').value.trim(), cpf=$('f-cpf').value.trim();
+    if(!nome || !cpf){ msg.className='msg err'; msg.textContent='Preencha nome e CPF.'; return; }
+    b.disabled=true; msg.className='msg'; msg.textContent='Preparando…';
+    try{
+      var opts = await chama('opcoes');
+      msg.textContent='Confirme com o Face ID / digital…';
+      var att = await startRegistration({ optionsJSON: opts });
+      var r = await chama('assinar', { att:att, nome:nome, cpf:cpf, codigo_anac:$('f-anac').value.trim(), matricula:$('f-mat').value.trim() });
+      $('form').classList.add('hidden');
+      $('pronto').classList.remove('hidden');
+      $('p-selo').textContent = r.selo;
+      $('p-info').textContent = (r.tipo==='entrega'?'Entrega':'Retirada') + ' · ' + (r.prefixo||'') + ' · OS ' + (r.numero||'?');
+    }catch(e){ msg.className='msg err'; msg.textContent='❌ '+(e.message||e); b.disabled=false; }
+  };
+</script>
+</body>
+</html>
