@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Teste Face ID · Jusarah Manutenção</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  body{margin:0;background:#071228;color:#e6eef7;font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.55}
+  .wrap{max-width:520px;margin:0 auto;padding:22px}
+  h1{font-size:1.25rem} .sub{color:#8fb4d6;font-size:.9rem}
+  .card{background:#0b1e42;border:1px solid rgba(127,212,255,.16);border-radius:14px;padding:18px;margin:14px 0}
+  .card h2{font-size:1rem;margin:0 0 6px}
+  .card p{color:#8fb4d6;font-size:.86rem;margin:0 0 12px}
+  input{width:100%;box-sizing:border-box;background:#0b1a2e;border:1px solid rgba(127,212,255,.2);border-radius:9px;padding:11px;color:#eaf2fb;margin-bottom:10px;font-family:inherit}
+  .btn{width:100%;border:0;border-radius:10px;padding:13px;font-weight:700;font-size:1rem;cursor:pointer;color:#fff}
+  .btn--v{background:#1B6E3B} .btn--a{background:#1e5a8a}
+  .btn:disabled{opacity:.6}
+  .msg{font-size:.9rem;margin-top:10px;min-height:1.2em;white-space:pre-wrap}
+  .ok{color:#9be3b6} .err{color:#ff9a8a}
+  .center{max-width:440px;margin:16vh auto;text-align:center;padding:24px}
+  .center a{color:#4a9fd4}
+  .lista{font-size:.82rem;color:#bcd6ee;margin-top:8px}
+  .aviso{background:rgba(255,196,77,.1);border:1px solid rgba(255,196,77,.3);color:#ffd98a;border-radius:10px;padding:11px 13px;font-size:.83rem;margin-bottom:14px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div id="app" class="wrap hidden">
+  <h1>🔐 Teste de Face ID</h1>
+  <p class="sub">Página de teste. Cadastre o Face ID deste aparelho e depois teste a assinatura biométrica. Nada aqui mexe nas ordens de serviço reais.</p>
+  <div class="aviso">Funciona só em <b>jusarah.com.br</b> (domínio real, HTTPS) e num aparelho com biometria (Face ID / digital). No computador comum pode não ter biometria.</div>
+
+  <div class="card">
+    <h2>1) Cadastrar este aparelho</h2>
+    <p>Dê um apelido (ex: "iPhone do Aislan") e cadastre. O celular vai pedir o Face ID / digital.</p>
+    <input id="apelido" placeholder="Apelido do aparelho">
+    <button class="btn btn--v" id="btn-reg">Cadastrar Face ID</button>
+    <div id="msg-reg" class="msg"></div>
+    <div id="lista" class="lista"></div>
+  </div>
+
+  <div class="card">
+    <h2>2) Testar a assinatura</h2>
+    <p>Simula uma assinatura. O celular pede o Face ID; se reconhecer, valida no servidor.</p>
+    <button class="btn btn--a" id="btn-sig">Assinar com Face ID</button>
+    <div id="msg-sig" class="msg"></div>
+  </div>
+</div>
+
+<div id="bloqueio" class="center hidden">
+  <h1 id="bt">Entre primeiro</h1>
+  <p id="bp" style="color:#8fb4d6"></p>
+</div>
+
+<script>
+  var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+  var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+  window.__sb = window.supabase.createClient(SB_URL, SB_KEY);
+</script>
+
+<script type="module">
+  import { startRegistration, startAuthentication } from "https://esm.sh/@simplewebauthn/browser@13";
+  var sb = window.__sb;
+  var $ = function(id){ return document.getElementById(id); };
+  var TOKEN = null;
+
+  async function chama(acao, extra){
+    var r = await fetch(SB_URL + '/functions/v1/faceid', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
+      body: JSON.stringify(Object.assign({ acao:acao }, extra||{}))
+    });
+    if(r.status===404) throw new Error('A função faceid ainda não foi publicada no Supabase.');
+    var data = await r.json().catch(function(){ return null; });
+    if(!r.ok || !data || data.erro) throw new Error((data && data.erro) || 'Falha na operação.');
+    return data;
+  }
+
+  async function listaPasskeys(){
+    var s = await sb.auth.getSession();
+    var uid = s.data.session.user.id;
+    var p = await sb.from('manut_passkeys').select('apelido, criado_em').eq('user_id', uid);
+    var box = $('lista');
+    if(p.data && p.data.length){
+      box.innerHTML = 'Aparelhos cadastrados: ' + p.data.map(function(x){ return (x.apelido||'aparelho'); }).join(', ');
+    } else { box.textContent = 'Nenhum aparelho cadastrado ainda.'; }
+  }
+
+  $('btn-reg').onclick = async function(){
+    var b=this, msg=$('msg-reg'); b.disabled=true; msg.className='msg'; msg.textContent='Preparando…';
+    try{
+      var opts = await chama('registrar_opcoes', {});
+      msg.textContent='Confirme com o Face ID / digital…';
+      var att = await startRegistration({ optionsJSON: opts });
+      await chama('registrar_confirmar', { att: att, apelido: $('apelido').value });
+      msg.className='msg ok'; msg.textContent='✅ Aparelho cadastrado! Agora teste a assinatura abaixo.';
+      listaPasskeys();
+    }catch(e){ msg.className='msg err'; msg.textContent='❌ '+(e.message||e); }
+    b.disabled=false;
+  };
+
+  $('btn-sig').onclick = async function(){
+    var b=this, msg=$('msg-sig'); b.disabled=true; msg.className='msg'; msg.textContent='Preparando…';
+    try{
+      var opts = await chama('assinar_opcoes', {});
+      msg.textContent='Confirme com o Face ID / digital…';
+      var assertion = await startAuthentication({ optionsJSON: opts });
+      var r = await chama('assinar_confirmar', { assertion: assertion });
+      msg.className='msg ok'; msg.textContent='✅ Assinatura validada com Face ID! (teste ok)';
+    }catch(e){ msg.className='msg err'; msg.textContent='❌ '+(e.message||e); }
+    b.disabled=false;
+  };
+
+  (async function init(){
+    var s = await sb.auth.getSession();
+    var session = s && s.data ? s.data.session : null;
+    if(!session){ $('bt').textContent='Entre primeiro'; $('bp').innerHTML='Faça login em <a href="/mecanica/">jusarah.com.br/mecanica</a> e depois abra esta página.'; $('bloqueio').classList.remove('hidden'); return; }
+    TOKEN = session.access_token;
+    $('app').classList.remove('hidden');
+    listaPasskeys();
+  })();
+</script>
+</body>
+</html>
