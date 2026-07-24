@@ -114,6 +114,10 @@
         $('p-info').textContent = i.rotulo + ' · OS ' + (i.numero||'?');
         return;
       }
+      if(i.vencido){
+        mostraErro('Este link expirou por segurança. Peça um novo à oficina da Jusarah.');
+        return;
+      }
       $('form').classList.remove('hidden');
       $('k-tipo').textContent = i.tipo === 'entrega' ? 'Entrega da aeronave' : 'Retirada da aeronave';
       $('titulo').textContent = i.rotulo;
