@@ -663,6 +663,7 @@
     <div class="spacer"></div>
     <div class="who"><b id="u-nome">—</b><div class="papeis" id="u-papeis"></div></div>
     <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
+    <button class="btn btn--ghost btn--sm" id="btn-faceid">🔐 Face ID</button>
     <button class="btn btn--ghost btn--sm" id="btn-senha">🔑 Senha</button>
     <button class="btn btn--ghost btn--sm" id="btn-sair">Sair</button>
   </div></div>
@@ -1300,6 +1301,57 @@ if($("btn-senha")) $("btn-senha").onclick = function(){
   };
 };
 $("lg-senha").addEventListener('keydown', function(e){ if(e.key==='Enter') $("btn-entrar").click(); });
+
+/* ---------------- FACE ID (assinatura interna) ---------------- */
+/* chama o Edge Function faceid já com o token da sessão */
+async function faceidReq(acao, extra){
+  var sess = await sb.auth.getSession();
+  var tok = sess && sess.data && sess.data.session && sess.data.session.access_token;
+  if(!tok) throw new Error('Sessão expirada. Entre de novo.');
+  var r = await fetch(SB_URL + '/functions/v1/faceid', {
+    method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+tok },
+    body: JSON.stringify(Object.assign({ acao:acao }, extra||{}))
+  });
+  if(r.status===404) throw new Error('A função de Face ID ainda não foi publicada no Supabase.');
+  var d = await r.json().catch(function(){ return null; });
+  if(!r.ok || !d || d.erro) throw new Error((d && d.erro) || 'Falha na operação.');
+  return d;
+}
+/* cadastra a biometria DESTE aparelho na conta da pessoa (uma vez por aparelho) */
+async function cadastrarFaceId(botao){
+  try{
+    if(botao){ botao.disabled=true; botao.textContent='Aguardando Face ID…'; }
+    var mod = await import('https://esm.sh/@simplewebauthn/browser@13');
+    var opts = await faceidReq('registrar_opcoes');
+    var att = await mod.startRegistration({ optionsJSON: opts });
+    await faceidReq('registrar_confirmar', { att: att, apelido: (navigator.platform||'') });
+    toast('Face ID cadastrado neste aparelho ✓','ok');
+  }catch(e){
+    var m = e && (e.message||String(e)) || '';
+    if(/already registered|excludeCredentials|InvalidStateError/i.test(m))
+      toast('Este aparelho já está cadastrado. Pode assinar com Face ID.','ok');
+    else toast(m || 'Não foi possível cadastrar.','err');
+  }finally{ if(botao){ botao.disabled=false; botao.textContent='Cadastrar este aparelho'; } }
+}
+if($("btn-faceid")) $("btn-faceid").onclick = function(){
+  if(document.getElementById('ov-fid')) return;
+  var ov = document.createElement('div'); ov.id='ov-fid';
+  ov.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(4,10,22,.72);display:grid;place-items:center;padding:16px';
+  ov.innerHTML =
+    '<div style="background:#0b1e42;border:1px solid rgba(127,212,255,.2);border-radius:14px;max-width:380px;width:100%;padding:20px;color:#e6eef7;font-family:inherit">'+
+      '<h3 style="margin:0 0 4px;font-size:1.05rem">🔐 Assinar com Face ID</h3>'+
+      '<p style="margin:0 0 14px;color:#8fb4d6;font-size:.86rem">Cadastre a biometria <b>deste aparelho</b> na sua conta. '+
+        'Depois, no gate e no cross check, você assina com Face ID / digital em vez de digitar a senha. '+
+        'Faça isso em cada aparelho que você usa.</p>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button id="fid-cad" style="flex:1;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">Cadastrar este aparelho</button>'+
+        '<button id="fid-fecha" style="border:0;border-radius:9px;padding:12px 14px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#fid-fecha').onclick = function(){ ov.remove(); };
+  ov.querySelector('#fid-cad').onclick = function(){ cadastrarFaceId(this); };
+};
 
 async function entrar(){
   var s = await sb.auth.getUser();
@@ -2024,10 +2076,11 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
         '<div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">'+
           '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>'+
           '<input type="password" id="as-senha" autocomplete="current-password"></div>'+
-        '<div class="assin-av">🔒 A senha é conferida no servidor. Esta assinatura fica registrada '+
+        '<div class="assin-av">🔒 A senha ou o Face ID são conferidos no servidor. Esta assinatura fica registrada '+
           'com seu nome, data e hora — e não pode ser apagada.</div>'+
+        '<button class="btn btn--blue" id="as-faceid" style="width:100%;margin-top:6px">🔐 Assinar com Face ID</button>'+
         '<div class="assin-bt"><button class="btn btn--ghost" id="as-cancel">Cancelar</button>'+
-        '<button class="btn btn--green" id="as-ok" style="flex:1">Assinar e liberar</button></div>'+
+        '<button class="btn btn--green" id="as-ok" style="flex:1">Assinar com a senha</button></div>'+
       '</div></div>';
   document.body.appendChild(d);
   var fecha = function(){ d.remove(); };
@@ -2040,11 +2093,30 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
     if(!s){ toast('Digite sua senha para assinar.','err'); return; }
     var bt = d.querySelector('#as-ok'); bt.disabled = true; bt.textContent = 'Verificando…';
     var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_senha:s});
-    bt.disabled = false; bt.textContent = 'Assinar e liberar';
+    bt.disabled = false; bt.textContent = 'Assinar com a senha';
     if(r.error){ toast(r.error.message,'err'); campo.value=''; campo.focus(); return; }
     fecha(); toast('Assinado ✓','ok'); recarrega();
   };
+  var assinarFid = async function(){
+    var bt = d.querySelector('#as-faceid'); bt.disabled = true; bt.textContent = 'Aguardando Face ID…';
+    try{
+      var mod = await import('https://esm.sh/@simplewebauthn/browser@13');
+      var opts = await faceidReq('assinar_opcoes');
+      var assertion = await mod.startAuthentication({ optionsJSON: opts });
+      var t = await faceidReq('assinar_etapa', { assertion:assertion, os_id:osId, de_etapa:o.etapa, para_etapa:alvo });
+      var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_faceid_token:t.token});
+      if(r.error) throw new Error(r.error.message);
+      fecha(); toast('Assinado com Face ID ✓','ok'); recarrega();
+    }catch(e){
+      bt.disabled = false; bt.textContent = '🔐 Assinar com Face ID';
+      var m = e && (e.message||String(e)) || '';
+      if(/Nenhum Face ID cadastrado/i.test(m))
+        toast('Você ainda não cadastrou o Face ID. Toque em "🔐 Face ID" no topo da tela para cadastrar este aparelho.','err');
+      else toast(m || 'Face ID recusado.','err');
+    }
+  };
   d.querySelector('#as-ok').onclick = assinar;
+  d.querySelector('#as-faceid').onclick = assinarFid;
   campo.addEventListener('keydown', function(e){ if(e.key==='Enter') assinar(); });
 }
 
