@@ -566,6 +566,25 @@
     .rp-sig .q{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
     .rp-sig .n{font-weight:bold;font-size:11pt}
     .rp-sig .d{font-size:8.5pt;color:#5b6b78;font-family:Consolas,monospace}
+    /* certificado de assinatura externa (piloto/proprietário) — peso de documento */
+    .rp-cert{border:1.5px solid #1B3F8F;border-radius:5px;padding:12px 14px;margin-top:10px;
+      break-inside:avoid;background:#fbfcff;position:relative}
+    .rp-cert + .rp-cert{margin-top:12px}
+    .rp-cert__top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+      border-bottom:1px solid #d5deea;padding-bottom:8px;margin-bottom:9px}
+    .rp-cert__rot{font-size:7.5pt;letter-spacing:.14em;text-transform:uppercase;color:#1B3F8F;font-weight:bold}
+    .rp-cert__nome{font-size:13pt;font-weight:bold;color:#0f2f5e;margin:2px 0 5px}
+    .rp-cert__badge{display:inline-block;font-size:7.5pt;font-weight:bold;color:#1B6E3B;
+      background:#eaf6ee;border:1px solid #b9e0c6;border-radius:4px;padding:2px 8px}
+    .rp-cert__selo{text-align:right;flex:0 0 auto}
+    .rp-cert__selo small{display:block;font-size:6.5pt;letter-spacing:.14em;text-transform:uppercase;color:#5b6b78}
+    .rp-cert__selo b{font-family:Consolas,monospace;font-size:14pt;color:#1B6E3B;letter-spacing:1px}
+    .rp-cert__grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 18px}
+    .rp-cert__grid dt{font-size:7pt;letter-spacing:.1em;text-transform:uppercase;color:#5b6b78;margin-top:3px}
+    .rp-cert__grid dd{margin:0;font-weight:bold;font-size:10pt}
+    .rp-cert__aud{margin-top:9px;padding-top:8px;border-top:1px dashed #c9d3da;
+      font-size:7.5pt;color:#5b6b78;font-family:Consolas,monospace;line-height:1.55}
+    .rp-cert__aud b{color:#334}
     .rp-fotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
     .rp-fotos figure{margin:0;break-inside:avoid}
     .rp-fotos img{width:100%;height:52mm;object-fit:cover;border:1px solid #c9d3da}
@@ -979,23 +998,57 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
           '<td style="text-align:right;white-space:nowrap">resolvida '+dataBR(p.resolvida_em)+'</td></tr>';
       }).join('')+'</tbody></table>' : '';
 
-  function assinBloco(tipo, rot){
-    var s = assins.filter(function(x){ return x.tipo===tipo; })[0];
-    if(!s) return '';
-    var quem = s.quem_nome ? esc(s.quem_nome)+(s.quem_doc?' · '+esc(s.quem_doc):'') : esc(nome(s.quem));
-    return '<div><div class="q">'+rot+'</div><div class="n">'+quem+'</div>'+
-      '<div class="d">'+dt(s.quando)+'</div></div>';
-  }
   var aEtapa = assins.filter(function(x){ return x.tipo==='etapa'; });
   var sigGate = aEtapa.filter(function(x){ return x.para_etapa===7; })[0];
   var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===11; })[0];
-  var sigHtml =
+  var sigInternas =
     (sigGate ? '<div><div class="q">Liberação do planejamento (Gate)</div><div class="n">'+
         esc(nome(sigGate.quem))+'</div><div class="d">'+dt(sigGate.quando)+'</div></div>' : '')+
     (sigFim ? '<div><div class="q">Aprovação para retorno ao serviço</div><div class="n">'+
-        esc(nome(sigFim.quem))+'</div><div class="d">'+dt(sigFim.quando)+'</div></div>' : '')+
-    assinBloco('entrega','Aeronave entregue na oficina por')+
-    assinBloco('retirada','Aeronave retirada por');
+        esc(nome(sigFim.quem))+'</div><div class="d">'+dt(sigFim.quando)+'</div></div>' : '');
+
+  /* certificado da assinatura externa (piloto/proprietário) — com toda a prova */
+  function certBloco(tipo, rot){
+    var s   = assins.filter(function(x){ return x.tipo===tipo; })[0];
+    var ent = entregas.filter(function(e){ return e.tipo===tipo && e.usado_em; })[0];
+    if(!s && !ent) return '';
+    var nomeAss = (s && s.quem_nome) || (tipo==='entrega'?o.entrega_nome:o.retirada_nome) || '—';
+    var doc     = (s && s.quem_doc)  || (tipo==='entrega'?o.entrega_doc:o.retirada_doc) || '';
+    var anac    = (tipo==='entrega'?o.entrega_anac:o.retirada_anac) || '';
+    var mat     = (ent && ent.matricula_informada) || a.prefixo || '';
+    var quando  = (s && s.quando) || (ent && ent.usado_em) || (tipo==='entrega'?o.entrega_em:o.retirada_em);
+    var codigo  = (ent && ent.selo) || '';
+    var metodo  = (s && s.metodo) || (ent ? 'faceid' : '');
+    var badge   = metodo==='faceid'
+      ? '🔒 Assinatura digital · biometria do aparelho (Face ID / digital) verificada no servidor'
+      : (metodo==='senha' ? '🔑 Assinatura eletrônica · senha verificada'
+                          : '✍️ Assinatura registrada presencialmente pela equipe');
+    var aud = '';
+    if(ent){
+      var linhasAud = ['<b>Registrado em:</b> '+dtSeg(ent.usado_em||quando)];
+      if(ent.ip) linhasAud.push('<b>IP de origem:</b> '+esc(ent.ip));
+      linhasAud.push('<b>Aparelho:</b> '+esc(aparelhoUA(ent.user_agent)));
+      if(ent.credential_id) linhasAud.push('<b>Chave biométrica:</b> '+esc(String(ent.credential_id).slice(0,24))+'…');
+      aud = '<div class="rp-cert__aud">'+linhasAud.join('<br>')+'</div>';
+    }
+    return '<div class="rp-cert">'+
+      '<div class="rp-cert__top">'+
+        '<div><div class="rp-cert__rot">'+rot+'</div>'+
+          '<div class="rp-cert__nome">'+esc(nomeAss)+'</div>'+
+          '<span class="rp-cert__badge">'+badge+'</span></div>'+
+        (codigo?'<div class="rp-cert__selo"><small>Selo de assinatura</small><b>'+esc(codigo)+'</b></div>':'')+
+      '</div>'+
+      '<div class="rp-cert__grid">'+
+        (doc ?'<div><dt>CPF / Documento</dt><dd>'+esc(doc)+'</dd></div>':'')+
+        (anac?'<div><dt>Código ANAC</dt><dd>'+esc(anac)+'</dd></div>':'')+
+        (mat ?'<div><dt>Matrícula da aeronave</dt><dd>'+esc(mat)+'</dd></div>':'')+
+        '<div><dt>Data e hora da assinatura</dt><dd>'+dtSeg(quando)+'</dd></div>'+
+      '</div>'+ aud +
+    '</div>';
+  }
+  var sigExternas = certBloco('entrega','Aeronave entregue na oficina por')+
+                    certBloco('retirada','Aeronave retirada por');
+  var sigHtml = sigInternas + sigExternas;
 
   /* MESMA regra do link: só vai pro proprietário o que estiver marcado como compartilhado */
   var FT = {antes:'ANTES', depois:'DEPOIS'};
@@ -1056,11 +1109,16 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
 
     pendHtml+
 
-    (sigHtml ? '<h2>Assinaturas</h2><div class="rp-sig">'+sigHtml+'</div>' : '')+
+    (sigHtml ? '<h2>Assinaturas</h2>'+
+      (sigInternas ? '<div class="rp-sig">'+sigInternas+'</div>' : '')+
+      sigExternas : '')+
 
     '<div class="rp-nota"><b>Cross check:</b> todo serviço registrado neste relatório foi executado por um profissional '+
-      'e conferido por uma <b>segunda pessoa</b>, conforme o procedimento da oficina. As assinaturas acima são '+
-      'eletrônicas, registradas com identificação do signatário, data e hora, e não podem ser alteradas.</div>'+
+      'e conferido por uma <b>segunda pessoa</b>, conforme o procedimento da oficina.<br>'+
+      '<b>Validade das assinaturas:</b> as assinaturas de entrega e retirada foram firmadas pelo próprio signatário por '+
+      '<b>biometria do aparelho</b> (Face ID / impressão digital), verificada no servidor da Jusarah, e ficam vinculadas ao '+
+      '<b>selo único</b>, à data e hora com segundos, ao IP de origem e ao aparelho utilizado. Cada selo corresponde a uma '+
+      'única assinatura, não pode ser reutilizado e o registro não pode ser alterado após firmado.</div>'+
 
     fotosHtml+
 
@@ -1168,6 +1226,15 @@ function toast(msg, tipo){
 function dt(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
+/* data+hora com segundos, para a trilha de auditoria da assinatura */
+function dtSeg(s){ if(!s) return '—'; var d=new Date(s);
+  return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+/* lê o aparelho e o navegador do user-agent, em linguagem simples */
+function aparelhoUA(ua){ ua=ua||'';
+  var ap = /iPhone/i.test(ua)?'iPhone': /iPad/i.test(ua)?'iPad': /Android/i.test(ua)?'Android':
+           /Windows/i.test(ua)?'Windows': /Mac OS X|Macintosh/i.test(ua)?'Mac': /Linux/i.test(ua)?'Linux':'aparelho não identificado';
+  var nv = /Edg/i.test(ua)?'Edge': /CriOS|Chrome/i.test(ua)?'Chrome': /Firefox|FxiOS/i.test(ua)?'Firefox': /Safari/i.test(ua)?'Safari':'';
+  return ap + (nv?' · '+nv:''); }
 /* número da OS: usa o código por ano (OS 2026-0042); cai no sequencial antigo se faltar */
 function codOS(o){ return (o && o.codigo) ? o.codigo : ('OS ' + ((o && o.numero) || '?')); }
 /* conta separando foto de vídeo: "2 fotos", "1 vídeo", "2 fotos · 1 vídeo" */
@@ -1982,6 +2049,7 @@ async function abreOS(id, scrollRestaurar){
   var pend    = (await sb.from('manut_os_pendencias').select('*').eq('os_id',id).order('aberta_em')).data||[];
   var hist    = (await sb.from('manut_os_historico').select('*').eq('os_id',id).order('quando',{ascending:false})).data||[];
   var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
+  var entregas= (await sb.from('manut_entregas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   /* URL assinada de cada foto — serve pra galeria E pro relatório */
   for(var fi=0; fi<fotos.length; fi++){
