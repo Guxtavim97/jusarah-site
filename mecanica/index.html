@@ -1592,12 +1592,27 @@ function renderAeronaves(){
 }
 $("q-aer").addEventListener('input', renderAeronaves);
 
+/* tipos de documento permanente da aeronave (a lista cresce se a certificação pedir) */
+var AER_DOC_TIPOS = [
+  ['matricula','Certificado de Matrícula'],
+  ['ca','Certificado de Aeronavegabilidade (CA)'],
+  ['cad_celula','Caderneta de Célula'],
+  ['cad_motor','Caderneta do Motor'],
+  ['cad_helice','Caderneta da Hélice'],
+  ['peso_balanceamento','Peso e Balanceamento'],
+  ['seguro','Seguro'],
+  ['outros','Outros']
+];
+function aerDocLabel(t){ for(var i=0;i<AER_DOC_TIPOS.length;i++) if(AER_DOC_TIPOS[i][0]===t) return AER_DOC_TIPOS[i][1]; return t; }
+
 /* FICHA DA AERONAVE — a caderneta: dados, dono e TODAS as OS dela */
 async function abreAeronave(id){
   var a = AERONAVES.filter(function(x){ return x.id===id; })[0];
   if(!a){ toast('Aeronave não encontrada.','err'); return; }
   var oss = (await sb.from('manut_os').select('*').eq('aeronave_id',id)
               .order('numero',{ascending:false})).data || [];
+  var docs = (await sb.from('manut_aeronave_docs').select('*').eq('aeronave_id',id)
+              .order('criado_em',{ascending:false})).data || [];
   var c = CATS[a.categoria] || CATS['agricola'];
   var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
 
@@ -1610,6 +1625,20 @@ async function abreAeronave(id){
       '<span class="badge '+(fechada?'b-fechada':'b-aberta')+'">'+
         (fechada?'Encerrada':'Etapa '+o.etapa)+'</span></div>';
   }).join('') : '<div class="no">Esta aeronave ainda não teve nenhuma OS.</div>';
+
+  var docsHtml = docs.length ? docs.map(function(dc){
+    var venc = '';
+    if(dc.validade){
+      var vencido = new Date(dc.validade) < new Date(new Date().toDateString());
+      venc = ' · vence '+dataBR(dc.validade)+(vencido?' <b style="color:#c0392b">⚠️ VENCIDO</b>':'');
+    }
+    return '<div class="oshist"><span class="oshist__n">📄</span>'+
+      '<div class="oshist__b"><div class="oshist__t">'+esc(aerDocLabel(dc.tipo))+'</div>'+
+      '<div class="oshist__s">'+esc(dc.nome_arquivo||'arquivo')+' · '+dataBR(dc.criado_em)+venc+'</div></div>'+
+      '<button class="btn btn--ghost btn--sm aerdoc-ver" data-c="'+esc(dc.caminho)+'">Abrir</button>'+
+      '<button class="btn btn--ghost btn--sm aerdoc-del" data-id="'+dc.id+'" data-c="'+esc(dc.caminho)+'" title="Remover">🗑️</button></div>';
+  }).join('') : '<div class="no">Nenhum documento anexado ainda.</div>';
+  var aerDocOpts = AER_DOC_TIPOS.map(function(t){ return '<option value="'+t[0]+'">'+t[1]+'</option>'; }).join('');
 
   $("modal").innerHTML =
    '<div class="ov" id="ov"><div class="sheet" style="max-width:820px"><div class="sheet__h">'+
@@ -1628,6 +1657,20 @@ async function abreAeronave(id){
        '<dt>Operador</dt><dd>'+(oper?esc(oper):'<span class="no">mesmo que o proprietário</span>')+'</dd>'+
        '<dt>Horas de célula</dt><dd>'+(a.horas_celula!=null?a.horas_celula:'—')+'</dd>'+
      '</dl></div>'+
+     '<div class="box"><h3>📄 Documentos da aeronave <span class="c">'+docs.length+'</span></h3>'+
+       docsHtml+
+       '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">'+
+         '<label class="blk">Anexar documento (PDF ou foto)</label>'+
+         '<select class="in" id="aerdoc-tipo">'+aerDocOpts+'</select>'+
+         '<div class="row" style="margin-top:8px">'+
+           '<div><label class="blk">Validade <span style="font-weight:600;text-transform:none;letter-spacing:0">(opcional)</span></label>'+
+             '<input class="in" id="aerdoc-val" type="date"></div>'+
+           '<div><label class="blk">Arquivo</label>'+
+             '<input class="in" id="aerdoc-file" type="file" accept="application/pdf,image/*"></div>'+
+         '</div>'+
+         '<button class="btn btn--blue btn--sm" id="aerdoc-up" style="margin-top:10px">⬆️ Anexar</button>'+
+       '</div>'+
+     '</div>'+
      '<div class="box"><h3>📋 Histórico de OS <span class="c">'+oss.length+'</span></h3>'+osHtml+'</div>'+
    '</div></div></div>';
   medirTracos();
@@ -1636,6 +1679,42 @@ async function abreAeronave(id){
   document.querySelectorAll('[data-os]').forEach(function(el){
     el.onclick = function(){ abreOS(el.dataset.os); };
   });
+  /* abrir documento da aeronave via URL assinada (bucket privado) */
+  document.querySelectorAll('.aerdoc-ver').forEach(function(b){
+    b.onclick = async function(){
+      var sr = await sb.storage.from('manutencao').createSignedUrl(b.dataset.c, 3600);
+      if(sr.data && sr.data.signedUrl) window.open(sr.data.signedUrl, '_blank');
+      else toast('Não foi possível abrir o documento.','err');
+    };
+  });
+  document.querySelectorAll('.aerdoc-del').forEach(function(b){
+    b.onclick = async function(){
+      if(!confirm('Remover este documento da aeronave?')) return;
+      await sb.storage.from('manutencao').remove([b.dataset.c]);
+      var r = await sb.from('manut_aeronave_docs').delete().eq('id', b.dataset.id);
+      if(r.error){ toast(r.error.message,'err'); return; }
+      toast('Documento removido.','ok'); abreAeronave(id);
+    };
+  });
+  if($("aerdoc-up")) $("aerdoc-up").onclick = async function(){
+    var f = $("aerdoc-file").files[0];
+    if(!f){ toast('Escolha o arquivo (PDF ou foto).','err'); return; }
+    if(f.size > 25*1024*1024){ toast('Arquivo muito grande. O limite é 25 MB.','err'); return; }
+    var tipo = $("aerdoc-tipo").value, val = $("aerdoc-val").value || null;
+    var ehPdf = (f.type||'').indexOf('pdf')>=0 || /\.pdf$/i.test(f.name);
+    var blob, ctype, ext;
+    if(ehPdf){ blob = f; ctype = 'application/pdf'; ext = 'pdf'; }
+    else if((f.type||'').indexOf('image')===0){ blob = await comprimeImagem(f); ctype = 'image/jpeg'; ext = 'jpg'; }
+    else { toast('Formato não aceito. Envie um PDF ou uma imagem.','err'); return; }
+    var b = this; b.disabled = true; b.textContent = 'Enviando…';
+    var caminho = 'aeronaves/' + id + '/' + tipo + '-' + Date.now() + '.' + ext;
+    var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:ctype});
+    if(up.error){ b.disabled=false; b.textContent='⬆️ Anexar'; toast('Erro ao subir: '+up.error.message,'err'); return; }
+    var r = await sb.from('manut_aeronave_docs').insert({
+      aeronave_id:id, tipo:tipo, nome_arquivo:f.name, caminho:caminho, validade:val });
+    if(r.error){ b.disabled=false; b.textContent='⬆️ Anexar'; toast(r.error.message,'err'); return; }
+    toast('Documento anexado ✓','ok'); abreAeronave(id);
+  };
 }
 $("btn-nova-aer").onclick = function(){
   abreModal('Nova aeronave',
