@@ -2372,27 +2372,17 @@ $("btn-nova-os").onclick = function(){
   }).join('');
   abreModal('Nova Ordem de Serviço',
     '<label class="blk">Aeronave *</label><select class="in" id="o-aer">'+ops+'</select>'+
-    '<div class="row" style="margin-top:10px"><div><label class="blk">Tipo de serviço'+(window.Voz?Voz.botao('o-tipo','tipo de serviço'):'')+'</label>'+
-    '<input class="in" id="o-tipo" placeholder="Inspeção 100h / Corretiva / DA / Boletim"></div>'+
-    '<div><label class="blk">Prioridade</label><select class="in" id="o-prio">'+
-    '<option value="3" selected>Normal</option><option value="1">🔴 Urgente</option></select></div></div>'+
-    '<label class="blk" style="margin-top:10px">Motivo da urgência <span style="font-weight:600;text-transform:none;letter-spacing:0">(se for urgente)</span></label>'+
-    '<input class="in" id="o-prio-m" placeholder="Ex.: avião parado na safra / cliente aguardando">'+
-    '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b style="font-size:.82rem;color:var(--blue)">📋 Recebimento</b></div>'+
-    '<label class="blk" style="margin-top:8px">Relatos do piloto'+(window.Voz?Voz.botao('o-relatos','relatos do piloto'):'')+'</label>'+
-    '<textarea class="in" id="o-relatos" rows="2" placeholder="O que o piloto relatou: sintomas, ruídos, ocorrências no voo"></textarea>'+
-    '<label class="blk" style="margin-top:10px">Motivo (por que a aeronave vai para manutenção) *'+(window.Voz?Voz.botao('o-motivo','motivo da manutenção'):'')+'</label>'+
-    '<input class="in" id="o-motivo" placeholder="Ex.: inspeção 100h / falha no motor / revisão de célula">'+
-    '<label class="blk" style="margin-top:10px">Descrição do serviço'+(window.Voz?Voz.botao('o-desc','descrição do serviço'):'')+'</label>'+
-    '<textarea class="in" id="o-desc" rows="2" placeholder="Detalhes adicionais (opcional)"></textarea>',
+    '<label class="blk" style="margin-top:12px">Prioridade</label>'+
+    '<select class="in" id="o-prio"><option value="3" selected>Normal</option><option value="1">🔴 Urgente</option></select>'+
+    '<label class="blk" style="margin-top:10px">Motivo da urgência <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for urgente)</span></label>'+
+    '<input class="in" id="o-prio-m" placeholder="Ex.: avião parado na safra">'+
+    '<p class="sub" style="margin-top:14px;font-size:.8rem">Os <b>relatos do piloto</b>, o <b>motivo</b> e os <b>serviços</b> você preenche no <b>Recebimento</b>, já dentro da OS.</p>',
     'Abrir OS', async function(){
       var aer = AERONAVES.filter(function(a){ return a.id===$("o-aer").value; })[0];
+      if(!aer){ toast('Escolha a aeronave.','err'); return false; }
       var r = await sb.from('manut_os').insert({
         aeronave_id: aer.id, cliente_id: aer.cliente_id || null,
-        terceiro: !aer.propria, tipo:$("o-tipo").value.trim()||null,
-        descricao:$("o-desc").value.trim()||null,
-        relatos_piloto:$("o-relatos").value.trim()||null,
-        motivo_manutencao:$("o-motivo").value.trim()||null,
+        terceiro: !aer.propria,
         prioridade: parseInt($("o-prio").value)||3,
         prioridade_motivo:$("o-prio-m").value.trim()||null
       }).select().single();
@@ -2401,7 +2391,6 @@ $("btn-nova-os").onclick = function(){
       await carregaQuadro(); await carregaOficina();
       toast(codOS(r.data)+' aberta.','ok'); return true;
     });
-  if(window.Voz) Voz.ativarTodos(sb, SB_URL);
 };
 
 /* ============================================================
@@ -3114,22 +3103,30 @@ async function abreOS(id, scrollRestaurar){
   };
   if($("receb-edit")) $("receb-edit").onclick = function(){
     var ags = ['Aguardando peça','Aguardando cliente enviar as peças','Aguardando aprovação do orçamento','Aguardando ferramenta','Outro'];
-    abreModal('Recebimento — relatos e motivo',
-      '<label class="blk">Motivo (por que a aeronave vai para manutenção)</label>'+
+    var mv = function(campo, ctx){ return window.Voz?Voz.botao(campo, ctx):''; };
+    abreModal('Recebimento',
+      '<label class="blk">Tipo de serviço'+mv('rc-tipo','tipo de serviço')+'</label>'+
+      '<input class="in" id="rc-tipo" value="'+esc(o.tipo||'')+'" placeholder="Inspeção 100h / Corretiva / Boletim">'+
+      '<label class="blk" style="margin-top:8px">Motivo (por que vai para manutenção)'+mv('rc-mot','motivo da manutenção')+'</label>'+
       '<input class="in" id="rc-mot" value="'+esc(o.motivo_manutencao||'')+'">'+
-      '<label class="blk" style="margin-top:8px">Relatos do piloto</label>'+
+      '<label class="blk" style="margin-top:8px">Relatos do piloto'+mv('rc-rel','relatos do piloto')+'</label>'+
       '<textarea class="in" id="rc-rel" rows="3" placeholder="Sintomas, ruídos, ocorrências no voo">'+esc(o.relatos_piloto||'')+'</textarea>'+
+      '<label class="blk" style="margin-top:8px">Descrição / detalhes'+mv('rc-desc','descrição do serviço')+'</label>'+
+      '<textarea class="in" id="rc-desc" rows="2">'+esc(o.descricao||'')+'</textarea>'+
       '<label class="blk" style="margin-top:8px">Aguardando na fila (motivo da espera)</label>'+
       '<select class="in" id="rc-ag"><option value="">— não está aguardando —</option>'+
         ags.map(function(x){ return '<option'+(o.aguardando_motivo===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>',
       'Salvar', async function(){
-        var patch = { motivo_manutencao:$("rc-mot").value.trim()||null,
+        var patch = { tipo:$("rc-tipo").value.trim()||null,
+          motivo_manutencao:$("rc-mot").value.trim()||null,
           relatos_piloto:$("rc-rel").value.trim()||null,
+          descricao:$("rc-desc").value.trim()||null,
           aguardando_motivo:$("rc-ag").value||null };
         var r = await sb.from('manut_os').update(patch).eq('id', id);
         if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
       });
+    if(window.Voz) Voz.ativarTodos(sb, SB_URL);
   };
   if($("tr-edit")) $("tr-edit").onclick = function(){
     var chk = o.translado_jusarah ? 'checked' : '';
