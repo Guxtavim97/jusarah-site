@@ -78,8 +78,9 @@ window.Rosto = (function(){
   }
 
   return {
-    async cadastrar(sb){
-      return comCamera('Cadastrar meu rosto', 'Vamos capturar algumas vezes — olhe para a câmera', async function(ui){
+    async cadastrar(sb, rotulo){
+      var titulo = rotulo ? ('Cadastrar rosto — ' + rotulo) : 'Cadastrar meu rosto';
+      return comCamera(titulo, 'Vamos capturar algumas vezes — olhe para a câmera', async function(ui){
         var u = await sb.auth.getUser();
         var uid = u.data && u.data.user && u.data.user.id;
         if(!uid) throw new Error('Entre com a sua conta antes de cadastrar o rosto.');
@@ -88,7 +89,7 @@ window.Rosto = (function(){
         for(var k=0;k<3;k++){
           ui.status.textContent = dicas[k] || 'Olhe para a câmera…';
           var desc = await capturaDescriptor(ui.video, ui.status);
-          if(desc) amostras.push({ user_id: uid, descriptor: desc });
+          if(desc) amostras.push({ user_id: uid, descriptor: desc, rotulo: rotulo || null });
           await new Promise(function(res){ setTimeout(res, 450); });
         }
         if(!amostras.length) throw new Error('Não consegui ver o rosto. Tente com mais luz e de frente.');

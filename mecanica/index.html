@@ -1419,22 +1419,29 @@ if($("btn-faceid")) $("btn-faceid").onclick = function(){
         'Depois, no gate e no cross check, você assina com Face ID / digital em vez de digitar a senha. '+
         'Faça isso em cada aparelho que você usa.</p>'+
       '<button id="fid-cad" style="width:100%;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">🔐 Cadastrar Face ID (celular)</button>'+
-      '<button id="fid-rosto" style="width:100%;margin-top:8px;border:0;border-radius:9px;padding:12px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">🙂 Cadastrar meu rosto (totem)</button>'+
-      '<p style="margin:8px 0 0;color:#8fb4d6;font-size:.78rem">Dica: cadastre o rosto <b>como você costuma trabalhar</b> — e repita <b>com boné</b> e <b>com óculos</b>. Cada vez adiciona uma aparência; o totem reconhece qualquer uma delas.</p>'+
-      '<button id="fid-fecha" style="width:100%;margin-top:8px;border:0;border-radius:9px;padding:11px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
+      '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(127,212,255,.14)">'+
+        '<div style="font-size:.82rem;color:#cfe3f5;font-weight:700;margin-bottom:6px">🙂 Cadastrar meu rosto (totem)</div>'+
+        '<button class="fid-rosto" data-rot="Como trabalho" style="width:100%;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">👷 Como trabalho</button>'+
+        '<button class="fid-rosto" data-rot="Sem acessórios" style="width:100%;margin-top:7px;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">🙂 Sem acessórios</button>'+
+        '<button class="fid-rosto" data-rot="Com máscara" style="width:100%;margin-top:7px;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">😷 Com máscara</button>'+
+        '<p style="margin:8px 0 0;color:#8fb4d6;font-size:.76rem">Cadastre em cada situação que você usa (pode repetir com boné/óculos). O totem reconhece qualquer uma delas. <b>Com máscara</b> é mais difícil — cadastre também sem, por garantia.</p>'+
+      '</div>'+
+      '<button id="fid-fecha" style="width:100%;margin-top:10px;border:0;border-radius:9px;padding:11px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
     '</div>';
   document.body.appendChild(ov);
   ov.querySelector('#fid-fecha').onclick = function(){ ov.remove(); };
   ov.querySelector('#fid-cad').onclick = function(){ cadastrarFaceId(this); };
-  ov.querySelector('#fid-rosto').onclick = async function(){
-    var b=this, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
-    try{
-      if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
-      await Rosto.cadastrar(sb);
-      toast('Rosto cadastrado neste totem ✓','ok');
-    }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível cadastrar o rosto.','err'); }
-    b.disabled=false; b.textContent=old;
-  };
+  ov.querySelectorAll('.fid-rosto').forEach(function(b){
+    b.onclick = async function(){
+      var rot=b.dataset.rot, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
+      try{
+        if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
+        await Rosto.cadastrar(sb, rot);
+        toast('Rosto "'+rot+'" cadastrado ✓','ok');
+      }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível cadastrar o rosto.','err'); }
+      b.disabled=false; b.textContent=old;
+    };
+  });
 };
 
 /* ---------------- EXCLUSÃO SEGURA ----------------
