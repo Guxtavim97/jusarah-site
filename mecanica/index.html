@@ -2318,7 +2318,7 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
           '<input type="password" id="as-senha" autocomplete="current-password"></div>'+
         '<div class="assin-av">🔒 A senha ou o Face ID são conferidos no servidor. Esta assinatura fica registrada '+
           'com seu nome, data e hora — e não pode ser apagada.</div>'+
-        '<button class="btn btn--blue" id="as-faceid" style="width:100%;margin-top:6px">🔐 Assinar com Face ID</button>'+
+        (!TOTEM ? '<button class="btn btn--blue" id="as-faceid" style="width:100%;margin-top:6px">🔐 Assinar com Face ID</button>' : '')+
         '<div class="assin-bt"><button class="btn btn--ghost" id="as-cancel">Cancelar</button>'+
         '<button class="btn btn--green" id="as-ok" style="flex:1">Assinar com a senha</button></div>'+
       '</div></div>';
@@ -2356,7 +2356,7 @@ function pedeAssinatura(osId, o, alvo, papel, recarrega, obs){
     }
   };
   d.querySelector('#as-ok').onclick = assinar;
-  d.querySelector('#as-faceid').onclick = assinarFid;
+  var elFid = d.querySelector('#as-faceid'); if(elFid) elFid.onclick = assinarFid;
   campo.addEventListener('keydown', function(e){ if(e.key==='Enter') assinar(); });
 }
 
