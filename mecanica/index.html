@@ -688,6 +688,26 @@
       <button class="btn btn--blue btn--block" id="btn-entrar-rosto" style="margin-top:8px">🙂 Entrar com o rosto</button>
       <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular:</b> use o Face ID. <b>Totem da oficina:</b> use o rosto (câmera). Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
       <p class="sub" style="text-align:center;margin-top:12px">Ainda não tem conta? <a href="#" id="lk-criar" style="color:#4a9fd4;font-weight:700;text-decoration:none">Criar conta</a></p>
+      <p class="sub" style="text-align:center;margin-top:4px"><a href="#" id="lk-reset" style="color:#8fb4d6;text-decoration:none">Esqueci minha senha</a></p>
+    </div>
+    <div id="tela-reset" class="hidden">
+      <div class="eyebrow">Recuperar acesso</div>
+      <h1>Esqueci a senha</h1>
+      <p class="sub">Informe seu e-mail. Enviaremos um link para você criar uma nova senha.</p>
+      <div class="field"><label>E-mail</label>
+        <div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input type="email" id="rs-email" autocomplete="email"></div></div>
+      <button class="btn btn--blue btn--block" id="btn-reset">Enviar link</button>
+      <button class="btn btn--ghost btn--block" id="lk-voltar-reset" style="margin-top:8px">Voltar</button>
+      <div id="rs-msg" class="sub" style="margin-top:10px;min-height:1.2em"></div>
+    </div>
+    <div id="tela-novasenha" class="hidden">
+      <div class="eyebrow">Nova senha</div>
+      <h1>Criar nova senha</h1>
+      <p class="sub">Digite a sua nova senha para entrar.</p>
+      <div class="field"><label>Nova senha (mínimo 6)</label>
+        <div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input type="password" id="nv-senha" autocomplete="new-password"></div></div>
+      <button class="btn btn--blue btn--block" id="btn-novasenha">Salvar nova senha</button>
+      <div id="nv-msg" class="sub" style="margin-top:10px;min-height:1.2em"></div>
     </div>
     <div id="tela-criar" class="hidden">
       <div class="eyebrow">Novo cadastro</div>
@@ -1414,12 +1434,46 @@ $("lg-senha").addEventListener('keydown', function(e){ if(e.key==='Enter') $("bt
 
 /* criar conta (auto-cadastro) — nasce sem papel; o Diretor libera depois */
 function mostraTela(id){
-  ['tela-entrar','tela-criar','tela-semacesso'].forEach(function(t){
+  ['tela-entrar','tela-criar','tela-reset','tela-novasenha','tela-semacesso'].forEach(function(t){
     var el = document.getElementById(t); if(el) el.classList.toggle('hidden', t !== id);
   });
 }
 if($("lk-criar")) $("lk-criar").onclick = function(e){ e.preventDefault(); mostraTela('tela-criar'); };
 if($("lk-voltar-entrar")) $("lk-voltar-entrar").onclick = function(){ mostraTela('tela-entrar'); };
+
+/* esqueci a senha: envia link por e-mail */
+if($("lk-reset")) $("lk-reset").onclick = function(e){ e.preventDefault(); mostraTela('tela-reset'); };
+if($("lk-voltar-reset")) $("lk-voltar-reset").onclick = function(){ mostraTela('tela-entrar'); };
+if($("btn-reset")) $("btn-reset").onclick = async function(){
+  var email=$("rs-email").value.trim(), msg=$("rs-msg");
+  if(!email){ msg.style.color='#ff9a8a'; msg.textContent='Informe o seu e-mail.'; return; }
+  var b=this; b.disabled=true; b.textContent='Enviando…';
+  var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/mecanica' });
+  b.disabled=false; b.textContent='Enviar link';
+  if(r.error){ msg.style.color='#ff9a8a'; msg.textContent=r.error.message; return; }
+  msg.style.color='#9be3b6'; msg.textContent='Link enviado! Abra o seu e-mail e toque no link para criar a nova senha.';
+};
+/* nova senha (após clicar no link de recuperação) */
+if($("btn-novasenha")) $("btn-novasenha").onclick = async function(){
+  var s=$("nv-senha").value, msg=$("nv-msg");
+  if((s||'').length < 6){ msg.style.color='#ff9a8a'; msg.textContent='A senha precisa ter ao menos 6 caracteres.'; return; }
+  var b=this; b.disabled=true; b.textContent='Salvando…';
+  var r = await sb.auth.updateUser({ password:s });
+  b.disabled=false; b.textContent='Salvar nova senha';
+  if(r.error){ msg.style.color='#ff9a8a'; msg.textContent=r.error.message; return; }
+  window.__recovery = false;
+  msg.style.color='#9be3b6'; msg.textContent='Senha alterada! Entrando…';
+  entrar();
+};
+/* quando a pessoa volta pelo link de recuperação, mostra "nova senha" */
+if(location.hash && location.hash.indexOf('type=recovery') >= 0) window.__recovery = true;
+sb.auth.onAuthStateChange(function(evt){
+  if(evt === 'PASSWORD_RECOVERY'){
+    window.__recovery = true;
+    $("login").classList.remove('hidden'); $("app").classList.add('hidden');
+    mostraTela('tela-novasenha');
+  }
+});
 if($("btn-criar")) $("btn-criar").onclick = async function(){
   var nome=$("cr-nome").value.trim(), email=$("cr-email").value.trim(), senha=$("cr-senha").value, msg=$("cr-msg");
   if(!nome || !email || (senha||'').length < 6){ msg.style.color='#ff9a8a'; msg.textContent='Preencha nome, e-mail e senha (mínimo 6).'; return; }
@@ -1567,6 +1621,11 @@ function excluirSeguro(tipo, id, label, aposOk){
 }
 
 async function entrar(){
+  if(window.__recovery){
+    $("login").classList.remove('hidden'); $("app").classList.add('hidden');
+    if(typeof mostraTela==='function') mostraTela('tela-novasenha');
+    return;
+  }
   var s = await sb.auth.getUser();
   var user = s.data ? s.data.user : null;
   if(!user){ $("login").classList.remove('hidden'); $("app").classList.add('hidden'); return; }
