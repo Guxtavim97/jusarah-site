@@ -2582,7 +2582,12 @@ async function abreOS(id, scrollRestaurar){
     : '';
   var tHtml=tResumo+'<table class="t"><thead><tr><th>#</th><th>Serviço</th><th>Executor</th><th>Cross check</th><th></th></tr></thead><tbody>';
   if(!tarefas.length) tHtml+='<tr><td colspan="5" class="no">Nenhuma tarefa registrada.</td></tr>';
+  var prevSist=null;
   tarefas.forEach(function(t, ti){
+    if(t.sistema && t.sistema!==prevSist){
+      prevSist=t.sistema;
+      tHtml+='<tr><td colspan="5" style="background:#eef2f6;font-weight:800;font-size:.76rem;letter-spacing:.06em;color:#1B3F8F;padding:6px 9px">'+esc(t.sistema)+'</td></tr>';
+    }
     var meuExec = t.executor_id===usuario.id;
     var cor = t.conferido_em ? '#2f9e44' : (t.executado_em ? '#b8860b' : '#8fa3b5');
     tHtml+='<tr><td><span style="display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
@@ -2604,7 +2609,11 @@ async function abreOS(id, scrollRestaurar){
                 : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')))+
       '</td></tr>';
   });
-  tHtml+='</tbody></table>'+(encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-tarefa" style="margin-top:10px">+ Tarefa</button>');
+  tHtml+='</tbody></table>'+(encerrada?'':
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+      '<button class="btn btn--ghost btn--sm" id="add-tarefa">+ Tarefa</button>'+
+      '<button class="btn btn--blue btn--sm" id="carregar-insp">📋 Carregar inspeção</button>'+
+    '</div>');
 
   /* --- pendências --- */
   var abertas = pend.filter(function(p){ return !p.resolvida_em; });
@@ -3150,6 +3159,30 @@ async function abreOS(id, scrollRestaurar){
         var r = await sb.from('manut_os').update(patch).eq('id', id);
         if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
+      });
+  };
+  if($("carregar-insp")) $("carregar-insp").onclick = async function(){
+    var insps = (await sb.from('manut_inspecoes').select('*').eq('vigente',true).order('modelo')).data||[];
+    if(!insps.length){ toast('Nenhum modelo de inspeção cadastrado ainda (rode o SQL da inspeção).','err'); return; }
+    var insp = insps[0];
+    abreModal('Carregar inspeção — '+esc(insp.modelo),
+      '<div class="no" style="margin-bottom:10px">'+esc(insp.revisao)+'</div>'+
+      '<label class="blk">Tipo de inspeção</label>'+
+      '<select class="in" id="ins-tipo"><option value="100">100 horas</option><option value="50">50 horas</option></select>'+
+      '<p class="sub" style="margin-top:10px;font-size:.8rem">Adiciona todos os itens aplicáveis como serviços, agrupados por sistema. Cada item será <b>executado</b> e <b>conferido</b> (cross-check).</p>',
+      'Carregar', async function(){
+        var tipo = $("ins-tipo").value;
+        var col = tipo==='50' ? 'ap_50' : 'ap_100';
+        var itens = (await sb.from('manut_inspecao_itens').select('*').eq('inspecao_id',insp.id).eq(col,true)
+          .order('sistema').order('ordem')).data||[];
+        if(!itens.length){ toast('Sem itens para esse tipo.','err'); return false; }
+        var rows = itens.map(function(it){ return { os_id:id, sistema:it.sistema,
+          descricao:(it.codigo?it.codigo+' · ':'')+it.descricao,
+          referencia_manual: it.nota?('Nota '+it.nota):null }; });
+        var r = await sb.from('manut_os_tarefas').insert(rows);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        await sb.from('manut_os').update({ tipo:'Inspeção '+tipo+'h · '+insp.modelo }).eq('id', id);
+        toast(itens.length+' itens carregados.','ok'); recarrega(); return true;
       });
   };
   if($("add-pend")) $("add-pend").onclick = function(){
