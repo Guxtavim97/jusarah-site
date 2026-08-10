@@ -23,6 +23,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/js/qr.js"></script>
 <script src="../assets/js/assistente.js"></script>
+<script src="../assets/js/rosto.js"></script>
 <style>
   :root{
     --blue:#1B3F8F; --blue-d:#122a5f; --sky:#2E86C1; --green:#2f9e44; --green-d:#1B6E3B;
@@ -663,7 +664,8 @@
         <span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span>ou<span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span>
       </div>
       <button class="btn btn--green btn--block" id="btn-entrar-fid">🔐 Entrar com Face ID</button>
-      <p class="sub" style="margin-top:10px;font-size:.78rem">No totem da oficina, cada um entra com o próprio Face ID. Cadastre o seu aparelho depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
+      <button class="btn btn--blue btn--block" id="btn-entrar-rosto" style="margin-top:8px">🙂 Entrar com o rosto</button>
+      <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular:</b> use o Face ID. <b>Totem da oficina:</b> use o rosto (câmera). Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
     </div>
     <div id="tela-semacesso" class="hidden" style="text-align:center">
       <div style="font-size:2.6rem">🔒</div>
@@ -1309,6 +1311,16 @@ if($("btn-entrar-fid")) $("btn-entrar-fid").onclick = async function(){
     else toast(m||'Não foi possível entrar com Face ID.','err');
   }
 };
+/* login por reconhecimento facial (câmera do totem) */
+if($("btn-entrar-rosto")) $("btn-entrar-rosto").onclick = async function(){
+  var b=this, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
+  try{
+    if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
+    var ok = await Rosto.entrar(sb, SB_URL);
+    if(ok){ b.textContent='Entrando…'; entrar(); return; }
+  }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível entrar pelo rosto.','err'); }
+  b.disabled=false; b.textContent=old;
+};
 $("btn-sair").onclick  = async function(){ await sb.auth.signOut(); location.reload(); };
 $("btn-sair2").onclick = async function(){ await sb.auth.signOut(); location.reload(); };
 
@@ -1406,14 +1418,22 @@ if($("btn-faceid")) $("btn-faceid").onclick = function(){
       '<p style="margin:0 0 14px;color:#8fb4d6;font-size:.86rem">Cadastre a biometria <b>deste aparelho</b> na sua conta. '+
         'Depois, no gate e no cross check, você assina com Face ID / digital em vez de digitar a senha. '+
         'Faça isso em cada aparelho que você usa.</p>'+
-      '<div style="display:flex;gap:8px">'+
-        '<button id="fid-cad" style="flex:1;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">Cadastrar este aparelho</button>'+
-        '<button id="fid-fecha" style="border:0;border-radius:9px;padding:12px 14px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
-      '</div>'+
+      '<button id="fid-cad" style="width:100%;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">🔐 Cadastrar Face ID (celular)</button>'+
+      '<button id="fid-rosto" style="width:100%;margin-top:8px;border:0;border-radius:9px;padding:12px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">🙂 Cadastrar meu rosto (totem)</button>'+
+      '<button id="fid-fecha" style="width:100%;margin-top:8px;border:0;border-radius:9px;padding:11px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
     '</div>';
   document.body.appendChild(ov);
   ov.querySelector('#fid-fecha').onclick = function(){ ov.remove(); };
   ov.querySelector('#fid-cad').onclick = function(){ cadastrarFaceId(this); };
+  ov.querySelector('#fid-rosto').onclick = async function(){
+    var b=this, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
+    try{
+      if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
+      await Rosto.cadastrar(sb);
+      toast('Rosto cadastrado neste totem ✓','ok');
+    }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível cadastrar o rosto.','err'); }
+    b.disabled=false; b.textContent=old;
+  };
 };
 
 /* ---------------- EXCLUSÃO SEGURA ----------------
