@@ -1401,6 +1401,73 @@ if($("btn-faceid")) $("btn-faceid").onclick = function(){
   ov.querySelector('#fid-cad').onclick = function(){ cadastrarFaceId(this); };
 };
 
+/* ---------------- EXCLUSÃO SEGURA ----------------
+   Só diretor/admin, confirmada por Face ID OU senha, no servidor.
+   O banco também trava (política restritiva) — isto é a camada do app. */
+function excluirSeguro(tipo, id, label, aposOk){
+  if(!(temPapel('diretor_tecnico') || ehAdmin())){
+    toast('Só o Diretor Técnico ou o admin podem excluir.','err'); return;
+  }
+  if(document.getElementById('ov-excluir')) return;
+  var inp='width:100%;box-sizing:border-box;background:#0b1a2e;border:1px solid rgba(127,212,255,.2);border-radius:9px;padding:11px;color:#eaf2fb;font-family:inherit';
+  var ov = document.createElement('div'); ov.id='ov-excluir';
+  ov.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(4,10,22,.75);display:grid;place-items:center;padding:16px';
+  ov.innerHTML =
+    '<div style="background:#0b1e42;border:1px solid rgba(255,120,120,.28);border-radius:14px;max-width:390px;width:100%;padding:20px;color:#e6eef7;font-family:inherit">'+
+      '<h3 style="margin:0 0 4px;font-size:1.05rem">🗑️ Excluir com segurança</h3>'+
+      '<p style="margin:0 0 12px;color:#f3b0a6;font-size:.9rem">Você vai apagar: <b>'+esc(label||'este item')+'</b>. Isso não pode ser desfeito — confirme que é você.</p>'+
+      '<button class="btn btn--blue" id="ex-fid" style="width:100%">🔐 Confirmar com Face ID</button>'+
+      '<div style="display:flex;align-items:center;gap:10px;margin:12px 0;color:#8fb4d6;font-size:.8rem"><span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span>ou a senha<span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span></div>'+
+      '<input id="ex-senha" type="password" placeholder="Sua senha" style="'+inp+'">'+
+      '<div id="ex-msg" style="font-size:.83rem;margin-top:9px;min-height:1em"></div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px">'+
+        '<button id="ex-ok" style="flex:1;border:0;border-radius:9px;padding:11px;background:#b23b2e;color:#fff;font-weight:700;cursor:pointer">Excluir</button>'+
+        '<button id="ex-cancel" style="border:0;border-radius:9px;padding:11px 14px;background:#26364a;color:#fff;cursor:pointer">Cancelar</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+  var fecha=function(){ ov.remove(); };
+  var msg = ov.querySelector('#ex-msg');
+  ov.querySelector('#ex-cancel').onclick = fecha;
+  ov.onclick=function(e){ if(e.target===ov) fecha(); };
+  async function chamaExcluir(payload){
+    var sess = await sb.auth.getSession();
+    var tok = sess && sess.data && sess.data.session && sess.data.session.access_token;
+    var r = await fetch(SB_URL+'/functions/v1/excluir', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+      body: JSON.stringify(Object.assign({tipo:tipo, id:id}, payload)) });
+    if(r.status===404) throw new Error('A função de exclusão ainda não foi publicada no Supabase.');
+    var d = await r.json().catch(function(){return null;});
+    if(!r.ok || !d || d.erro) throw new Error((d&&d.erro)||'Falha ao excluir.');
+    return d;
+  }
+  ov.querySelector('#ex-fid').onclick = async function(){
+    var b=this; b.disabled=true; b.textContent='Aguardando Face ID…';
+    try{
+      var mod = await import('https://esm.sh/@simplewebauthn/browser@13');
+      var opts = await faceidReq('assinar_opcoes');
+      var assertion = await mod.startAuthentication({ optionsJSON: opts });
+      await chamaExcluir({ assertion: assertion });
+      fecha(); toast('Excluído ✓','ok'); if(aposOk) aposOk();
+    }catch(e){
+      b.disabled=false; b.textContent='🔐 Confirmar com Face ID';
+      var m=e&&(e.message||String(e))||'';
+      if(/Nenhum Face ID cadastrado/i.test(m)){ msg.style.color='#ffcf9a'; msg.textContent='Sem Face ID neste aparelho — use a senha abaixo.'; }
+      else if(/not allowed|NotAllowedError|abort/i.test(m)){ msg.style.color='#ffcf9a'; msg.textContent='Face ID cancelado — pode usar a senha.'; }
+      else { msg.style.color='#ff9a8a'; msg.textContent=m; }
+    }
+  };
+  ov.querySelector('#ex-ok').onclick = async function(){
+    var s = ov.querySelector('#ex-senha').value;
+    if(!s){ msg.style.color='#ff9a8a'; msg.textContent='Digite a senha ou use o Face ID.'; return; }
+    var b=this; b.disabled=true; b.textContent='Excluindo…';
+    try{
+      await chamaExcluir({ senha: s });
+      fecha(); toast('Excluído ✓','ok'); if(aposOk) aposOk();
+    }catch(e){ b.disabled=false; b.textContent='Excluir'; msg.style.color='#ff9a8a'; msg.textContent=e.message||String(e); }
+  };
+}
+
 async function entrar(){
   var s = await sb.auth.getUser();
   var user = s.data ? s.data.user : null;
@@ -1572,7 +1639,9 @@ async function abreProprietario(id){
    '<div class="ov" id="ov"><div class="sheet" style="max-width:760px"><div class="sheet__h">'+
      '<div><h2>'+esc(p.nome)+'</h2><div class="sub">'+
        (p.tipo==='pf'?'Pessoa física':'Empresa')+(p.doc?' · '+esc(p.doc):'')+'</div></div>'+
-     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
+     '<div class="spacer"></div>'+
+     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="prop-del" style="color:#ff9a8a">🗑️ Excluir</button>' : '')+
+     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      '<div class="box"><h3>Dados</h3><dl class="dl">'+
        '<dt>Telefone</dt><dd>'+esc(p.fone||'—')+'</dd>'+
@@ -1584,6 +1653,11 @@ async function abreProprietario(id){
    '</div></div></div>';
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  if($("prop-del")) $("prop-del").onclick = function(){
+    excluirSeguro('proprietario', id, p.nome, function(){
+      $("modal").innerHTML=''; if(typeof carregaProprietarios==='function') carregaProprietarios();
+    });
+  };
   document.querySelectorAll('[data-aer]').forEach(function(el){
     el.onclick = function(){ abreAeronave(el.dataset.aer); };
   });
@@ -1693,7 +1767,9 @@ async function abreAeronave(id){
    '<div class="ov" id="ov"><div class="sheet" style="max-width:820px"><div class="sheet__h">'+
      '<div><h2 class="fa-pref">'+esc(a.prefixo)+'</h2>'+
      '<div class="sub">'+esc(a.modelo||c.nome)+' · '+esc(c.nome)+'</div></div>'+
-     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
+     '<div class="spacer"></div>'+
+     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="aer-del" style="color:#ff9a8a">🗑️ Excluir</button>' : '')+
+     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      prancheta(a, [], null)+
      '<div class="box"><h3>Dados da aeronave</h3><dl class="dl">'+
@@ -1725,6 +1801,11 @@ async function abreAeronave(id){
   medirTracos();
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  if($("aer-del")) $("aer-del").onclick = function(){
+    excluirSeguro('aeronave', id, 'Aeronave '+(a.prefixo||''), function(){
+      $("modal").innerHTML=''; carregaAeronaves();
+    });
+  };
   document.querySelectorAll('[data-os]').forEach(function(el){
     el.onclick = function(){ abreOS(el.dataset.os); };
   });
@@ -1737,12 +1818,8 @@ async function abreAeronave(id){
     };
   });
   document.querySelectorAll('.aerdoc-del').forEach(function(b){
-    b.onclick = async function(){
-      if(!confirm('Remover este documento da aeronave?')) return;
-      await sb.storage.from('manutencao').remove([b.dataset.c]);
-      var r = await sb.from('manut_aeronave_docs').delete().eq('id', b.dataset.id);
-      if(r.error){ toast(r.error.message,'err'); return; }
-      toast('Documento removido.','ok'); abreAeronave(id);
+    b.onclick = function(){
+      excluirSeguro('aeronave_doc', b.dataset.id, 'Documento da aeronave', function(){ abreAeronave(id); });
     };
   });
   if($("aerdoc-up")) $("aerdoc-up").onclick = async function(){
@@ -2451,7 +2528,10 @@ async function abreOS(id, scrollRestaurar){
       '<div class="gal">'+ fs.map(function(f){
         var vai = f.compartilhada !== false;
         var eVideo = f.midia === 'video';
-        return '<figure class="ft'+(vai?'':' ft--off')+'">'+
+        return '<figure class="ft'+(vai?'':' ft--off')+'" style="position:relative">'+
+          ((temPapel('diretor_tecnico')||ehAdmin())
+            ? '<button data-fdel="'+f.id+'" data-flbl="'+esc((eVideo?'Vídeo':'Foto')+' — '+(f.legenda||m.lbl))+'" title="Excluir" style="position:absolute;top:6px;right:6px;z-index:4;border:0;border-radius:8px;background:rgba(178,59,46,.92);color:#fff;padding:4px 7px;font-size:.82rem;cursor:pointer">🗑️</button>'
+            : '')+
           (eVideo
             ? '<div class="ft__vid" id="ft-'+f.id+'"><span class="ft__tag">🎥 vídeo com som</span></div>'
             : '<div class="ft__img" id="ft-'+f.id+'" data-ft="'+esc(f.caminho)+'">'+
@@ -2588,6 +2668,13 @@ async function abreOS(id, scrollRestaurar){
     el.onclick = function(){
       var f = fotos.filter(function(x){ return x.caminho===el.dataset.ft; })[0];
       if(f && f._url) window.open(f._url, '_blank');
+    };
+  });
+  /* excluir foto/vídeo — só diretor/admin, com Face ID/senha */
+  document.querySelectorAll('[data-fdel]').forEach(function(b){
+    b.onclick = function(ev){
+      ev.stopPropagation();
+      excluirSeguro('foto', b.dataset.fdel, b.dataset.flbl || 'esta mídia', recarrega);
     };
   });
   /* Enviar / Não enviar — além de marcar, COPIA o arquivo pra área pública
