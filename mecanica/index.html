@@ -812,9 +812,9 @@
       <div style="margin-bottom:16px">
         <div class="no">Só OS <b>em andamento</b>. As encerradas vão para o <b>Arquivo</b>.</div>
       </div>
-      <div class="fbloco"><div class="fase-tit f1">Fase 1 · Recebimento e Inspeção</div>
+      <div class="fbloco"><div class="fase-tit f1">Fase 1 · Recebimento</div>
         <div class="etapas" id="fase1"></div></div>
-      <div class="fbloco"><div class="fase-tit f2">Fase 2 · Planejamento e Preparação (Gate)</div>
+      <div class="fbloco"><div class="fase-tit f2">Fase 2 · Serviços, Fila e Gate</div>
         <div class="etapas" id="fase2"></div></div>
       <div class="fbloco"><div class="fase-tit f3">Fase 3 · Execução e Conclusão</div>
         <div class="etapas" id="fase3"></div></div>
@@ -879,17 +879,17 @@ var usuario = null, PERFIL = null, AERONAVES = [], OSS = [], PROPS = [], PROPMAP
 
 var ETAPAS = [
   {n:1,  t:'Recebimento',               f:1},
-  {n:2,  t:'Pré-OS',                    f:1},
-  {n:3,  t:'Priorização',               f:1},
-  {n:4,  t:'Aguardando Fila',           f:1},
-  {n:5,  t:'Entrada',                   f:1},
-  {n:6,  t:'Planejamento e Preparação', f:2, gate:true},
-  {n:7,  t:'Execução',                  f:3},
-  {n:8,  t:'Pendências',                f:3},
-  {n:9,  t:'Conclusão',                 f:3},
-  {n:10, t:'Cross Check',               f:3},
-  {n:11, t:'Encerramento',              f:3}
+  {n:2,  t:'OS',                        f:1},
+  {n:3,  t:'Serviços e Orçamento',      f:2},
+  {n:4,  t:'Aguardando Fila',           f:2},
+  {n:5,  t:'Planejamento e Preparação', f:2, gate:true},
+  {n:6,  t:'Execução',                  f:3},
+  {n:7,  t:'Pendências',                f:3},
+  {n:8,  t:'Conclusão',                 f:3},
+  {n:9,  t:'Cross Check',               f:3},
+  {n:10, t:'Encerramento',              f:3}
 ];
+var N_ETAPAS = 10, ETAPA_GATE = 5, ETAPA_FIM = 10;
 var PAPEL_LBL = {gatekeeper:'Gatekeeper', controle_tecnico:'Controle Técnico',
   mecanico:'Mecânico', chefe_manutencao:'Chefe de Manutenção', diretor_tecnico:'Diretor Técnico'};
 
@@ -1086,8 +1086,8 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
       }).join('')+'</tbody></table>' : '';
 
   var aEtapa = assins.filter(function(x){ return x.tipo==='etapa'; });
-  var sigGate = aEtapa.filter(function(x){ return x.para_etapa===7; })[0];
-  var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===11; })[0];
+  var sigGate = aEtapa.filter(function(x){ return x.para_etapa===6; })[0];
+  var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===10; })[0];
   var sigInternas =
     (sigGate ? '<div><div class="q">Liberação do planejamento (Gate)</div><div class="n">'+
         esc(nome(sigGate.quem))+'</div><div class="d">'+dt(sigGate.quando)+'</div></div>' : '')+
@@ -1182,7 +1182,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
       '<div><dt>Operador</dt><dd>'+esc(oper || dono || '—')+'</dd></div>'+
       '<div><dt>Entrada na oficina</dt><dd>'+dataBR(o.aberta_em)+'</dd></div>'+
       '<div><dt>'+(o.encerrada_em?'Retorno ao serviço':'Situação')+'</dt><dd>'+
-        (o.encerrada_em ? dataBR(o.encerrada_em) : 'Em andamento · etapa '+o.etapa+' de 11')+'</dd></div>'+
+        (o.encerrada_em ? dataBR(o.encerrada_em) : 'Em andamento · etapa '+o.etapa+' de 10')+'</dd></div>'+
     '</div>'+
     '<div style="font-size:8.5pt;color:#5b6b78;margin-top:5px">Permanência na oficina: <b>'+dias+' dia(s)</b>'+
       (o.tipo?' · Serviço: <b>'+esc(o.tipo)+'</b>':'')+'</div>'+
@@ -2128,10 +2128,10 @@ $("q-arq").addEventListener('input', renderArquivo);
 
 /* ============================================================
    HOJE NA OFICINA — a planta do hangar + a fila de cada pessoa
-   As zonas da planta agrupam as 11 etapas:
-   1..5 Pátio · 6 Planejamento(gate) · 7..9 Baias · 10..11 Liberação
+   As zonas da planta agrupam as 10 etapas:
+   1..4 Pátio · 5 Planejamento(gate) · 6..8 Baias · 9..10 Liberação
    ============================================================ */
-function zonaDaEtapa(e){ return e<=5?1:(e===6?2:(e<=9?3:4)); }
+function zonaDaEtapa(e){ return e<=4?1:(e===5?2:(e<=8?3:4)); }
 function diasDesde(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 
 async function carregaOficina(){
@@ -2168,13 +2168,13 @@ async function carregaOficina(){
     o._gateTot = itens.filter(function(i){
       return i.checklist_id===o.gate_checklist_id && i.obrigatorio &&
              (!i.so_terceiro || o.terceiro); }).length;
-    o._etq = (o._pend>0 || o._dias>=7) ? 'vm' : (o.etapa>=10 ? 'vd' : 'am');
+    o._etq = (o._pend>0 || o._dias>=7) ? 'vm' : (o.etapa>=9 ? 'vd' : 'am');
   });
 
   /* --- KPIs --- */
-  var esperandoGate = oss.filter(function(o){ return o.etapa===6; }).length;
+  var esperandoGate = oss.filter(function(o){ return o.etapa===5; }).length;
   var paradas       = oss.filter(function(o){ return o._dias>=7; }).length;
-  var prontas       = oss.filter(function(o){ return o.etapa>=10; }).length;
+  var prontas       = oss.filter(function(o){ return o.etapa>=9; }).length;
   $("kpis").innerHTML =
     '<div class="kpi"><b>'+oss.length+'</b><span>aeronaves na oficina</span></div>'+
     '<div class="kpi'+(esperandoGate?' r':'')+'"><b>'+esperandoGate+'</b><span>esperando o gate 🔒</span></div>'+
@@ -2188,7 +2188,7 @@ async function carregaOficina(){
     var z = zonaDaEtapa(o.etapa); cont[z]++;
     var a = o.manut_aeronaves||{};
     var trilha='<div class="pav__t">';
-    for(var k=1;k<=11;k++) trilha += '<i class="'+(k<=o.etapa?'on':'')+'"></i>';
+    for(var k=1;k<=10;k++) trilha += '<i class="'+(k<=o.etapa?'on':'')+'"></i>';
     trilha+='</div>';
     var etqTx = o._etq==='vm' ? 'INOP' : (o._etq==='vd' ? 'LIB' : 'SERV');
     $("zf"+z).insertAdjacentHTML('beforeend',
@@ -2198,7 +2198,7 @@ async function carregaOficina(){
         '<div class="pav__d">'+(o.prioridade<=1?'<b style="color:#c0392b">🔴 URGENTE</b><br>':'')+esc(codOS(o))+' · '+o._dias+'d parada'+
           (o._pend?'<br>⚠️ '+o._pend+' pendência(s)':'')+
           (o.aguardando_motivo?'<br>⏳ '+esc(o.aguardando_motivo):'')+
-          (o.etapa===6 ? '<br>🔒 gate '+o._gateOk+'/'+o._gateTot : '')+'</div>'+
+          (o.etapa===5 ? '<br>🔒 gate '+o._gateOk+'/'+o._gateTot : '')+'</div>'+
         trilha+'</div>');
   });
   [1,2,3,4].forEach(function(z){
@@ -2323,27 +2323,26 @@ function montaFila(oss){
     var pref = (o.manut_aeronaves||{}).prefixo || '?';
     var ref  = pref+' · '+codOS(o);
 
-    if(tem('gatekeeper') && o.etapa===6){
+    if(tem('gatekeeper') && o.etapa===5){
       var falta = o._gateTot - o._gateOk;
       if(falta>0) add('r','🔒', ref+' — gate incompleto', falta+' de '+o._gateTot+' itens faltando · parada há '+o._dias+'d', o.id);
       else        add('g','🚧', ref+' — pronta pra liberar', 'todos os '+o._gateTot+' itens ✓ · só falta você liberar', o.id);
     }
-    if(tem('mecanico') && o.etapa>=7 && o.etapa<=9){
+    if(tem('mecanico') && o.etapa>=6 && o.etapa<=8){
       var naoExec = o._tar.filter(function(t){ return !t.executado_em; }).length;
       if(naoExec) add('','🔧', ref+' — '+naoExec+' serviço(s) pra executar', 'liberado · etapa '+o.etapa, o.id);
     }
     if(tem('controle_tecnico')){
       var aConferir = o._tar.filter(function(t){ return t.executado_em && !t.conferido_em && t.executor_id!==eu; }).length;
       if(aConferir) add('g','✅', ref+' — '+aConferir+' serviço(s) aguardando cross check', 'executados · falta a segunda assinatura', o.id);
-      if(o.etapa<=2) add('','📋', ref+' — Pré-OS pendente', 'aeronave recebida há '+o._dias+'d', o.id);
+      if(o.etapa<=3) add('','📋', ref+' — serviços e orçamento pendente', 'aeronave recebida há '+o._dias+'d', o.id);
     }
     if(tem('chefe_manutencao')){
       if(o._dias>=7) add('r','🏷️', ref+' — parada há '+o._dias+' dias', 'etapa '+o.etapa+' · sem movimento', o.id);
       if(o._pend)    add('r','⚠️', ref+' — '+o._pend+' pendência(s) aberta(s)', 'trava a conclusão', o.id);
-      if(o.etapa===3) add('','📊', ref+' — aguardando priorização', 'defina a ordem na fila', o.id);
     }
     if(tem('diretor_tecnico')){
-      if(o.etapa>=10){
+      if(o.etapa>=9){
         var falta2 = o._tar.filter(function(t){ return !t.conferido_em; }).length;
         if(!falta2) add('g','✍️', ref+' — pronta para retorno ao serviço', 'todos os serviços conferidos', o.id);
       }
@@ -2531,8 +2530,8 @@ async function abreOS(id, scrollRestaurar){
   var podeVoltar = temPapel('chefe_manutencao') || temPapel('diretor_tecnico') || ehAdmin();
   var prox = o.etapa + 1, acoes = '';
   if(!encerrada){
-    if(prox <= 11){
-      var eProx = ETAPAS[prox-1], ehFim = (prox === 11);
+    if(prox <= 10){
+      var eProx = ETAPAS[prox-1], ehFim = (prox === 10);
       acoes += '<button class="btn '+(ehFim?'btn--green':'btn--blue')+'" id="bt-avancar">'+
         (ehFim ? '✍️ Encerrar e assinar retorno ao serviço'
                : 'Avançar para '+prox+' · '+esc(eProx.t)+'  →')+'</button>';
@@ -2549,7 +2548,7 @@ async function abreOS(id, scrollRestaurar){
   /* --- gate --- */
   var gateHtml='';
   if(!o.gate_checklist_id){
-    gateHtml = '<div class="no">O checklist é carregado quando a OS entra na <b>Etapa 6</b>. '+
+    gateHtml = '<div class="no">O checklist é carregado quando a OS entra na <b>Etapa 5</b> (Planejamento e Preparação). '+
                'A versão vigente fica congelada nesta OS.</div>';
   } else {
     var blocoAtual='', vis=0, ok=0;
@@ -2673,7 +2672,7 @@ async function abreOS(id, scrollRestaurar){
       '<div class="cust__ic">'+ic+'</div><div class="cust__b">'+
       '<div class="cust__t">'+rotulo+'</div><div class="cust__s">'+
       (tipo==='retirada' && !encerrada
-        ? 'processo em andamento — etapa '+o.etapa+' de 11'
+        ? 'processo em andamento — etapa '+o.etapa+' de 10'
         : 'ainda não registrado')+'</div></div>'+acao+linkBtn+'</div>';
   }
   var custHtml =
@@ -2768,11 +2767,11 @@ async function abreOS(id, scrollRestaurar){
    '<div class="sheet__b">'+
      prancheta(a, tarefas, o)+
      '<div class="box"><h3>📋 Recebimento</h3>'+recebHtml+'</div>'+
-     '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 11')+'</span></h3>'+
+     '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 10')+'</span></h3>'+
        '<div class="steps">'+steps+'</div>'+acoes+
        (o.prioridade_motivo?'<div class="no" style="margin-top:10px">Prioridade '+o.prioridade+' — '+esc(o.prioridade_motivo)+'</div>':'')+
        (o.descricao?'<div style="margin-top:10px">'+esc(o.descricao)+'</div>':'')+'</div>'+
-     '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
+     '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 5)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
@@ -2974,7 +2973,7 @@ async function abreOS(id, scrollRestaurar){
                  : (excep ? '⚠️ Autorizar retirada excepcional' : 'Quem retirou a aeronave');
       abreModal(titulo,
         (excep
-          ? '<div class="aviso-grave">Esta aeronave está na <b>etapa '+o.etapa+' de 11</b> e '+
+          ? '<div class="aviso-grave">Esta aeronave está na <b>etapa '+o.etapa+' de 10</b> e '+
             '<b>não recebeu aprovação para retorno ao serviço</b>.<br><br>'+
             'Ao autorizar, você assume a responsabilidade técnica pela saída. O registro fica '+
             'permanentemente na OS, com seu nome e o motivo.</div>'
