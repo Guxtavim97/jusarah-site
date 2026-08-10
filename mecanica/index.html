@@ -2564,6 +2564,7 @@ async function abreOS(id, scrollRestaurar){
     '<div class="spacer"></div>'+
     '<button class="btn btn--ghost btn--sm" id="bt-link">🔗 Link do proprietário</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
+    ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      prancheta(a, tarefas, o)+
@@ -2652,6 +2653,11 @@ async function abreOS(id, scrollRestaurar){
   $("bt-rel").onclick = function(){
     montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
     setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
+  };
+  if($("os-del")) $("os-del").onclick = function(){
+    excluirSeguro('os', o.id, 'OS '+codOS(o), function(){
+      $("modal").innerHTML=''; carregaQuadro(); carregaOficina(); carregaAeronaves();
+    });
   };
 
   /* --- fotos: carrega as miniaturas por URL assinada (bucket é privado) --- */
