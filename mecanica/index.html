@@ -1060,7 +1060,7 @@ function comprimeImagem(file, max){
    RELATÓRIO DE SERVIÇO — o documento que vai pro proprietário
    ============================================================ */
 /* Ficha de Inspeção no formato oficial (checklist por sistema) */
-function montaFicha(o, a, tarefas, nome){
+function montaFicha(o, a, tarefas, pecas, nome){
   var grupos = {}, ordem = [];
   tarefas.forEach(function(t){
     var s = t.sistema || 'SERVIÇOS ADICIONAIS';
@@ -1081,6 +1081,17 @@ function montaFicha(o, a, tarefas, nome){
       '<tbody>'+linhas+'</tbody></table>';
   }).join('');
   var tipoTx = o.tipo || 'inspeção';
+  var comp = o.componentes || {};
+  function cl(k,lbl){ var c=comp[k]||{}; return '<tr><td><b>'+lbl+'</b></td><td>'+esc(c.fab||'')+'</td><td>'+esc(c.mod||'')+'</td><td>'+esc(c.serie||'')+'</td><td>'+esc(c.tsn||'')+'</td><td>'+esc(c.tso||'')+'</td></tr>'; }
+  var compTab = '<h2>Dados dos Componentes</h2><table class="rp-t"><thead><tr><th></th><th>Fabricante</th><th>Modelo</th><th>Nº Série</th><th>TSN</th><th>TSO</th></tr></thead><tbody>'+
+    cl('celula','Célula')+cl('motor','Motor')+cl('helice','Hélice')+'</tbody></table>'+
+    (o.horimetro!=null?'<div style="font-size:8.5pt;color:#5b6b78;margin-top:4px">Horímetro: <b>'+esc(o.horimetro)+'</b>'+(o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>':'');
+  var totalP = (pecas||[]).reduce(function(s,p){ return s+(Number(p.quantidade||1)*Number(p.valor||0)); },0);
+  var pecasTab = (pecas&&pecas.length)
+    ? '<h2>Material / Peças Utilizadas</h2><table class="rp-t"><thead><tr><th>Qtd</th><th>Descrição</th><th>P/N</th><th>S/N</th><th>Valor</th></tr></thead><tbody>'+
+      pecas.map(function(p){ return '<tr><td>'+esc(p.quantidade!=null?p.quantidade:'')+'</td><td>'+esc(p.descricao)+'</td><td>'+esc(p.pn||'')+'</td><td>'+esc(p.sn||'')+'</td><td>'+(p.valor!=null?('R$ '+Number(p.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})):'')+'</td></tr>'; }).join('')+
+      '</tbody></table>'+(totalP>0?'<div style="text-align:right;font-weight:bold;margin-top:4px">Total: R$ '+totalP.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div>':'')
+    : '';
   $("doc").innerHTML =
    '<div class="rp">'+
     '<div class="rp-cab"><img src="../assets/img/logo.png" alt="">'+
@@ -1095,7 +1106,9 @@ function montaFicha(o, a, tarefas, nome){
       '<div><dt>Tipo de inspeção</dt><dd>'+esc(tipoTx)+'</dd></div>'+
       '<div><dt>Data de início</dt><dd>'+dataBR(o.aberta_em)+'</dd></div>'+
     '</div>'+
+    compTab +
     corpo +
+    pecasTab +
     '<div class="rp-nota" style="margin-top:16px"><b>DECLARAÇÃO:</b> Declaramos, para fins de responsabilidade perante à legislação vigente, que a aeronave acima identificada foi por nós inspecionada quanto à sua condição de aeronavegabilidade e documentação, consoante aos requisitos estabelecidos no RBHA 43, concluindo, nesta data, uma inspeção de <b>'+esc(tipoTx)+'</b> de manutenção, conforme se verifica na documentação de bordo, pasta de inspeções e serviços existentes nos arquivos desta oficina e nas cópias das respectivas cadernetas de célula, motor e hélice, estando a aeronave liberada para voo.</div>'+
     '<div style="display:flex;justify-content:space-between;margin-top:44px;text-align:center;font-size:9pt">'+
       '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Local / Data</div></div>'+
@@ -2544,6 +2557,7 @@ async function abreOS(id, scrollRestaurar){
   var hist    = (await sb.from('manut_os_historico').select('*').eq('os_id',id).order('quando',{ascending:false})).data||[];
   var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
   var entregas= (await sb.from('manut_entregas').select('*').eq('os_id',id).order('criado_em')).data||[];
+  var pecas   = (await sb.from('manut_os_pecas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   /* URL assinada de cada foto — serve pra galeria E pro relatório */
   for(var fi=0; fi<fotos.length; fi++){
@@ -2764,6 +2778,36 @@ async function abreOS(id, scrollRestaurar){
     (o.aguardando_motivo ? '<div class="no" style="margin-top:8px;color:var(--amber)">⏳ Na fila aguardando: <b>'+esc(o.aguardando_motivo)+'</b></div>' : '')+
     (encerrada ? '' : '<button class="btn btn--ghost btn--sm" id="receb-edit" style="margin-top:10px">✏️ Editar recebimento</button>');
 
+  /* --- tempos dos componentes (célula / motor / hélice) --- */
+  var comp = o.componentes || {};
+  function compLinha(k, lbl){
+    var c = comp[k] || {};
+    return '<tr><td><b>'+lbl+'</b></td><td>'+esc(c.fab||'—')+'</td><td>'+esc(c.mod||'—')+'</td>'+
+      '<td>'+esc(c.serie||'—')+'</td><td>'+esc(c.tsn||'—')+'</td><td>'+esc(c.tso||'—')+'</td></tr>';
+  }
+  var componentesHtml =
+    '<table class="t" style="font-size:.85rem"><thead><tr><th></th><th>Fabricante</th><th>Modelo</th><th>Nº série</th><th>TSN</th><th>TSO</th></tr></thead><tbody>'+
+      compLinha('celula','Célula')+compLinha('motor','Motor')+compLinha('helice','Hélice')+
+    '</tbody></table>'+
+    '<div class="no" style="margin-top:6px">Horímetro: <b>'+(o.horimetro!=null?esc(o.horimetro):'—')+'</b>'+
+      (o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>'+
+    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="comp-edit" style="margin-top:8px">✏️ Editar componentes</button>');
+
+  /* --- peças e materiais (também alimenta o orçamento) --- */
+  var totalPecas = pecas.reduce(function(s,p){ return s + (Number(p.quantidade||1)*Number(p.valor||0)); }, 0);
+  var fmtR = function(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); };
+  var pecasHtml = (pecas.length
+    ? '<table class="t" style="font-size:.85rem"><thead><tr><th>Qtd</th><th>Descrição</th><th>P/N</th><th>S/N</th><th>Valor un.</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
+      pecas.map(function(p){
+        return '<tr><td>'+esc(p.quantidade!=null?p.quantidade:'—')+'</td><td>'+esc(p.descricao)+'</td>'+
+          '<td>'+esc(p.pn||'—')+'</td><td>'+esc(p.sn||'—')+'</td>'+
+          '<td>'+(p.valor!=null?fmtR(p.valor):'—')+'</td>'+
+          (encerrada?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm peca-del" data-id="'+p.id+'">🗑️</button></td>')+'</tr>';
+      }).join('')+'</tbody></table>'
+    : '<div class="no">Nenhuma peça registrada.</div>')+
+    (totalPecas>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em peças: '+fmtR(totalPecas)+'</div>':'')+
+    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="peca-add" style="margin-top:8px">+ Peça / Material</button>');
+
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
   var GAL_META = {
@@ -2829,6 +2873,8 @@ async function abreOS(id, scrollRestaurar){
        (o.descricao?'<div style="margin-top:10px">'+esc(o.descricao)+'</div>':'')+'</div>'+
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 5)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
+     '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
+     '<div class="box"><h3>🧰 Peças e Materiais</h3>'+pecasHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
      '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
@@ -2911,7 +2957,7 @@ async function abreOS(id, scrollRestaurar){
     setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
   };
   if($("bt-ficha")) $("bt-ficha").onclick = function(){
-    montaFicha(o, a, tarefas, nome);
+    montaFicha(o, a, tarefas, pecas, nome);
     setTimeout(function(){ window.print(); }, 200);
   };
   if($("os-del")) $("os-del").onclick = function(){
@@ -3187,6 +3233,58 @@ async function abreOS(id, scrollRestaurar){
       });
     if(window.Voz) Voz.ativarTodos(sb, SB_URL);
   };
+  if($("comp-edit")) $("comp-edit").onclick = function(){
+    var c = o.componentes || {};
+    function campos(k, lbl){
+      var x = c[k]||{};
+      return '<div style="font-weight:800;font-size:.82rem;margin:10px 0 4px;color:var(--blue)">'+lbl+'</div>'+
+        '<div class="row"><div><label class="blk">Fabricante</label><input class="in" id="cp-'+k+'-fab" value="'+esc(x.fab||'')+'"></div>'+
+        '<div><label class="blk">Modelo</label><input class="in" id="cp-'+k+'-mod" value="'+esc(x.mod||'')+'"></div></div>'+
+        '<div class="row" style="margin-top:6px"><div><label class="blk">Nº série</label><input class="in" id="cp-'+k+'-serie" value="'+esc(x.serie||'')+'"></div>'+
+        '<div><label class="blk">TSN</label><input class="in" id="cp-'+k+'-tsn" value="'+esc(x.tsn||'')+'"></div>'+
+        '<div><label class="blk">TSO</label><input class="in" id="cp-'+k+'-tso" value="'+esc(x.tso||'')+'"></div></div>';
+    }
+    abreModal('Tempos dos componentes',
+      campos('celula','Célula')+campos('motor','Motor')+campos('helice','Hélice')+
+      '<div class="row" style="margin-top:10px"><div><label class="blk">Horímetro</label><input class="in" id="cp-hor" type="text" inputmode="decimal" value="'+esc(o.horimetro!=null?o.horimetro:'')+'"></div>'+
+      '<div><label class="blk">Manutenção Nº</label><input class="in" id="cp-num" value="'+esc(o.manutencao_num||'')+'"></div></div>',
+      'Salvar', async function(){
+        function get(k){ return { fab:$("cp-"+k+"-fab").value.trim()||null, mod:$("cp-"+k+"-mod").value.trim()||null,
+          serie:$("cp-"+k+"-serie").value.trim()||null, tsn:$("cp-"+k+"-tsn").value.trim()||null, tso:$("cp-"+k+"-tso").value.trim()||null }; }
+        var novo = { celula:get('celula'), motor:get('motor'), helice:get('helice') };
+        var hor = ($("cp-hor").value||'').trim().replace(',','.');
+        var r = await sb.from('manut_os').update({ componentes:novo,
+          horimetro: hor?Number(hor):null, manutencao_num:$("cp-num").value.trim()||null }).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        recarrega(); return true;
+      });
+  };
+  if($("peca-add")) $("peca-add").onclick = function(){
+    abreModal('Peça / Material',
+      '<div class="row"><div><label class="blk">Qtd</label><input class="in" id="pc-qtd" type="text" inputmode="decimal" value="1"></div>'+
+      '<div style="flex:2"><label class="blk">Descrição *</label><input class="in" id="pc-desc"></div></div>'+
+      '<div class="row" style="margin-top:8px"><div><label class="blk">P/N</label><input class="in" id="pc-pn"></div>'+
+      '<div><label class="blk">S/N</label><input class="in" id="pc-sn"></div>'+
+      '<div><label class="blk">Valor un.</label><input class="in" id="pc-valor" type="text" inputmode="decimal" placeholder="0,00"></div></div>',
+      'Adicionar', async function(){
+        if(!$("pc-desc").value.trim()){ toast('Descreva a peça.','err'); return false; }
+        var q = ($("pc-qtd").value||'').trim().replace(',','.');
+        var v = ($("pc-valor").value||'').trim().replace(/\./g,'').replace(',','.');
+        var r = await sb.from('manut_os_pecas').insert({ os_id:id, quantidade:q?Number(q):null,
+          descricao:$("pc-desc").value.trim(), pn:$("pc-pn").value.trim()||null,
+          sn:$("pc-sn").value.trim()||null, valor:v?Number(v):null });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        recarrega(); return true;
+      });
+  };
+  document.querySelectorAll('.peca-del').forEach(function(b){
+    b.onclick = async function(){
+      if(!confirm('Remover esta peça?')) return;
+      var r = await sb.from('manut_os_pecas').delete().eq('id', b.dataset.id);
+      if(r.error){ toast(r.error.message,'err'); return; }
+      toast('Peça removida.','ok'); recarrega();
+    };
+  });
   if($("tr-edit")) $("tr-edit").onclick = function(){
     var chk = o.translado_jusarah ? 'checked' : '';
     abreModal('Translado — chegada da aeronave',
