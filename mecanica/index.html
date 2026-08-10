@@ -45,6 +45,7 @@
 <script src="../assets/js/assistente.js"></script>
 <script src="../assets/js/rosto.js"></script>
 <script src="../assets/js/offline.js"></script>
+<script src="../assets/js/voz.js"></script>
 <style>
   :root{
     --blue:#1B3F8F; --blue-d:#122a5f; --sky:#2E86C1; --green:#2f9e44; --green-d:#1B6E3B;
@@ -2371,18 +2372,18 @@ $("btn-nova-os").onclick = function(){
   }).join('');
   abreModal('Nova Ordem de Serviço',
     '<label class="blk">Aeronave *</label><select class="in" id="o-aer">'+ops+'</select>'+
-    '<div class="row" style="margin-top:10px"><div><label class="blk">Tipo de serviço</label>'+
+    '<div class="row" style="margin-top:10px"><div><label class="blk">Tipo de serviço'+(window.Voz?Voz.botao('o-tipo','tipo de serviço'):'')+'</label>'+
     '<input class="in" id="o-tipo" placeholder="Inspeção 100h / Corretiva / DA / Boletim"></div>'+
     '<div><label class="blk">Prioridade</label><select class="in" id="o-prio">'+
     '<option value="3" selected>Normal</option><option value="1">🔴 Urgente</option></select></div></div>'+
     '<label class="blk" style="margin-top:10px">Motivo da urgência <span style="font-weight:600;text-transform:none;letter-spacing:0">(se for urgente)</span></label>'+
     '<input class="in" id="o-prio-m" placeholder="Ex.: avião parado na safra / cliente aguardando">'+
     '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b style="font-size:.82rem;color:var(--blue)">📋 Recebimento</b></div>'+
-    '<label class="blk" style="margin-top:8px">Relatos do piloto</label>'+
+    '<label class="blk" style="margin-top:8px">Relatos do piloto'+(window.Voz?Voz.botao('o-relatos','relatos do piloto'):'')+'</label>'+
     '<textarea class="in" id="o-relatos" rows="2" placeholder="O que o piloto relatou: sintomas, ruídos, ocorrências no voo"></textarea>'+
-    '<label class="blk" style="margin-top:10px">Motivo (por que a aeronave vai para manutenção) *</label>'+
+    '<label class="blk" style="margin-top:10px">Motivo (por que a aeronave vai para manutenção) *'+(window.Voz?Voz.botao('o-motivo','motivo da manutenção'):'')+'</label>'+
     '<input class="in" id="o-motivo" placeholder="Ex.: inspeção 100h / falha no motor / revisão de célula">'+
-    '<label class="blk" style="margin-top:10px">Descrição do serviço</label>'+
+    '<label class="blk" style="margin-top:10px">Descrição do serviço'+(window.Voz?Voz.botao('o-desc','descrição do serviço'):'')+'</label>'+
     '<textarea class="in" id="o-desc" rows="2" placeholder="Detalhes adicionais (opcional)"></textarea>',
     'Abrir OS', async function(){
       var aer = AERONAVES.filter(function(a){ return a.id===$("o-aer").value; })[0];
@@ -2400,6 +2401,7 @@ $("btn-nova-os").onclick = function(){
       await carregaQuadro(); await carregaOficina();
       toast(codOS(r.data)+' aberta.','ok'); return true;
     });
+  if(window.Voz) Voz.ativarTodos(sb, SB_URL);
 };
 
 /* ============================================================
@@ -3096,7 +3098,7 @@ async function abreOS(id, scrollRestaurar){
     var zops = '<option value="">— sem zona —</option>' + Object.keys(cat.zonas).map(function(z){
       return '<option value="'+z+'">'+esc(ZONA_LBL[z]||z)+'</option>'; }).join('');
     abreModal('Nova tarefa',
-      '<label class="blk">Descrição do serviço *</label><input class="in" id="t-desc">'+
+      '<label class="blk">Descrição do serviço *'+(window.Voz?Voz.botao('t-desc','descrição do serviço'):'')+'</label><input class="in" id="t-desc">'+
       '<label class="blk" style="margin-top:10px">Zona da aeronave <span style="font-weight:600;text-transform:none;letter-spacing:0">(marca o ponto na prancheta)</span></label>'+
       '<select class="in" id="t-zona">'+zops+'</select>'+
       '<label class="blk" style="margin-top:10px">Referência do manual (AMM/IPC/SB)</label><input class="in" id="t-ref">',
@@ -3108,6 +3110,7 @@ async function abreOS(id, scrollRestaurar){
         if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
         recarrega(); return true;
       });
+    if(window.Voz) Voz.ativarTodos(sb, SB_URL);
   };
   if($("receb-edit")) $("receb-edit").onclick = function(){
     var ags = ['Aguardando peça','Aguardando cliente enviar as peças','Aguardando aprovação do orçamento','Aguardando ferramenta','Outro'];
