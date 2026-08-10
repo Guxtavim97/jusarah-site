@@ -19,6 +19,26 @@
       navigator.serviceWorker.register('/mecanica/sw.js').catch(function(){});
     });
   }
+  // aviso discreto de conexão (só aparece quando está sem internet)
+  window.addEventListener('load', function(){
+    var b = document.createElement('div');
+    b.id = 'net-badge';
+    b.style.cssText = 'display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:9000;'+
+      'background:#7d2020;color:#fff;padding:6px 13px;border-radius:999px;font-size:.78rem;font-weight:700;'+
+      'box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:92vw;text-align:center';
+    document.body.appendChild(b);
+    window.__net = function(txt, cor){
+      if(txt){ b.textContent = txt; if(cor) b.style.background = cor; b.style.display = 'block'; }
+      else { b.style.display = 'none'; }
+    };
+    function upd(){
+      if(navigator.onLine) window.__net('');
+      else window.__net('⚠️ Sem internet — pode continuar, sincroniza ao voltar', '#7d2020');
+    }
+    window.addEventListener('online', upd);
+    window.addEventListener('offline', upd);
+    upd();
+  });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../assets/js/qr.js"></script>
