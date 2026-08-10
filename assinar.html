@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Assinatura · Jusarah Manutenção</title>
+<title>Assinatura · PJ AERO CENTRO</title>
+<link rel="icon" href="/mecanica/icon-192.png">
 <style>
-  :root{ --bg:#071228; --card:#0b1e42; --line:rgba(127,212,255,.16); --azul:#4a9fd4; --verde:#1B6E3B; --txt:#e6eef7; --mut:#8fb4d6; }
+  :root{ --bg:#0a1a33; --card:#12294d; --line:rgba(160,175,200,.18); --azul:#8b95a6; --verde:#1B6E3B; --txt:#e6eef7; --mut:#a6b1c4; }
   *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(160deg,#0b2942,#071228);color:var(--txt);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.55;min-height:100vh}
+  body{margin:0;background:linear-gradient(160deg,#12294d,#0a1a33);color:var(--txt);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.55;min-height:100vh}
   .wrap{max-width:480px;margin:0 auto;padding:22px 18px 40px}
   .marca{text-align:center;padding:8px 0 4px}
-  .marca img{height:64px}
+  .marca img{width:min(88%,300px);height:auto}
   .marca .n{font-weight:800;letter-spacing:.16em;color:#cfe3f5;font-size:1.1rem;margin-top:6px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:16px}
   .kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--azul);font-weight:700}
@@ -38,8 +39,8 @@
 <body>
 <div class="wrap">
   <div class="marca">
-    <img src="/assets/img/logo-branca.png" alt="Jusarah" onerror="this.style.display='none'">
-    <div class="n">JUSARAH · MANUTENÇÃO</div>
+    <img src="/assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO" onerror="this.style.display='none'">
+    <div class="n">PJ AERO CENTRO · MANUTENÇÃO AERONÁUTICA</div>
   </div>
 
   <div id="carregando" class="center">Carregando…</div>
@@ -87,8 +88,8 @@
   import { startRegistration } from "https://esm.sh/@simplewebauthn/browser@13";
 
   var DECL = {
-    entrega: 'Declaro que estou <b>entregando esta aeronave</b> à Jusarah Manutenção para o serviço, e que as informações acima são verdadeiras.',
-    retirada: 'Declaro que estou <b>retirando esta aeronave</b> da Jusarah Manutenção, ciente da conclusão do serviço registrada no sistema, e que as informações acima são verdadeiras.'
+    entrega: 'Declaro que estou <b>entregando esta aeronave</b> à PJ AERO CENTRO para o serviço, e que as informações acima são verdadeiras.',
+    retirada: 'Declaro que estou <b>retirando esta aeronave</b> da PJ AERO CENTRO, ciente da conclusão do serviço registrada no sistema, e que as informações acima são verdadeiras.'
   };
 
   async function chama(acao, extra){
@@ -115,7 +116,7 @@
         return;
       }
       if(i.vencido){
-        mostraErro('Este link expirou por segurança. Peça um novo à oficina da Jusarah.');
+        mostraErro('Este link expirou por segurança. Peça um novo à oficina PJ AERO CENTRO.');
         return;
       }
       $('form').classList.remove('hidden');

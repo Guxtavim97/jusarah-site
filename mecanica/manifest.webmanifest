@@ -1,13 +1,13 @@
 {
-  "name": "Jusarah Manutenção",
-  "short_name": "Jusarah Manut.",
-  "description": "Sistema de manutenção aeronáutica da Jusarah — ordens de serviço, gate, cross check e assinaturas.",
+  "name": "PJ AERO CENTRO — Manutenção",
+  "short_name": "PJ AERO CENTRO",
+  "description": "Sistema de manutenção aeronáutica da PJ AERO CENTRO — ordens de serviço, gate, cross check e assinaturas.",
   "start_url": "/mecanica/",
   "scope": "/mecanica/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#071228",
-  "theme_color": "#0b2942",
+  "background_color": "#0c1e3e",
+  "theme_color": "#0c1e3e",
   "lang": "pt-BR",
   "icons": [
     { "src": "/mecanica/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
