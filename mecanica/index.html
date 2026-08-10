@@ -1021,7 +1021,8 @@ function prancheta(aeronave, tarefas, os){
   var pctv = tot ? Math.round(ok/tot*100) : 0;
   return '<div class="pr'+(os && os.encerrada_em ? ' vivo' : '')+'" id="pr">'+
     '<div class="pr__desenho">'+
-      '<div class="pr__selo">JUSARAH · MANUTENÇÃO AERONÁUTICA</div>'+ s +
+      '<div class="pr__selo">JUSARAH · MANUTENÇÃO AERONÁUTICA</div>'+
+      (os && os.prioridade && os.prioridade<=1 ? '<div style="position:absolute;right:13px;top:11px;z-index:3;background:#c0392b;color:#fff;font-weight:800;font-size:.62rem;letter-spacing:.12em;padding:3px 9px;border-radius:6px;box-shadow:0 2px 8px rgba(192,57,46,.5)">🔴 URGENTE</div>' : '')+ s +
       '<div class="pr__carimbo"><div><b>'+esc(aeronave.prefixo||'—')+'</b> · '+esc(aeronave.modelo||cat.nome)+'</div>'+
         '<div>'+(os?esc(codOS(os)):'—')+' · ETAPA <b>'+(os?os.etapa:'—')+'</b></div>'+
         '<div>CHECKLIST GATE <b>v1</b></div></div>'+
@@ -2078,7 +2079,7 @@ function renderQuadro(pend){
              '<div class="card__d">'+esc(o.tipo||'Serviço')+(o.descricao?' · '+esc(o.descricao.slice(0,52)):'')+'</div>'+
              '<div class="card__f">'+
                '<span class="tag '+(o.terceiro?'tag--terc':'tag--prop')+'">'+(o.terceiro?'Terceiro':'Própria')+'</span>'+
-               (o.prioridade<=2?'<span class="tag tag--p1">Prioridade '+o.prioridade+'</span>':'')+
+               (o.prioridade<=1?'<span class="tag tag--p1">🔴 URGENTE</span>':'')+
                (pend[o.id]?'<span class="tag tag--pend">'+pend[o.id]+' pendência(s)</span>':'')+
              '</div></div>';
       });
@@ -2192,9 +2193,10 @@ async function carregaOficina(){
     $("zf"+z).insertAdjacentHTML('beforeend',
       '<div class="pav" data-os="'+o.id+'" style="animation-delay:'+(i*70)+'ms">'+
         '<span class="etq e-'+o._etq+'">'+etqTx+'</span>'+
-        '<div class="pav__p">'+esc(a.prefixo||'?')+'</div>'+
-        '<div class="pav__d">'+esc(codOS(o))+' · '+o._dias+'d parada'+
+        '<div class="pav__p">'+esc(a.prefixo||'?')+(o.prioridade<=1?' <span title="Urgente">🔴</span>':'')+'</div>'+
+        '<div class="pav__d">'+(o.prioridade<=1?'<b style="color:#c0392b">🔴 URGENTE</b><br>':'')+esc(codOS(o))+' · '+o._dias+'d parada'+
           (o._pend?'<br>⚠️ '+o._pend+' pendência(s)':'')+
+          (o.aguardando_motivo?'<br>⏳ '+esc(o.aguardando_motivo):'')+
           (o.etapa===6 ? '<br>🔒 gate '+o._gateOk+'/'+o._gateTot : '')+'</div>'+
         trilha+'</div>');
   });
@@ -2372,19 +2374,24 @@ $("btn-nova-os").onclick = function(){
     '<div class="row" style="margin-top:10px"><div><label class="blk">Tipo de serviço</label>'+
     '<input class="in" id="o-tipo" placeholder="Inspeção 100h / Corretiva / DA / Boletim"></div>'+
     '<div><label class="blk">Prioridade</label><select class="in" id="o-prio">'+
-    '<option value="1">1 — Máxima</option><option value="2">2 — Alta</option>'+
-    '<option value="3" selected>3 — Normal</option><option value="4">4 — Baixa</option>'+
-    '<option value="5">5 — Quando der</option></select></div></div>'+
-    '<label class="blk" style="margin-top:10px">Motivo da prioridade</label>'+
+    '<option value="3" selected>Normal</option><option value="1">🔴 Urgente</option></select></div></div>'+
+    '<label class="blk" style="margin-top:10px">Motivo da urgência <span style="font-weight:600;text-transform:none;letter-spacing:0">(se for urgente)</span></label>'+
     '<input class="in" id="o-prio-m" placeholder="Ex.: avião parado na safra / cliente aguardando">'+
+    '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b style="font-size:.82rem;color:var(--blue)">📋 Recebimento</b></div>'+
+    '<label class="blk" style="margin-top:8px">Relatos do piloto</label>'+
+    '<textarea class="in" id="o-relatos" rows="2" placeholder="O que o piloto relatou: sintomas, ruídos, ocorrências no voo"></textarea>'+
+    '<label class="blk" style="margin-top:10px">Motivo (por que a aeronave vai para manutenção) *</label>'+
+    '<input class="in" id="o-motivo" placeholder="Ex.: inspeção 100h / falha no motor / revisão de célula">'+
     '<label class="blk" style="margin-top:10px">Descrição do serviço</label>'+
-    '<textarea class="in" id="o-desc" rows="3" placeholder="O que a aeronave veio fazer"></textarea>',
+    '<textarea class="in" id="o-desc" rows="2" placeholder="Detalhes adicionais (opcional)"></textarea>',
     'Abrir OS', async function(){
       var aer = AERONAVES.filter(function(a){ return a.id===$("o-aer").value; })[0];
       var r = await sb.from('manut_os').insert({
         aeronave_id: aer.id, cliente_id: aer.cliente_id || null,
         terceiro: !aer.propria, tipo:$("o-tipo").value.trim()||null,
         descricao:$("o-desc").value.trim()||null,
+        relatos_piloto:$("o-relatos").value.trim()||null,
+        motivo_manutencao:$("o-motivo").value.trim()||null,
         prioridade: parseInt($("o-prio").value)||3,
         prioridade_motivo:$("o-prio-m").value.trim()||null
       }).select().single();
@@ -2692,6 +2699,15 @@ async function abreOS(id, scrollRestaurar){
       (encerrada?'':' Se foi a <b>Jusarah</b> que buscou, registre abaixo.')+'</div>';
   var trBtn = encerrada ? '' : '<button class="btn btn--ghost btn--sm" id="tr-edit" style="margin-top:10px">✈️ '+(o.translado_jusarah?'Editar':'Registrar')+' translado</button>';
 
+  /* --- recebimento: relatos do piloto + motivo (a "consulta") + motivo da espera --- */
+  var recebHtml =
+    '<dl class="dl">'+
+      '<dt>Motivo</dt><dd>'+(o.motivo_manutencao?esc(o.motivo_manutencao):'<span class="no">— informar —</span>')+'</dd>'+
+      '<dt>Relatos do piloto</dt><dd>'+(o.relatos_piloto?esc(o.relatos_piloto):'<span class="no">—</span>')+'</dd>'+
+    '</dl>'+
+    (o.aguardando_motivo ? '<div class="no" style="margin-top:8px;color:var(--amber)">⏳ Na fila aguardando: <b>'+esc(o.aguardando_motivo)+'</b></div>' : '')+
+    (encerrada ? '' : '<button class="btn btn--ghost btn--sm" id="receb-edit" style="margin-top:10px">✏️ Editar recebimento</button>');
+
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
   var GAL_META = {
@@ -2749,6 +2765,7 @@ async function abreOS(id, scrollRestaurar){
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      prancheta(a, tarefas, o)+
+     '<div class="box"><h3>📋 Recebimento</h3>'+recebHtml+'</div>'+
      '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 11')+'</span></h3>'+
        '<div class="steps">'+steps+'</div>'+acoes+
        (o.prioridade_motivo?'<div class="no" style="margin-top:10px">Prioridade '+o.prioridade+' — '+esc(o.prioridade_motivo)+'</div>':'')+
@@ -3078,6 +3095,25 @@ async function abreOS(id, scrollRestaurar){
           zona:$("t-zona").value||null, referencia_manual:$("t-ref").value.trim()||null}});
         if(!res.ok){ toast(res.erro,'err'); return false; }
         if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
+        recarrega(); return true;
+      });
+  };
+  if($("receb-edit")) $("receb-edit").onclick = function(){
+    var ags = ['Aguardando peça','Aguardando cliente enviar as peças','Aguardando aprovação do orçamento','Aguardando ferramenta','Outro'];
+    abreModal('Recebimento — relatos e motivo',
+      '<label class="blk">Motivo (por que a aeronave vai para manutenção)</label>'+
+      '<input class="in" id="rc-mot" value="'+esc(o.motivo_manutencao||'')+'">'+
+      '<label class="blk" style="margin-top:8px">Relatos do piloto</label>'+
+      '<textarea class="in" id="rc-rel" rows="3" placeholder="Sintomas, ruídos, ocorrências no voo">'+esc(o.relatos_piloto||'')+'</textarea>'+
+      '<label class="blk" style="margin-top:8px">Aguardando na fila (motivo da espera)</label>'+
+      '<select class="in" id="rc-ag"><option value="">— não está aguardando —</option>'+
+        ags.map(function(x){ return '<option'+(o.aguardando_motivo===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>',
+      'Salvar', async function(){
+        var patch = { motivo_manutencao:$("rc-mot").value.trim()||null,
+          relatos_piloto:$("rc-rel").value.trim()||null,
+          aguardando_motivo:$("rc-ag").value||null };
+        var r = await sb.from('manut_os').update(patch).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
       });
   };
