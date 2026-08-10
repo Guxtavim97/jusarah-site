@@ -1059,6 +1059,52 @@ function comprimeImagem(file, max){
 /* ============================================================
    RELATÓRIO DE SERVIÇO — o documento que vai pro proprietário
    ============================================================ */
+/* Ficha de Inspeção no formato oficial (checklist por sistema) */
+function montaFicha(o, a, tarefas, nome){
+  var grupos = {}, ordem = [];
+  tarefas.forEach(function(t){
+    var s = t.sistema || 'SERVIÇOS ADICIONAIS';
+    if(!grupos[s]){ grupos[s]=[]; ordem.push(s); }
+    grupos[s].push(t);
+  });
+  var corpo = ordem.map(function(s){
+    var linhas = grupos[s].map(function(t){
+      var m = /^(\S+)\s·\s([\s\S]+)$/.exec(t.descricao||'');
+      var cod = m?m[1]:'', txt = m?m[2]:(t.descricao||'');
+      return '<tr><td class="n">'+esc(cod)+'</td>'+
+        '<td>'+esc(txt)+(t.referencia_manual?' <span style="color:#5b6b78;font-size:8pt">['+esc(t.referencia_manual)+']</span>':'')+'</td>'+
+        '<td>'+(t.executado_em?esc(nome(t.executor_id))+'<br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.executado_em)+'</span>':'—')+'</td>'+
+        '<td>'+(t.conferido_em?esc(nome(t.conferente_id))+'<br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.conferido_em)+'</span>':'—')+'</td></tr>';
+    }).join('');
+    return '<h2>'+esc(s)+'</h2><table class="rp-t"><thead><tr><th style="width:26px">#</th>'+
+      '<th>Natureza da Inspeção</th><th style="width:22%">Realizado</th><th style="width:22%">Inspecionado</th></tr></thead>'+
+      '<tbody>'+linhas+'</tbody></table>';
+  }).join('');
+  var tipoTx = o.tipo || 'inspeção';
+  $("doc").innerHTML =
+   '<div class="rp">'+
+    '<div class="rp-cab"><img src="../assets/img/logo.png" alt="">'+
+      '<div class="emp"><b>Jusarah Manutenção</b><span>Manutenção Aeronáutica · Cerejeiras–RO</span></div>'+
+      '<div class="num"><small>Ficha de Inspeção</small><b>'+esc(codOS(o))+'</b></div></div>'+
+    '<div class="rp-fina"></div>'+
+    '<h1>Ficha de Inspeção</h1>'+
+    '<div style="text-align:center;font-size:8.5pt;color:#5b6b78;margin:-8px 0 12px">Baseado em REINPRO 203 revisão 08 (25/10/2023) — MODELO EMB-203 “IPANEMA”</div>'+
+    '<div class="rp-id">'+
+      '<div><dt>Prefixo</dt><dd>'+esc(a.prefixo||'—')+'</dd></div>'+
+      '<div><dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd></div>'+
+      '<div><dt>Tipo de inspeção</dt><dd>'+esc(tipoTx)+'</dd></div>'+
+      '<div><dt>Data de início</dt><dd>'+dataBR(o.aberta_em)+'</dd></div>'+
+    '</div>'+
+    corpo +
+    '<div class="rp-nota" style="margin-top:16px"><b>DECLARAÇÃO:</b> Declaramos, para fins de responsabilidade perante à legislação vigente, que a aeronave acima identificada foi por nós inspecionada quanto à sua condição de aeronavegabilidade e documentação, consoante aos requisitos estabelecidos no RBHA 43, concluindo, nesta data, uma inspeção de <b>'+esc(tipoTx)+'</b> de manutenção, conforme se verifica na documentação de bordo, pasta de inspeções e serviços existentes nos arquivos desta oficina e nas cópias das respectivas cadernetas de célula, motor e hélice, estando a aeronave liberada para voo.</div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:44px;text-align:center;font-size:9pt">'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Local / Data</div></div>'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Mecânico Responsável</div></div>'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Inspetor Responsável</div></div>'+
+    '</div>'+
+   '</div>';
+}
+
 function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
   var c = CATS[a.categoria] || CATS['agricola'];
   var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
@@ -2771,6 +2817,7 @@ async function abreOS(id, scrollRestaurar){
     '<div class="spacer"></div>'+
     '<button class="btn btn--ghost btn--sm" id="bt-link">🔗 Link do proprietário</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
+    '<button class="btn btn--ghost btn--sm" id="bt-ficha">📋 Ficha de Inspeção</button>'+
     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
@@ -2862,6 +2909,10 @@ async function abreOS(id, scrollRestaurar){
   $("bt-rel").onclick = function(){
     montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
     setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
+  };
+  if($("bt-ficha")) $("bt-ficha").onclick = function(){
+    montaFicha(o, a, tarefas, nome);
+    setTimeout(function(){ window.print(); }, 200);
   };
   if($("os-del")) $("os-del").onclick = function(){
     excluirSeguro('os', o.id, 'OS '+codOS(o), function(){
