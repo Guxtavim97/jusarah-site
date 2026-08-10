@@ -2579,7 +2579,18 @@ async function abreOS(id, scrollRestaurar){
   }
 
   /* --- tarefas --- */
-  var tHtml='<table class="t"><thead><tr><th>#</th><th>Serviço</th><th>Executor</th><th>Cross check</th><th></th></tr></thead><tbody>';
+  var totT=tarefas.length,
+      execT=tarefas.filter(function(t){return t.executado_em;}).length,
+      confT=tarefas.filter(function(t){return t.conferido_em;}).length;
+  var tResumo = totT
+    ? '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;font-size:.8rem;font-weight:700">'+
+        '<span style="background:#eef2f6;padding:4px 11px;border-radius:999px">'+totT+' serviço(s) na OS</span>'+
+        '<span style="background:#fff4e0;color:#b8860b;padding:4px 11px;border-radius:999px">'+execT+' executado(s)</span>'+
+        '<span style="background:#e9f7ee;color:#2f9e44;padding:4px 11px;border-radius:999px">'+confT+' conferido(s)</span>'+
+        ((totT-execT)>0?'<span style="background:#fdecec;color:#c0392b;padding:4px 11px;border-radius:999px">'+(totT-execT)+' a executar</span>':'')+
+      '</div>'
+    : '';
+  var tHtml=tResumo+'<table class="t"><thead><tr><th>#</th><th>Serviço</th><th>Executor</th><th>Cross check</th><th></th></tr></thead><tbody>';
   if(!tarefas.length) tHtml+='<tr><td colspan="5" class="no">Nenhuma tarefa registrada.</td></tr>';
   tarefas.forEach(function(t, ti){
     var meuExec = t.executor_id===usuario.id;
