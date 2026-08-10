@@ -2007,6 +2007,7 @@ async function abreAeronave(id){
        '<dt>Categoria</dt><dd>'+esc(c.nome)+' <span class="no">('+esc(c.ex)+')</span></dd>'+
        '<dt>Origem</dt><dd>'+(a.propria?'Frota própria (Jusarah)':'Aeronave de terceiro')+'</dd>'+
        '<dt>Proprietário</dt><dd>'+(dono?esc(dono):'<span class="no">não vinculado</span>')+'</dd>'+
+       '<dt>Piloto</dt><dd>'+(a.piloto?esc(a.piloto):'<span class="no">—</span>')+'</dd>'+
        '<dt>Operador</dt><dd>'+(oper?esc(oper):'<span class="no">mesmo que o proprietário</span>')+'</dd>'+
        '<dt>Horas de célula</dt><dd>'+(a.horas_celula!=null?a.horas_celula:'—')+'</dd>'+
      '</dl></div>'+
@@ -2087,7 +2088,9 @@ $("btn-nova-aer").onclick = function(){
     '<div><label class="blk">Nº de série</label><input class="in" id="a-sn"></div></div>'+
     '<label class="blk" style="margin-top:10px">Proprietário</label>'+
     '<select class="in" id="a-dono">'+opsProp('— não vinculado —')+'</select>'+
-    '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for diferente do dono — ex.: aeronave financiada)</span></label>'+
+    '<label class="blk" style="margin-top:10px">Piloto <span style="font-weight:600;text-transform:none;letter-spacing:0">(quem costuma trazer a aeronave — é só digitar o nome)</span></label>'+
+    '<input class="in" id="a-piloto" placeholder="Nome do piloto">'+
+    '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for uma empresa/pessoa diferente do dono — ex.: aeronave financiada)</span></label>'+
     '<select class="in" id="a-oper">'+opsProp('— mesmo que o proprietário —')+'</select>'+
     (PROPS.length?'':'<div class="no" style="margin-top:8px">Nenhum proprietário cadastrado ainda — cadastre na aba <b>Proprietários</b> e depois é só escolher aqui.</div>')+
     '<label class="blk" style="margin-top:10px">Horas de célula</label>'+
@@ -2100,6 +2103,7 @@ $("btn-nova-aer").onclick = function(){
         categoria: $("a-cat").value, propria: $("a-prop").value==='true',
         proprietario_id: $("a-dono").value || null,
         operador_id:     $("a-oper").value || null,
+        piloto:          $("a-piloto").value.trim()||null,
         horas_celula: parseFloat($("a-hs").value)||null, numero_serie:$("a-sn").value.trim()||null
       });
       if(r.error){ toast('Erro: '+r.error.message,'err'); return false; }
