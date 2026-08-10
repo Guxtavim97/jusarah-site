@@ -2071,8 +2071,12 @@ async function abreAeronave(id){
     toast('Documento anexado ✓','ok'); abreAeronave(id);
   };
 }
-$("btn-nova-aer").onclick = function(){
+$("btn-nova-aer").onclick = async function(){
+  var cts = (await sb.from('manut_prop_contatos').select('nome').order('nome')).data||[];
+  var nomes = {}; cts.forEach(function(c){ if(c.nome) nomes[c.nome]=1; });
+  var dlPil = '<datalist id="dl-pilotos">'+Object.keys(nomes).map(function(n){ return '<option value="'+esc(n)+'">'; }).join('')+'</datalist>';
   abreModal('Nova aeronave',
+    dlPil+
     '<div class="row"><div><label class="blk">Prefixo *</label><input class="in" id="a-pref" placeholder="PS-JUS"></div>'+
     '<div><label class="blk">Modelo</label><input class="in" id="a-mod" placeholder="Ipanema 203"></div></div>'+
     '<label class="blk" style="margin-top:10px">Categoria <span style="font-weight:600;text-transform:none;letter-spacing:0">(define o desenho técnico na prancheta)</span></label>'+
@@ -2089,7 +2093,7 @@ $("btn-nova-aer").onclick = function(){
     '<label class="blk" style="margin-top:10px">Proprietário</label>'+
     '<select class="in" id="a-dono">'+opsProp('— não vinculado —')+'</select>'+
     '<label class="blk" style="margin-top:10px">Piloto <span style="font-weight:600;text-transform:none;letter-spacing:0">(quem costuma trazer a aeronave — é só digitar o nome)</span></label>'+
-    '<input class="in" id="a-piloto" placeholder="Nome do piloto">'+
+    '<input class="in" id="a-piloto" list="dl-pilotos" placeholder="Nome do piloto (sugere os já cadastrados)">'+
     '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for uma empresa/pessoa diferente do dono — ex.: aeronave financiada)</span></label>'+
     '<select class="in" id="a-oper">'+opsProp('— mesmo que o proprietário —')+'</select>'+
     (PROPS.length?'':'<div class="no" style="margin-top:8px">Nenhum proprietário cadastrado ainda — cadastre na aba <b>Proprietários</b> e depois é só escolher aqui.</div>')+
