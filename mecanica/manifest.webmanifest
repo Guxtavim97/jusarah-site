@@ -1,0 +1,16 @@
+{
+  "name": "Jusarah Manutenção",
+  "short_name": "Jusarah Manut.",
+  "description": "Sistema de manutenção aeronáutica da Jusarah — ordens de serviço, gate, cross check e assinaturas.",
+  "start_url": "/mecanica/",
+  "scope": "/mecanica/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#071228",
+  "theme_color": "#0b2942",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/mecanica/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/mecanica/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
