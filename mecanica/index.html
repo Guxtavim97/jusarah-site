@@ -687,6 +687,21 @@
       <button class="btn btn--green btn--block" id="btn-entrar-fid">🔐 Entrar com Face ID</button>
       <button class="btn btn--blue btn--block" id="btn-entrar-rosto" style="margin-top:8px">🙂 Entrar com o rosto</button>
       <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular:</b> use o Face ID. <b>Totem da oficina:</b> use o rosto (câmera). Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
+      <p class="sub" style="text-align:center;margin-top:12px">Ainda não tem conta? <a href="#" id="lk-criar" style="color:#4a9fd4;font-weight:700;text-decoration:none">Criar conta</a></p>
+    </div>
+    <div id="tela-criar" class="hidden">
+      <div class="eyebrow">Novo cadastro</div>
+      <h1>Criar conta</h1>
+      <p class="sub">Crie seu acesso. Depois o Diretor Técnico libera suas funções na oficina.</p>
+      <div class="field"><label>Nome completo</label>
+        <div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><input type="text" id="cr-nome" autocomplete="name"></div></div>
+      <div class="field"><label>E-mail</label>
+        <div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input type="email" id="cr-email" autocomplete="email"></div></div>
+      <div class="field"><label>Senha (mínimo 6)</label>
+        <div class="inp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input type="password" id="cr-senha" autocomplete="new-password"></div></div>
+      <button class="btn btn--blue btn--block" id="btn-criar">Criar conta</button>
+      <button class="btn btn--ghost btn--block" id="lk-voltar-entrar" style="margin-top:8px">Voltar</button>
+      <div id="cr-msg" class="sub" style="margin-top:10px;min-height:1.2em"></div>
     </div>
     <div id="tela-semacesso" class="hidden" style="text-align:center">
       <div style="font-size:2.6rem">🔒</div>
@@ -1397,6 +1412,26 @@ if($("btn-senha")) $("btn-senha").onclick = function(){
 };
 $("lg-senha").addEventListener('keydown', function(e){ if(e.key==='Enter') $("btn-entrar").click(); });
 
+/* criar conta (auto-cadastro) — nasce sem papel; o Diretor libera depois */
+function mostraTela(id){
+  ['tela-entrar','tela-criar','tela-semacesso'].forEach(function(t){
+    var el = document.getElementById(t); if(el) el.classList.toggle('hidden', t !== id);
+  });
+}
+if($("lk-criar")) $("lk-criar").onclick = function(e){ e.preventDefault(); mostraTela('tela-criar'); };
+if($("lk-voltar-entrar")) $("lk-voltar-entrar").onclick = function(){ mostraTela('tela-entrar'); };
+if($("btn-criar")) $("btn-criar").onclick = async function(){
+  var nome=$("cr-nome").value.trim(), email=$("cr-email").value.trim(), senha=$("cr-senha").value, msg=$("cr-msg");
+  if(!nome || !email || (senha||'').length < 6){ msg.style.color='#ff9a8a'; msg.textContent='Preencha nome, e-mail e senha (mínimo 6).'; return; }
+  var b=this; b.disabled=true; b.textContent='Criando…';
+  var r = await sb.auth.signUp({ email:email, password:senha, options:{ data:{ nome:nome } } });
+  b.disabled=false; b.textContent='Criar conta';
+  if(r.error){ msg.style.color='#ff9a8a'; msg.textContent = /registered|already/i.test(r.error.message)?'Esse e-mail já tem conta — faça login.':r.error.message; return; }
+  try{ if(r.data && r.data.user) await sb.from('perfis').update({nome:nome}).eq('id', r.data.user.id); }catch(e){}
+  if(r.data && r.data.session){ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Entrando…'; entrar(); }
+  else{ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Se pedir, confirme pelo e-mail. Depois avise o Diretor Técnico para liberar seu acesso.'; }
+};
+
 /* ---------------- FACE ID (assinatura interna) ---------------- */
 /* chama o Edge Function faceid já com o token da sessão */
 async function faceidReq(acao, extra){
@@ -1541,8 +1576,8 @@ async function entrar(){
   PERFIL.papeis = PERFIL.papeis || [];
 
   if(PERFIL.papeis.length === 0 && !ehAdmin()){
-    $("tela-entrar").classList.add('hidden');
-    $("tela-semacesso").classList.remove('hidden');
+    if(typeof mostraTela==='function') mostraTela('tela-semacesso');
+    else { $("tela-entrar").classList.add('hidden'); $("tela-semacesso").classList.remove('hidden'); }
     $("login").classList.remove('hidden');
     return;
   }
