@@ -2584,6 +2584,20 @@ async function abreOS(id, scrollRestaurar){
         (ehDiretor ? ' Como <b>Diretor Técnico</b>, você pode autorizar uma retirada excepcional — '+
                      'ela fica registrada com seu nome e o motivo.' : '')+'</div>' : '');
 
+  /* --- translado: quando NÃO foi o piloto/proprietário que trouxe --- */
+  var trHtml = o.translado_jusarah
+    ? '<dl class="dl">'+
+        '<dt>Responsável</dt><dd>Translado pela <b>Jusarah</b></dd>'+
+        '<dt>Piloto que trouxe</dt><dd>'+esc(o.translado_piloto||'—')+'</dd>'+
+        '<dt>Horas de voo</dt><dd>'+(o.translado_horas!=null?esc(o.translado_horas)+' h':'—')+'</dd>'+
+        '<dt>Saída</dt><dd>'+esc(o.translado_saida||'—')+'</dd>'+
+        '<dt>Abastecimento</dt><dd>'+esc(o.translado_abastecimento||'—')+'</dd>'+
+        '<dt>Chegada</dt><dd>'+esc(o.translado_chegada||'—')+'</dd>'+
+      '</dl>'
+    : '<div class="no">Aeronave trazida pelo próprio piloto/proprietário.'+
+      (encerrada?'':' Se foi a <b>Jusarah</b> que buscou, registre abaixo.')+'</div>';
+  var trBtn = encerrada ? '' : '<button class="btn btn--ghost btn--sm" id="tr-edit" style="margin-top:10px">✈️ '+(o.translado_jusarah?'Editar':'Registrar')+' translado</button>';
+
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
   var GAL_META = {
@@ -2649,6 +2663,7 @@ async function abreOS(id, scrollRestaurar){
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
+     '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
      '<div class="box"><h3>🎞️ Registro do serviço <span class="c">'+contaMidia(fotos)+'</span>'+
        (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Registrar</button>')+
        '</h3>'+galeria+'</div>'+
@@ -2969,6 +2984,31 @@ async function abreOS(id, scrollRestaurar){
           zona:$("t-zona").value||null, referencia_manual:$("t-ref").value.trim()||null}});
         if(!res.ok){ toast(res.erro,'err'); return false; }
         if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
+        recarrega(); return true;
+      });
+  };
+  if($("tr-edit")) $("tr-edit").onclick = function(){
+    var chk = o.translado_jusarah ? 'checked' : '';
+    abreModal('Translado — chegada da aeronave',
+      '<label style="display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer"><input type="checkbox" id="tr-jus" '+chk+'> A <b>Jusarah</b> buscou / trouxe a aeronave</label>'+
+      '<div style="margin-top:10px">'+
+        '<label class="blk">Piloto que trouxe</label><input class="in" id="tr-pil" value="'+esc(o.translado_piloto||'')+'">'+
+        '<label class="blk" style="margin-top:8px">Horas de voo</label><input class="in" id="tr-hrs" type="text" inputmode="decimal" placeholder="ex.: 1,5" value="'+esc(o.translado_horas!=null?o.translado_horas:'')+'">'+
+        '<div class="row" style="margin-top:8px"><div><label class="blk">Saída</label><input class="in" id="tr-sai" placeholder="cidade / aeródromo" value="'+esc(o.translado_saida||'')+'"></div>'+
+        '<div><label class="blk">Chegada</label><input class="in" id="tr-che" placeholder="Cerejeiras–RO" value="'+esc(o.translado_chegada||'')+'"></div></div>'+
+        '<label class="blk" style="margin-top:8px">Ponto de abastecimento</label><input class="in" id="tr-aba" placeholder="onde reabasteceu (se houve)" value="'+esc(o.translado_abastecimento||'')+'">'+
+      '</div>',
+      'Salvar', async function(){
+        var jus = $("tr-jus").checked;
+        var hrs = ($("tr-hrs").value||'').trim().replace(',', '.');
+        var patch = { translado_jusarah: jus,
+          translado_piloto:        jus ? ($("tr-pil").value.trim()||null) : null,
+          translado_horas:         (jus && hrs) ? Number(hrs) : null,
+          translado_saida:         jus ? ($("tr-sai").value.trim()||null) : null,
+          translado_abastecimento: jus ? ($("tr-aba").value.trim()||null) : null,
+          translado_chegada:       jus ? ($("tr-che").value.trim()||null) : null };
+        var r = await sb.from('manut_os').update(patch).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
       });
   };
