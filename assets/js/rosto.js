@@ -79,16 +79,23 @@ window.Rosto = (function(){
 
   return {
     async cadastrar(sb){
-      return comCamera('Cadastrar meu rosto', 'Enquadre o rosto no círculo, com boa luz', async function(ui){
-        var desc = await capturaDescriptor(ui.video, ui.status);
-        if(!desc) throw new Error('Não consegui ver o rosto. Tente com mais luz e de frente.');
+      return comCamera('Cadastrar meu rosto', 'Vamos capturar algumas vezes — olhe para a câmera', async function(ui){
         var u = await sb.auth.getUser();
         var uid = u.data && u.data.user && u.data.user.id;
         if(!uid) throw new Error('Entre com a sua conta antes de cadastrar o rosto.');
-        var r = await sb.from('manut_rostos').insert({ user_id: uid, descriptor: desc });
+        var dicas = ['Olhe de frente…', 'Vire um pouco o rosto…', 'Aproxime-se um pouco…'];
+        var amostras = [];
+        for(var k=0;k<3;k++){
+          ui.status.textContent = dicas[k] || 'Olhe para a câmera…';
+          var desc = await capturaDescriptor(ui.video, ui.status);
+          if(desc) amostras.push({ user_id: uid, descriptor: desc });
+          await new Promise(function(res){ setTimeout(res, 450); });
+        }
+        if(!amostras.length) throw new Error('Não consegui ver o rosto. Tente com mais luz e de frente.');
+        var r = await sb.from('manut_rostos').insert(amostras);
         if(r.error) throw new Error(r.error.message);
-        ui.status.textContent = 'Rosto cadastrado ✓';
-        await new Promise(function(res){ setTimeout(res, 700); });
+        ui.status.textContent = amostras.length + ' captura(s) salvas ✓';
+        await new Promise(function(res){ setTimeout(res, 800); });
         return true;
       });
     },
