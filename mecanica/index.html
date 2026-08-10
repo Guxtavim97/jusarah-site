@@ -44,6 +44,7 @@
 <script src="../assets/js/qr.js"></script>
 <script src="../assets/js/assistente.js"></script>
 <script src="../assets/js/rosto.js"></script>
+<script src="../assets/js/offline.js"></script>
 <style>
   :root{
     --blue:#1B3F8F; --blue-d:#122a5f; --sky:#2E86C1; --green:#2f9e44; --green-d:#1B6E3B;
@@ -1246,11 +1247,10 @@ function novaMidia(osId, o, recarrega, forcar, depois){
         toast('Enviando foto…');
       }
       var caminho = osId + '/' + tipo + '-' + Date.now() + '.' + ext;
-      var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:ctype});
-      if(up.error){ toast('Erro ao subir: '+up.error.message,'err'); return false; }
-      var r = await sb.from('manut_os_fotos').insert({os_id:osId, tipo:tipo, caminho:caminho,
-        legenda:leg, etapa:o.etapa, midia: ehVideo ? 'video' : 'foto'});
-      if(r.error){ toast(r.error.message,'err'); return false; }
+      var res = await Offline.exec('foto', { caminho:caminho, ctype:ctype, blob:blob,
+        row:{ os_id:osId, tipo:tipo, caminho:caminho, legenda:leg, etapa:o.etapa, midia: ehVideo ? 'video' : 'foto' } });
+      if(!res.ok){ toast('Erro ao subir: '+res.erro,'err'); return false; }
+      if(res.offline){ toast((ehVideo?'Vídeo':'Foto')+' salvo no aparelho — sincroniza ao voltar.','ok'); return true; }
       toast(ehVideo ? 'Vídeo registrado.' : 'Foto registrada.','ok');
       if(depois) depois(); else recarrega();
       return true;
@@ -1560,6 +1560,16 @@ async function entrar(){
   if(window.Assistente && !window.__ia_init){
     window.__ia_init = true;
     Assistente.init(sb, SB_URL, { nome:'Assistente', contexto:'mecanica' });
+  }
+
+  // fila offline: guarda anotações/pendências/fotos sem internet e envia sozinho
+  if(window.Offline && !window.__off_init){
+    window.__off_init = true;
+    Offline.init(sb);
+    window.__aposSync = function(){        // após subir a fila, atualiza a tela
+      if(!navigator.onLine) return;
+      try{ carregaOficina(); carregaQuadro(); }catch(e){}
+    };
   }
 
   // botão de Gestão de Equipe — só para o diretor técnico
@@ -2920,6 +2930,7 @@ async function abreOS(id, scrollRestaurar){
   });
   document.querySelectorAll('[data-exec]').forEach(function(b){
     b.onclick = async function(){
+      if(!navigator.onLine){ toast('Sem internet — registre a execução ao reconectar.','err'); return; }
       var r = await sb.rpc('manut_tarefa_executar', {p_tarefa:b.dataset.exec});
       if(r.error){ toast(r.error.message,'err'); return; }
       toast('Execução registrada.','ok'); recarrega();
@@ -2927,6 +2938,7 @@ async function abreOS(id, scrollRestaurar){
   });
   document.querySelectorAll('[data-conf]').forEach(function(b){
     b.onclick = async function(){
+      if(!navigator.onLine){ toast('Sem internet — faça o cross check ao reconectar.','err'); return; }
       var r = await sb.rpc('manut_tarefa_conferir', {p_tarefa:b.dataset.conf});
       if(r.error){ toast(r.error.message,'err'); return; }
       toast('Cross check registrado.','ok'); recarrega();
@@ -2934,6 +2946,7 @@ async function abreOS(id, scrollRestaurar){
   });
   document.querySelectorAll('[data-resolv]').forEach(function(b){
     b.onclick = async function(){
+      if(!navigator.onLine){ toast('Sem internet — resolva a pendência ao reconectar.','err'); return; }
       var r = await sb.from('manut_os_pendencias')
         .update({resolvida_em:new Date().toISOString(), resolvida_por:usuario.id})
         .eq('id', b.dataset.resolv);
@@ -2952,10 +2965,10 @@ async function abreOS(id, scrollRestaurar){
       '<label class="blk" style="margin-top:10px">Referência do manual (AMM/IPC/SB)</label><input class="in" id="t-ref">',
       'Adicionar', async function(){
         if(!$("t-desc").value.trim()){ toast('Descreva o serviço.','err'); return false; }
-        var r = await sb.from('manut_os_tarefas').insert({os_id:id, descricao:$("t-desc").value.trim(),
-          zona:$("t-zona").value||null,
-          referencia_manual:$("t-ref").value.trim()||null});
-        if(r.error){ toast(r.error.message,'err'); return false; }
+        var res = await Offline.exec('tarefa_nova', {row:{os_id:id, descricao:$("t-desc").value.trim(),
+          zona:$("t-zona").value||null, referencia_manual:$("t-ref").value.trim()||null}});
+        if(!res.ok){ toast(res.erro,'err'); return false; }
+        if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
         recarrega(); return true;
       });
   };
@@ -2966,9 +2979,10 @@ async function abreOS(id, scrollRestaurar){
       '<input class="in" id="p-mot" placeholder="Falta peça / aguardando cliente / ferramenta">',
       'Registrar', async function(){
         if(!$("p-desc").value.trim()){ toast('Descreva a pendência.','err'); return false; }
-        var r = await sb.from('manut_os_pendencias').insert({os_id:id, descricao:$("p-desc").value.trim(),
-          motivo:$("p-mot").value.trim()||null});
-        if(r.error){ toast(r.error.message,'err'); return false; }
+        var res = await Offline.exec('pendencia_nova', {row:{os_id:id, descricao:$("p-desc").value.trim(),
+          motivo:$("p-mot").value.trim()||null}});
+        if(!res.ok){ toast(res.erro,'err'); return false; }
+        if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
         recarrega(); return true;
       });
   };

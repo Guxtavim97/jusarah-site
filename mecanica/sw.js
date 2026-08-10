@@ -3,7 +3,7 @@
 //  - HTML (navegação): rede primeiro (sempre fresco online), cai no cache se offline.
 //  - JS/CSS/imagens e libs de CDN: cache primeiro, atualizando em segundo plano.
 //  - Supabase (dados/escrita): NUNCA cacheia — passa direto (offline falha e o app trata).
-var CACHE = 'jusarah-mec-v2';
+var CACHE = 'jusarah-mec-v3';
 var SHELL = [
   '/mecanica/',
   '/mecanica/index.html',
@@ -29,9 +29,21 @@ self.addEventListener('activate', function(e){
 
 self.addEventListener('fetch', function(e){
   var req = e.request;
-  if(req.method !== 'GET') return;                 // escrita (POST) passa direto
+  if(req.method !== 'GET') return;                 // escrita (POST/PATCH/DELETE) passa direto
   var url = new URL(req.url);
-  if(url.hostname.indexOf('supabase.co') >= 0) return;  // dados: nunca cacheia
+  if(url.hostname.indexOf('supabase.co') >= 0){
+    // Leitura de dados (REST): rede primeiro, e guarda a última resposta
+    // pra mostrar offline. Storage/auth passam direto (não cacheia).
+    if(url.pathname.indexOf('/rest/v1/') >= 0){
+      e.respondWith(
+        fetch(req).then(function(res){
+          if(res && res.ok){ var c=res.clone(); caches.open(CACHE).then(function(cc){ cc.put(req, c); }); }
+          return res;
+        }).catch(function(){ return caches.match(req); })
+      );
+    }
+    return;
+  }
 
   var aceita = req.headers.get('accept') || '';
   if(req.mode === 'navigate' || aceita.indexOf('text/html') >= 0){
