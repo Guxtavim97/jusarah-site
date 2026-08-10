@@ -2010,7 +2010,7 @@ async function abreAeronave(id){
        '<dt>Piloto</dt><dd>'+(a.piloto?esc(a.piloto):'<span class="no">—</span>')+'</dd>'+
        '<dt>Operador</dt><dd>'+(oper?esc(oper):'<span class="no">mesmo que o proprietário</span>')+'</dd>'+
        '<dt>Horas de célula</dt><dd>'+(a.horas_celula!=null?a.horas_celula:'—')+'</dd>'+
-     '</dl></div>'+
+     '</dl>'+(a.proprietario_id?'<button class="btn btn--ghost btn--sm" id="aer-piloto" style="margin-top:8px">✏️ Definir piloto</button>':'')+'</div>'+
      '<div class="box"><h3>📄 Documentos da aeronave <span class="c">'+docs.length+'</span></h3>'+
        docsHtml+
        '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">'+
@@ -2034,6 +2034,28 @@ async function abreAeronave(id){
     excluirSeguro('aeronave', id, 'Aeronave '+(a.prefixo||''), function(){
       $("modal").innerHTML=''; carregaAeronaves();
     });
+  };
+  if($("aer-piloto")) $("aer-piloto").onclick = async function(){
+    var cts = (await sb.from('manut_prop_contatos').select('nome,funcao').eq('proprietario_id',a.proprietario_id).order('nome')).data||[];
+    abreModal('Piloto da aeronave',
+      '<label class="blk">Piloto (pilotos do proprietário)</label>'+
+      '<select class="in" id="ap-sel"><option value="">— sem piloto —</option>'+
+        cts.map(function(c){ return '<option value="'+esc(c.nome)+'"'+(a.piloto===c.nome?' selected':'')+'>'+esc(c.nome)+(c.funcao?' · '+esc(c.funcao):'')+'</option>'; }).join('')+
+        '<option value="__novo">➕ Cadastrar novo piloto…</option></select>'+
+      '<p class="sub" style="margin-top:8px;font-size:.8rem">Os pilotos ficam ligados ao proprietário. Cadastre um novo aqui ou na aba Proprietários (+ Contato).</p>',
+      'Salvar', async function(){
+        var v = $("ap-sel").value;
+        if(v==='__novo'){
+          var nome = prompt('Nome do piloto:');
+          if(!nome || !nome.trim()) return false;
+          var ri = await sb.from('manut_prop_contatos').insert({ proprietario_id:a.proprietario_id, nome:nome.trim(), funcao:'Piloto' });
+          if(ri.error){ toast(ri.error.message,'err'); return false; }
+          v = nome.trim();
+        }
+        var r = await sb.from('manut_aeronaves').update({ piloto: v||null }).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        await carregaAeronaves(); abreAeronave(id); return true;
+      });
   };
   document.querySelectorAll('[data-os]').forEach(function(el){
     el.onclick = function(){ abreOS(el.dataset.os); };
@@ -2071,12 +2093,8 @@ async function abreAeronave(id){
     toast('Documento anexado ✓','ok'); abreAeronave(id);
   };
 }
-$("btn-nova-aer").onclick = async function(){
-  var cts = (await sb.from('manut_prop_contatos').select('nome').order('nome')).data||[];
-  var nomes = {}; cts.forEach(function(c){ if(c.nome) nomes[c.nome]=1; });
-  var dlPil = '<datalist id="dl-pilotos">'+Object.keys(nomes).map(function(n){ return '<option value="'+esc(n)+'">'; }).join('')+'</datalist>';
+$("btn-nova-aer").onclick = function(){
   abreModal('Nova aeronave',
-    dlPil+
     '<div class="row"><div><label class="blk">Prefixo *</label><input class="in" id="a-pref" placeholder="PS-JUS"></div>'+
     '<div><label class="blk">Modelo</label><input class="in" id="a-mod" placeholder="Ipanema 203"></div></div>'+
     '<label class="blk" style="margin-top:10px">Categoria <span style="font-weight:600;text-transform:none;letter-spacing:0">(define o desenho técnico na prancheta)</span></label>'+
@@ -2092,8 +2110,8 @@ $("btn-nova-aer").onclick = async function(){
     '<div><label class="blk">Nº de série</label><input class="in" id="a-sn"></div></div>'+
     '<label class="blk" style="margin-top:10px">Proprietário</label>'+
     '<select class="in" id="a-dono">'+opsProp('— não vinculado —')+'</select>'+
-    '<label class="blk" style="margin-top:10px">Piloto <span style="font-weight:600;text-transform:none;letter-spacing:0">(quem costuma trazer a aeronave — é só digitar o nome)</span></label>'+
-    '<input class="in" id="a-piloto" list="dl-pilotos" placeholder="Nome do piloto (sugere os já cadastrados)">'+
+    '<label class="blk" style="margin-top:10px">Piloto <span style="font-weight:600;text-transform:none;letter-spacing:0">(pilotos do proprietário)</span></label>'+
+    '<select class="in" id="a-piloto-sel"><option value="">— escolha o proprietário primeiro —</option></select>'+
     '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for uma empresa/pessoa diferente do dono — ex.: aeronave financiada)</span></label>'+
     '<select class="in" id="a-oper">'+opsProp('— mesmo que o proprietário —')+'</select>'+
     (PROPS.length?'':'<div class="no" style="margin-top:8px">Nenhum proprietário cadastrado ainda — cadastre na aba <b>Proprietários</b> e depois é só escolher aqui.</div>')+
@@ -2102,17 +2120,38 @@ $("btn-nova-aer").onclick = async function(){
     'Cadastrar', async function(){
       var pref = $("a-pref").value.trim();
       if(!pref){ toast('Informe o prefixo.','err'); return false; }
+      var pil = $("a-piloto-sel").value;
       var r = await sb.from('manut_aeronaves').insert({
         prefixo:pref.toUpperCase(), modelo:$("a-mod").value.trim()||null,
         categoria: $("a-cat").value, propria: $("a-prop").value==='true',
         proprietario_id: $("a-dono").value || null,
         operador_id:     $("a-oper").value || null,
-        piloto:          $("a-piloto").value.trim()||null,
+        piloto:          (pil && pil!=='__novo') ? pil : null,
         horas_celula: parseFloat($("a-hs").value)||null, numero_serie:$("a-sn").value.trim()||null
       });
       if(r.error){ toast('Erro: '+r.error.message,'err'); return false; }
       await carregaAeronaves(); renderAeronaves(); toast('Aeronave cadastrada.','ok'); return true;
     });
+  /* piloto ligado ao proprietário: carrega os pilotos do dono escolhido + cadastro na hora */
+  async function carregaPilotos(){
+    var dono = $("a-dono").value, sel = $("a-piloto-sel");
+    if(!dono){ sel.innerHTML = '<option value="">— escolha o proprietário primeiro —</option>'; return; }
+    var cts = (await sb.from('manut_prop_contatos').select('nome,funcao').eq('proprietario_id',dono).order('nome')).data||[];
+    sel.innerHTML = '<option value="">— sem piloto —</option>'+
+      cts.map(function(c){ return '<option value="'+esc(c.nome)+'">'+esc(c.nome)+(c.funcao?' · '+esc(c.funcao):'')+'</option>'; }).join('')+
+      '<option value="__novo">➕ Cadastrar novo piloto…</option>';
+  }
+  $("a-dono").onchange = carregaPilotos;
+  $("a-piloto-sel").onchange = async function(){
+    if(this.value !== '__novo') return;
+    var dono = $("a-dono").value;
+    if(!dono){ toast('Escolha o proprietário antes de cadastrar o piloto.','err'); this.value=''; return; }
+    var nome = prompt('Nome do piloto:');
+    if(!nome || !nome.trim()){ this.value=''; return; }
+    var r = await sb.from('manut_prop_contatos').insert({ proprietario_id:dono, nome:nome.trim(), funcao:'Piloto' });
+    if(r.error){ toast(r.error.message,'err'); this.value=''; return; }
+    await carregaPilotos(); this.value = nome.trim(); toast('Piloto cadastrado.','ok');
+  };
 };
 
 /* ---------------- QUADRO ---------------- */
