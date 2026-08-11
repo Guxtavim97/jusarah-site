@@ -42,6 +42,7 @@
   .hero__in{max-width:860px;margin:0 auto;padding:0 16px}
   .marca{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .marca img{width:min(78vw,260px);height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+  .lg-papel{display:none}   /* logo colorido: só no papel (o branco some no branco) */
   .marca div{font-weight:800;font-size:.98rem;line-height:1.15}
   .marca small{display:block;font-size:.62rem;font-weight:700;letter-spacing:.18em;
     text-transform:uppercase;opacity:.65}
@@ -297,8 +298,10 @@
     /* timbre */
     .hero{background:#fff!important;color:#12212e;padding:0;border-bottom:2.5px solid #12294d}
     .hero__in{padding:0}
-    .marca{padding-bottom:8px;border-bottom:2px solid #1B6E3B;margin-bottom:12px}
+    .marca{padding-bottom:8px;border-bottom:2px solid #12294d;margin-bottom:12px}
     .marca img{width:250px;height:auto;filter:none}
+    .lg-tela{display:none!important}          /* no papel, esconde o logo branco */
+    .lg-papel{display:block!important}        /* e mostra o colorido */
     .marca div{color:#12294d;font-size:13pt}
     .marca small{color:#5b6b78}
     .id__pref{font-size:26pt;color:#12212e;text-shadow:none;font-family:Consolas,monospace}
@@ -560,7 +563,8 @@ function desenha(d){
       '<b>'+esc(a.prefixo)+'</b><span class="'+(fim?'m-lib':'m-and')+'">'+
       (fim?'Liberada':'Etapa '+o.etapa+'/10')+'</span></div>'+
     '<div class="hero"><div class="hero__in">'+
-      '<div class="marca"><img src="assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">'+
+      '<div class="marca"><img class="lg-tela" src="assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">'+
+        '<img class="lg-papel" src="assets/img/pj-logo.png" alt="PJ AERO CENTRO">'+
         '<div><small>Acompanhamento de serviço</small></div></div>'+
       '<div class="id"><div><div class="id__pref">'+esc(a.prefixo)+'</div>'+
         '<div class="id__mod">'+esc(a.modelo||'')+(d.proprietario?' · '+esc(d.proprietario):'')+'</div></div>'+

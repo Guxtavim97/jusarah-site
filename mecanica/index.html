@@ -1123,7 +1123,8 @@ function montaFicha(o, a, tarefas, pecas, nome){
    '</div>';
 }
 
-function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
+function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
+  entregas = entregas || [];
   var c = CATS[a.categoria] || CATS['agricola'];
   var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
   var pDono = a.proprietario_id ? PROPMAP[a.proprietario_id] : null;
@@ -3093,7 +3094,7 @@ async function abreOS(id, scrollRestaurar){
     };
   };
   $("bt-rel").onclick = function(){
-    montaRelatorio(o, a, tarefas, fotos, assins, pend, nome);
+    montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas);
     setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
   };
   if($("bt-ficha")) $("bt-ficha").onclick = function(){
