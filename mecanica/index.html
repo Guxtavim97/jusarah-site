@@ -1122,7 +1122,8 @@ function comprimeImagem(file, max){
    empresa: peças com P/N, opções de fornecedor comparadas, total,
    validade e o que está incluso. Nada de mensagem solta.
    ============================================================ */
-function montaOrcamento(o, a, pecas, cots, forn, nome){
+function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
+  maoObra = maoObra || [];
   function moeda(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
   var hoje = new Date();
   var validade = new Date(hoje.getTime() + 15*86400000);
@@ -1141,6 +1142,34 @@ function montaOrcamento(o, a, pecas, cots, forn, nome){
       '<td style="text-align:right">'+(p.valor!=null?moeda(p.valor):'a cotar')+'</td>'+
       '<td style="text-align:right">'+(p.valor!=null?moeda(sub):'—')+'</td></tr>';
   }).join('');
+
+  /* mão de obra: por hora ou valor fechado */
+  function valMO(m){ return m.valor != null ? Number(m.valor)
+                   : (Number(m.horas||0) * Number(m.valor_hora||0)); }
+  var totalMO = maoObra.reduce(function(s,m){ return s + valMO(m); }, 0);
+  var linhasMO = maoObra.length
+    ? '<h2>Mão de obra</h2>'+
+      '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Serviço</th>'+
+        '<th style="width:15%;text-align:center">Horas</th><th style="width:18%;text-align:right">Valor/hora</th>'+
+        '<th style="width:18%;text-align:right">Total</th></tr></thead><tbody>'+
+      maoObra.map(function(m,i){
+        return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
+          '<td style="text-align:center">'+(m.horas!=null?esc(m.horas):'—')+'</td>'+
+          '<td style="text-align:right">'+(m.valor_hora!=null?moeda(m.valor_hora):'valor fechado')+'</td>'+
+          '<td style="text-align:right">'+moeda(valMO(m))+'</td></tr>';
+      }).join('')+'</tbody></table>'+
+      '<div style="text-align:right;font-size:11pt;font-weight:bold;margin-top:6px;color:#12294d">Subtotal de mão de obra: '+moeda(totalMO)+'</div>'
+    : '';
+
+  /* fecho com o total geral — é o número que o cliente procura */
+  var resumoTotal = (totalPecas > 0 || totalMO > 0)
+    ? '<table class="rp-t" style="margin-top:18px;border:1.5px solid #12294d"><tbody>'+
+        '<tr><td style="padding:7px 10px">Peças e materiais</td><td style="text-align:right;padding:7px 10px">'+moeda(totalPecas)+'</td></tr>'+
+        '<tr><td style="padding:7px 10px">Mão de obra</td><td style="text-align:right;padding:7px 10px">'+moeda(totalMO)+'</td></tr>'+
+        '<tr style="background:#12294d;color:#fff"><td style="padding:9px 10px;font-size:12pt;font-weight:bold;letter-spacing:.06em">TOTAL GERAL</td>'+
+          '<td style="text-align:right;padding:9px 10px;font-size:14pt;font-weight:bold">'+moeda(totalPecas+totalMO)+'</td></tr>'+
+      '</tbody></table>'
+    : '';
 
   /* opções dos fornecedores, da mais barata para a mais cara */
   var comValor = (cots||[]).filter(function(c){ return c.valor != null; })
@@ -1182,9 +1211,11 @@ function montaOrcamento(o, a, pecas, cots, forn, nome){
       '<th style="width:16%;text-align:right">Valor un.</th><th style="width:16%;text-align:right">Subtotal</th></tr></thead>'+
       '<tbody>'+(linhas || '<tr><td colspan="6">Nenhuma peça lançada.</td></tr>')+'</tbody></table>'+
     (totalPecas > 0
-      ? '<div style="text-align:right;font-size:12pt;font-weight:bold;margin-top:6px;color:#12294d">Total das peças: '+moeda(totalPecas)+'</div>'
+      ? '<div style="text-align:right;font-size:11pt;font-weight:bold;margin-top:6px;color:#12294d">Subtotal de peças: '+moeda(totalPecas)+'</div>'
       : '')+
 
+    linhasMO +
+    resumoTotal +
     opcoes +
 
     '<div class="rp-nota" style="margin-top:16px">'+
@@ -3202,6 +3233,8 @@ async function abreOS(id, scrollRestaurar){
   var assins  = (await sb.from('manut_assinaturas').select('*').eq('os_id',id).order('quando')).data||[];
   var entregas= (await sb.from('manut_entregas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var pecas   = (await sb.from('manut_os_pecas').select('*').eq('os_id',id).order('criado_em')).data||[];
+  var maoObra = (await sb.from('manut_os_mao_obra').select('*').eq('os_id',id).order('criado_em')).data||[];
+  var anexos  = (await sb.from('manut_os_anexos').select('*').eq('os_id',id).order('criado_em')).data||[];
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   /* URL assinada de cada foto — serve pra galeria E pro relatório */
   for(var fi=0; fi<fotos.length; fi++){
@@ -3542,6 +3575,41 @@ async function abreOS(id, scrollRestaurar){
       '<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>'+
     '</div>');
 
+  /* --- MÃO DE OBRA: por hora ou valor fechado --- */
+  function valorMO(m){ return m.valor != null ? Number(m.valor)
+                     : (Number(m.horas||0) * Number(m.valor_hora||0)); }
+  var totalMO = maoObra.reduce(function(s,m){ return s + valorMO(m); }, 0);
+  var moHtml = (maoObra.length
+    ? '<table class="t" style="font-size:.85rem"><thead><tr><th>Serviço</th><th>Horas</th><th>Valor/hora</th><th>Total</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
+      maoObra.map(function(m){
+        return '<tr><td>'+esc(m.descricao)+'</td>'+
+          '<td>'+(m.horas!=null?esc(m.horas):'<span class="no">fechado</span>')+'</td>'+
+          '<td>'+(m.valor_hora!=null?fmtR(m.valor_hora):'—')+'</td>'+
+          '<td><b>'+fmtR(valorMO(m))+'</b></td>'+
+          (encerrada?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'">🗑️</button></td>')+'</tr>';
+      }).join('')+'</tbody></table>'
+    : '<div class="no">Nenhum serviço de mão de obra lançado.</div>')+
+    (totalMO>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em mão de obra: '+fmtR(totalMO)+'</div>':'')+
+    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="mo-add" style="margin-top:8px">+ Serviço / Mão de obra</button>');
+
+  /* --- ANEXOS: o PDF que a oficina já faz, visível ao cliente --- */
+  var anxHtml = (anexos.length
+    ? anexos.map(function(x){
+        return '<div class="oshist"><span class="oshist__n">📎</span>'+
+          '<div class="oshist__b"><div class="oshist__t">'+esc(x.titulo)+'</div>'+
+            '<div class="oshist__s">'+esc(x.tipo||'arquivo')+' · '+dt(x.criado_em)+
+              (x.publico?' · <b style="color:var(--green-d)">visível ao cliente</b>':' · <span class="no">só interno</span>')+
+            '</div></div>'+
+          '<button class="btn btn--ghost btn--sm anx-ver" data-c="'+esc(x.caminho)+'">Abrir</button>'+
+          (encerrada?'':'<button class="btn btn--ghost btn--sm anx-pub" data-id="'+x.id+'" data-p="'+(x.publico?1:0)+'">'+(x.publico?'Ocultar':'Liberar ao cliente')+'</button>'+
+                        '<button class="btn btn--ghost btn--sm anx-del" data-id="'+x.id+'" style="color:#ff9a8a">🗑️</button>')+
+        '</div>';
+      }).join('')
+    : '<div class="no">Nenhum arquivo anexado. Use o botão abaixo para subir o orçamento em PDF que vocês já fazem.</div>')+
+    (encerrada?'':'<div style="margin-top:8px"><label class="btn btn--blue btn--sm" style="cursor:pointer">'+
+      '📎 Anexar PDF<input type="file" id="anx-file" accept="application/pdf,image/*" style="display:none"></label>'+
+      '<span class="no" style="margin-left:8px">até 10 MB</span></div>');
+
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
   var GAL_META = {
@@ -3621,6 +3689,19 @@ async function abreOS(id, scrollRestaurar){
            'peça preço aos fornecedores e envie a comparação ao cliente.</div>'
          : '')+
        pecasHtml+'</div>'+
+     '<div class="box"><h3>🔧 Mão de obra'+(totalMO>0?' <span class="c">'+fmtR(totalMO)+'</span>':'')+'</h3>'+moHtml+'</div>'+
+     (totalPecas>0 || totalMO>0
+       ? '<div class="box" style="border:1.5px solid #12294d;background:#f7f9fc">'+
+           '<h3 style="margin-top:0">💰 Total do orçamento</h3>'+
+           '<div style="display:flex;justify-content:space-between;font-size:.92rem;padding:3px 0"><span>Peças e materiais</span><b>'+fmtR(totalPecas)+'</b></div>'+
+           '<div style="display:flex;justify-content:space-between;font-size:.92rem;padding:3px 0"><span>Mão de obra</span><b>'+fmtR(totalMO)+'</b></div>'+
+           '<div style="display:flex;justify-content:space-between;font-size:1.1rem;padding:8px 0 0;margin-top:6px;border-top:1.5px solid #12294d">'+
+             '<b>TOTAL GERAL</b><b style="color:#12294d">'+fmtR(totalPecas+totalMO)+'</b></div>'+
+         '</div>'
+       : '')+
+     '<div class="box"><h3>📎 Anexos da OS <span class="c">'+anexos.length+'</span></h3>'+
+       '<div class="no" style="margin-bottom:10px">Suba aqui o orçamento em PDF que vocês já fazem, laudos ou notas. '+
+       'O que for <b>liberado ao cliente</b> aparece no link de acompanhamento dele.</div>'+anxHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
      '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
@@ -3804,7 +3885,7 @@ async function abreOS(id, scrollRestaurar){
     var cots = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
     var forn = (await sb.from('manut_fornecedores').select('*')).data||[];
     emiteDoc('Orçamento', function(){
-      montaOrcamento(o, a, pecas, cots, forn, nome);
+      montaOrcamento(o, a, pecas, cots, forn, nome, maoObra);
     }, 200);
   };
   /* jump rápido por sistema + botão "topo" (checklist extenso) */
@@ -4224,7 +4305,7 @@ async function abreOS(id, scrollRestaurar){
     var bd = document.getElementById('orc-doc');
     if(bd) bd.onclick = async function(){
       var atuais = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
-      emiteDoc('Orçamento', function(){ montaOrcamento(o, a, pecas, atuais, forn, nome); }, 200);
+      emiteDoc('Orçamento', function(){ montaOrcamento(o, a, pecas, atuais, forn, nome, maoObra); }, 200);
     };
 
     /* montar a comparação e mandar para o cliente */
@@ -4335,6 +4416,94 @@ async function abreOS(id, scrollRestaurar){
       }, 350);
     };
   };
+  /* ---- MÃO DE OBRA ---- */
+  if($("mo-add")) $("mo-add").onclick = function(){
+    abreModal('Serviço / Mão de obra',
+      '<label class="blk">O que foi feito *'+(window.Voz?Voz.botao('mo-desc','serviço de mão de obra'):'')+'</label>'+
+      '<input class="in" id="mo-desc" placeholder="ex.: Remoção e instalação do motor">'+
+      '<div class="no" style="margin:12px 0 6px">Cobre <b>por hora</b> ou por <b>valor fechado</b> — preencha só um dos dois lados.</div>'+
+      '<div class="row"><div><label class="blk">Horas</label><input class="in" id="mo-h" type="text" inputmode="decimal" placeholder="ex.: 8"></div>'+
+      '<div><label class="blk">Valor por hora</label><input class="in" id="mo-vh" type="text" inputmode="decimal" placeholder="0,00"></div>'+
+      '<div><label class="blk">ou Valor fechado</label><input class="in" id="mo-v" type="text" inputmode="decimal" placeholder="0,00"></div></div>',
+      'Adicionar', async function(){
+        var d = $("mo-desc").value.trim();
+        if(!d){ toast('Descreva o serviço.','err'); return false; }
+        var num = function(el){ var s=(el.value||'').trim().replace(/\./g,'').replace(',','.'); return s?Number(s):null; };
+        var h = num($("mo-h")), vh = num($("mo-vh")), v = num($("mo-v"));
+        if(v==null && (h==null || vh==null)){ toast('Informe horas + valor/hora, ou um valor fechado.','err'); return false; }
+        var r = await sb.from('manut_os_mao_obra').insert({ os_id:id, descricao:d, horas:h, valor_hora:vh, valor:v });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        recarrega(); return true;
+      });
+    if(window.Voz) Voz.ativarTodos(sb, SB_URL);
+  };
+  document.querySelectorAll('.mo-del').forEach(function(b){
+    b.onclick = async function(){
+      if(!confirm('Remover este serviço do orçamento?')) return;
+      var r = await sb.from('manut_os_mao_obra').delete().eq('id', b.dataset.id);
+      if(r.error){ toast(r.error.message,'err'); return; }
+      recarrega();
+    };
+  });
+
+  /* ---- ANEXOS (PDF do orçamento que a oficina já faz) ---- */
+  if($("anx-file")) $("anx-file").onchange = async function(){
+    var f = this.files && this.files[0]; if(!f) return;
+    if(f.size > 10*1024*1024){ toast('Arquivo maior que 10 MB. Reduza e tente de novo.','err'); this.value=''; return; }
+    var lbl = this.parentNode; var txtOrig = lbl.textContent;
+    lbl.textContent = 'Enviando…';
+    var ext = (f.name.split('.').pop()||'pdf').toLowerCase();
+    var caminho = 'os/'+id+'/anexos/'+Date.now()+'.'+ext;
+    var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf' });
+    if(up.error){ toast(up.error.message,'err'); lbl.textContent = txtOrig; this.value=''; return; }
+    var r = await sb.from('manut_os_anexos').insert({ os_id:id, titulo:f.name, caminho:caminho, tamanho:f.size });
+    if(r.error){ toast(r.error.message,'err'); lbl.textContent = txtOrig; return; }
+    toast('Arquivo anexado ✓ Libere ao cliente se quiser que ele veja.','ok');
+    recarrega();
+  };
+  document.querySelectorAll('.anx-ver').forEach(function(b){
+    b.onclick = async function(){
+      var sr = await sb.storage.from('manutencao').createSignedUrl(b.dataset.c, 3600);
+      if(sr.error){ toast(sr.error.message,'err'); return; }
+      window.open(sr.data.signedUrl, '_blank');
+    };
+  });
+  document.querySelectorAll('.anx-pub').forEach(function(b){
+    b.onclick = async function(){
+      var ligar = b.dataset.p !== '1';
+      b.disabled = true; b.textContent = ligar ? 'Liberando…' : 'Ocultando…';
+      var anx = anexos.filter(function(x){ return x.id === b.dataset.id; })[0];
+      try{
+        if(ligar){
+          // publica uma cópia no bucket público, que é o que o link do cliente lê
+          var dl = await sb.storage.from('manutencao').download(anx.caminho);
+          if(dl.error) throw new Error(dl.error.message);
+          var up = await sb.storage.from('manutencao-pub').upload(anx.caminho, dl.data, { upsert:true });
+          if(up.error) throw new Error(up.error.message);
+          var r1 = await sb.from('manut_os_anexos').update({ publico:true, caminho_pub:anx.caminho }).eq('id', anx.id);
+          if(r1.error) throw new Error(r1.error.message);
+        } else {
+          if(anx.caminho_pub){ try{ await sb.storage.from('manutencao-pub').remove([anx.caminho_pub]); }catch(e){} }
+          var r2 = await sb.from('manut_os_anexos').update({ publico:false, caminho_pub:null }).eq('id', anx.id);
+          if(r2.error) throw new Error(r2.error.message);
+        }
+        toast(ligar?'Liberado ao cliente ✓':'Oculto do cliente ✓','ok');
+        recarrega();
+      }catch(e){ toast(e.message||String(e),'err'); b.disabled=false; }
+    };
+  });
+  document.querySelectorAll('.anx-del').forEach(function(b){
+    b.onclick = async function(){
+      if(!confirm('Remover este anexo?')) return;
+      var anx = anexos.filter(function(x){ return x.id === b.dataset.id; })[0];
+      try{ await sb.storage.from('manutencao').remove([anx.caminho]); }catch(e){}
+      if(anx.caminho_pub){ try{ await sb.storage.from('manutencao-pub').remove([anx.caminho_pub]); }catch(e){} }
+      var r = await sb.from('manut_os_anexos').delete().eq('id', anx.id);
+      if(r.error){ toast(r.error.message,'err'); return; }
+      recarrega();
+    };
+  });
+
   document.querySelectorAll('.peca-del').forEach(function(b){
     b.onclick = async function(){
       if(!confirm('Remover esta peça?')) return;

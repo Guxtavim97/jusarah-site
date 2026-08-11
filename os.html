@@ -467,6 +467,12 @@ async function carrega(){
       '<p style="color:var(--muted)">O endereço pode estar incompleto. Confira o link ou fale com a oficina.</p>'+
       '</div></div>'; return;
   }
+  /* documentos liberados ao cliente — se a função ainda não existir no banco,
+     a página continua funcionando normalmente, só sem a seção de anexos */
+  try{
+    var ex = await sb.rpc('manut_os_publica_extra', {p_token: token});
+    if(!ex.error && ex.data) r.data.extra = ex.data;
+  }catch(e){}
   desenha(r.data);
 }
 
@@ -480,6 +486,23 @@ function desenha(d){
     '" style="animation-delay:'+(300+i*55)+'ms"></i>';
   trilha += '</div><div class="trilha-l"><span>Recebimento</span><span>'+
     (fim?'Liberada ✓':'Etapa '+o.etapa+' · '+esc(et.n))+'</span></div>';
+
+  /* Documentos que a oficina liberou para o cliente (orçamento em PDF, laudos) */
+  var anx = (d.extra && d.extra.anexos) || [];
+  var ICO = { orcamento:'💰', laudo:'📋', nota:'🧾' };
+  var anxHtml = anx.length
+    ? '<div class="card sobe" style="animation-delay:.20s"><h2>📎 Documentos<span class="c">'+anx.length+'</span></h2>'+
+      anx.map(function(x){
+        return '<a class="doc-lk" href="'+PUB+encodeURI(x.caminho_pub)+'" target="_blank" rel="noopener" '+
+          'style="display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--linha,#dfe6ee);'+
+          'border-radius:11px;margin-bottom:9px;text-decoration:none;color:inherit">'+
+          '<span style="font-size:1.5rem">'+(ICO[x.tipo]||'📄')+'</span>'+
+          '<span style="flex:1"><b style="display:block">'+esc(x.titulo)+'</b>'+
+            '<small style="color:var(--muted)">toque para abrir</small></span>'+
+          '<span style="color:var(--muted)">↗</span></a>';
+      }).join('')+
+      '<div class="nota">Estes documentos foram emitidos pela PJ AERO CENTRO para esta ordem de serviço.</div></div>'
+    : '';
 
   var svHtml = sv.length ? sv.map(function(t){
     var ok=!!t.conferido_em, feito=!!t.executado_em;
@@ -605,6 +628,7 @@ function desenha(d){
         'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
 
       pdHtml+
+      anxHtml+
 
       '<div class="card sobe" style="animation-delay:.22s"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
 
