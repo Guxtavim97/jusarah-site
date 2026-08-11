@@ -98,6 +98,48 @@
   }
   document.getElementById('resumo').value = linhas.join('\n');
 
+  /* ---- Testa o que o app precisa BAIXAR. É aqui que costuma travar:
+         se a biblioteca do banco não baixa, a tela abre mas nenhum botão
+         funciona. ---- */
+  var alvos = [
+    ['Biblioteca do banco (cópia nossa)', '../assets/js/supabase.js', true],
+    ['Biblioteca do banco (CDN externo)', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js', false],
+    ['Biblioteca do reconhecimento facial', 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.esm.js', false]
+  ];
+  var box = document.createElement('div');
+  box.className = 'card';
+  box.innerHTML = '<b style="font-size:.9rem">Downloads que o app precisa</b><div id="rede"></div>';
+  document.getElementById('lista').parentNode.insertBefore(box, document.getElementById('lista').nextSibling);
+  var redeHtml = '', feitos = 0;
+  function pinta(){ document.getElementById('rede').innerHTML = redeHtml; }
+  function testa(nome, url, critico){
+    var t0 = new Date().getTime();
+    var s = document.createElement('script');
+    var acabou = false;
+    function fim(ok){
+      if(acabou) return; acabou = true;
+      var ms = new Date().getTime() - t0;
+      var marca = ok ? '<span class="ok">✓</span>' : (critico?'<span class="no">✗</span>':'<span class="warn">✗</span>');
+      redeHtml += '<div class="l">'+marca+'<b>'+nome+'</b><span class="val">'+(ok?('ok · '+ms+'ms'):'NÃO BAIXOU')+'</span></div>';
+      linhas.push((ok?'[OK]  ':'[FALHA] ')+'Download: '+nome+(ok?(' ('+ms+'ms)'):''));
+      document.getElementById('resumo').value = linhas.join('\n');
+      pinta();
+      if(!ok && critico){
+        var v2 = document.getElementById('veredito');
+        v2.style.background = '#5a1f1a'; v2.style.color = '#ffd0c8';
+        v2.innerHTML = '✗ Este aparelho <b>não conseguiu baixar</b> um arquivo essencial.<br>'+
+          '<span style="font-weight:400;font-size:.85rem">É por isso que a tela abre mas os botões não respondem.</span>';
+      }
+      if(s.parentNode) s.parentNode.removeChild(s);
+    }
+    s.onload = function(){ fim(true); };
+    s.onerror = function(){ fim(false); };
+    setTimeout(function(){ fim(false); }, 8000);
+    s.src = url;
+    document.head.appendChild(s);
+  }
+  for(var k=0;k<alvos.length;k++) testa(alvos[k][0], alvos[k][1], alvos[k][2]);
+
   document.getElementById('copiar').onclick = function(){
     var ta = document.getElementById('resumo');
     ta.removeAttribute('readonly'); ta.select();

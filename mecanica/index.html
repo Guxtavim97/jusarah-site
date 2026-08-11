@@ -41,7 +41,15 @@
     upd();
   });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Biblioteca do banco: cópia NOSSA primeiro (não depende de servidor de fora).
+     Se por algum motivo faltar, tenta o CDN como reserva. Sem ela o app não
+     funciona — por isso não pode depender de uma rede externa. -->
+<script src="../assets/js/supabase.js"></script>
+<script>
+  if(!window.supabase){
+    document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"><\/script>');
+  }
+</script>
 <script src="../assets/js/qr.js"></script>
 <script src="../assets/js/assistente.js"></script>
 <script src="../assets/js/rosto.js"></script>
@@ -878,6 +886,27 @@
    ============================================================ */
 var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
 var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+/* Sem a biblioteca do banco nada funciona. Se ela faltar, a tela até
+   aparece, mas NENHUM botão responde — e a pessoa fica sem saber por quê.
+   Então avisamos de forma clara, em vez de falhar em silêncio. */
+if(!window.supabase || !window.supabase.createClient){
+  document.addEventListener('DOMContentLoaded', function(){
+    var av = document.createElement('div');
+    av.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#071228;color:#e6eef7;'+
+      'display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;'+
+      "font-family:'Segoe UI',system-ui,Arial,sans-serif";
+    av.innerHTML = '<div style="max-width:380px">'+
+      '<div style="font-size:2.4rem">📡</div>'+
+      '<h2 style="font-size:1.1rem;margin:8px 0">Não deu para carregar o sistema</h2>'+
+      '<p style="color:#8fb4d6;font-size:.9rem;line-height:1.55">Este aparelho não conseguiu baixar um arquivo necessário. '+
+        'Verifique a internet e recarregue a página.</p>'+
+      '<button onclick="location.reload(true)" style="border:0;border-radius:10px;padding:12px 18px;'+
+        'background:#12294d;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:6px">Tentar de novo</button>'+
+      '</div>';
+    document.body.appendChild(av);
+  });
+  throw new Error('Biblioteca do banco (supabase-js) não carregou.');
+}
 var sb = window.supabase.createClient(SB_URL, SB_KEY);
 var $ = function(id){ return document.getElementById(id); };
 var usuario = null, PERFIL = null, AERONAVES = [], OSS = [], PROPS = [], PROPMAP = {};
