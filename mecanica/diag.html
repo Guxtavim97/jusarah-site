@@ -35,6 +35,18 @@
   </div>
 
   <div class="card">
+    <b style="font-size:.9rem">🔊 O microfone está captando som?</b>
+    <p class="sub" style="margin:6px 0 0">Este teste não usa o serviço de voz: ele mede o som que entra pelo microfone. <b>Fale ou bata palmas</b> perto do aparelho.</p>
+    <button id="vol-test">Medir o som do microfone</button>
+    <div id="vol-barra" style="display:none;margin-top:12px">
+      <div style="background:#0b1a2e;border:1px solid rgba(127,212,255,.2);border-radius:8px;height:22px;overflow:hidden">
+        <div id="vol-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#1B6E3B,#9be3b6);transition:width .08s"></div>
+      </div>
+      <div id="vol-txt" style="font-size:.82rem;margin-top:8px;color:#8fb4d6"></div>
+    </div>
+  </div>
+
+  <div class="card">
     <b style="font-size:.9rem">Resumo para enviar</b>
     <textarea id="resumo" readonly></textarea>
     <button id="copiar">Copiar resumo</button>
@@ -189,6 +201,69 @@
     };
     try{ r.start(); }catch(e){ fim('✗ Não deu para iniciar: '+e.message, 'no'); return; }
     setTimeout(function(){ if(!comecou){ try{ r.abort(); }catch(e){} } }, 3000);
+  };
+
+  /* ---- Mede o SOM que entra pelo microfone, sem depender do serviço de voz.
+         Se o ditado "inicia mas não entende nada", é aqui que descobrimos se
+         o microfone existe e está captando. ---- */
+  document.getElementById('vol-test').onclick = function(){
+    var b = this, barra = document.getElementById('vol-barra'),
+        fill = document.getElementById('vol-fill'), txt = document.getElementById('vol-txt');
+    b.disabled = true; b.textContent = 'Abrindo o microfone…';
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){
+      b.disabled=false; b.textContent='Medir o som do microfone';
+      txt.textContent = '✗ Este navegador não dá acesso ao microfone.';
+      barra.style.display='block'; return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio:true }).then(function(stream){
+      var faixas = stream.getAudioTracks();
+      var nomeMic = faixas.length ? (faixas[0].label || 'microfone sem nome') : 'NENHUM';
+      barra.style.display = 'block';
+      b.textContent = 'Fale agora…';
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC){ txt.textContent='✗ Não dá para medir o som neste navegador.'; return; }
+      var ctx = new AC();
+      var src = ctx.createMediaStreamSource(stream);
+      var an = ctx.createAnalyser(); an.fftSize = 512;
+      src.connect(an);
+      var dados = new Uint8Array(an.frequencyBinCount);
+      var pico = 0, fim = new Date().getTime() + 8000;
+      (function loop(){
+        an.getByteFrequencyData(dados);
+        var soma = 0;
+        for(var i=0;i<dados.length;i++) soma += dados[i];
+        var nivel = soma / dados.length;                  // 0..255
+        var pct = Math.min(100, Math.round(nivel * 2.2));
+        if(nivel > pico) pico = nivel;
+        fill.style.width = pct + '%';
+        txt.textContent = 'Captando… nível atual: ' + pct + '%  ·  maior até agora: ' + Math.round(pico*2.2) + '%';
+        if(new Date().getTime() < fim){ requestAnimationFrame(loop); return; }
+        // acabou o teste
+        try{ stream.getTracks().forEach(function(t){ t.stop(); }); ctx.close(); }catch(e){}
+        b.disabled = false; b.textContent = 'Medir de novo';
+        var picoPct = Math.round(pico*2.2);
+        var veredito;
+        if(picoPct >= 12){
+          txt.className='ok';
+          veredito = '✓ O MICROFONE ESTÁ CAPTANDO (pico '+picoPct+'%). Microfone: '+nomeMic;
+        } else {
+          txt.className='no';
+          veredito = '✗ NÃO ENTROU SOM (pico '+picoPct+'%). O microfone não está captando. Microfone: '+nomeMic;
+        }
+        txt.textContent = veredito;
+        linhas.push('[SOM] ' + veredito);
+        document.getElementById('resumo').value = linhas.join('\n');
+      })();
+    }).catch(function(e){
+      barra.style.display='block'; b.disabled=false; b.textContent='Medir de novo';
+      txt.className='no';
+      var m = (e && e.name==='NotAllowedError') ? 'permissão do microfone NEGADA — libere no cadeado ao lado do endereço'
+            : (e && e.name==='NotFoundError') ? 'NENHUM MICROFONE encontrado neste aparelho'
+            : (e && (e.message||e.name)) || 'erro desconhecido';
+      txt.textContent = '✗ ' + m;
+      linhas.push('[SOM] FALHA: ' + m);
+      document.getElementById('resumo').value = linhas.join('\n');
+    });
   };
 
   document.getElementById('copiar').onclick = function(){
