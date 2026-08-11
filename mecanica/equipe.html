@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Gestão de Equipe · Jusarah Manutenção</title>
+<title>Gestão de Equipe · PJ AERO CENTRO</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{ --bg:#071228; --card:#0b1e42; --line:rgba(127,212,255,.16); --azul:#4a9fd4; --verde:#1B6E3B; --txt:#e6eef7; --mut:#8fb4d6; }
@@ -232,7 +232,7 @@
         box.classList.remove('hidden');
         box.innerHTML = 'Login: <b style="font-size:1rem">'+esc(d.email)+'</b><br>Senha provisória: <b>'+esc(d.senha)+'</b>'+
           '<button class="copiar" data-s="'+esc(d.senha)+'">copiar senha</button>'+
-          '<p>Entregue login e senha. Ele entra em jusarah.com.br/mecanica e troca a senha no botão 🔑 Senha.</p>';
+          '<p>Entregue login e senha. Ele entra no sistema e troca a senha no botão 🔑 Senha.</p>';
         botaoCopiar(box);
       }
       $('n-nome').value=''; $('n-email').value=''; $('n-tel').value=''; $('n-cpf').value=''; $('n-lic').value=''; chips($('n-paps'), []);
@@ -244,7 +244,7 @@
   (async function init(){
     var s = await sb.auth.getSession();
     var session = s && s.data ? s.data.session : null;
-    if(!session){ bloqueio('Entre primeiro', 'Faça login em <a href="/mecanica/">jusarah.com.br/mecanica</a> e depois abra esta página.'); return; }
+    if(!session){ bloqueio('Entre primeiro', 'Faça login no <a href="/mecanica/">sistema</a> e depois abra esta página.'); return; }
     TOKEN = session.access_token;
     var p = await sb.from('perfis').select('papeis, nivel').eq('id', session.user.id).maybeSingle();
     var papeis = (p.data && p.data.papeis) || [];

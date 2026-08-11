@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#071228">
-<title>Acompanhe sua aeronave · Jusarah Manutenção</title>
+<meta name="theme-color" content="#0c1e3e">
+<title>Acompanhe sua aeronave · PJ AERO CENTRO</title>
+<link rel="icon" href="/mecanica/icon-192.png">
+
 <base href="/">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/js/qr.js"></script>
 <style>
   :root{
-    --bp:#071228; --bp2:#0b1e42; --linha:#7fd4ff; --linha2:#4a9fd4;
-    --blue:#1B3F8F; --green:#2f9e44; --green-d:#1B6E3B; --amber:#c8890a; --ok:#4fe08a;
+    --bp:#0a1a33; --bp2:#12294d; --linha:#a6b1c4; --linha2:#8b95a6;
+    --blue:#12294d; --green:#2f9e44; --green-d:#1B6E3B; --amber:#c8890a; --ok:#4fe08a;
     --ink:#12212e; --muted:#5b6b78; --line:#e4e9ee; --paper:#f6f8fa; --bg:#eef2f5;
     --mono:'Consolas','SF Mono','Roboto Mono',ui-monospace,monospace;
     --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
@@ -39,7 +41,7 @@
       radial-gradient(130% 110% at 50% 0%, var(--bp2) 0%, var(--bp) 65%)}
   .hero__in{max-width:860px;margin:0 auto;padding:0 16px}
   .marca{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-  .marca img{height:44px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+  .marca img{width:min(78vw,260px);height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
   .marca div{font-weight:800;font-size:.98rem;line-height:1.15}
   .marca small{display:block;font-size:.62rem;font-weight:700;letter-spacing:.18em;
     text-transform:uppercase;opacity:.65}
@@ -171,7 +173,7 @@
     box-shadow:0 30px 80px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
   .vcard__m{display:flex;align-items:center;gap:12px;margin-bottom:22px;
     padding-bottom:18px;border-bottom:1px solid rgba(127,212,255,.16)}
-  .vcard__m img{height:42px}
+  .vcard__m img{width:min(70vw,230px);height:auto}
   .vcard__m b{display:block;font-size:.95rem;line-height:1.15}
   .vcard__m small{display:block;font-size:.6rem;font-weight:700;letter-spacing:.18em;
     text-transform:uppercase;color:#6f8db0}
@@ -223,7 +225,7 @@
     border-bottom:1px solid rgba(127,212,255,.18);
     transform:translateY(-105%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
   .mini.ver{transform:none}
-  .mini img{height:26px}
+  .mini img{width:min(58vw,170px);height:auto}
   .mini b{font-family:var(--mono);font-size:.95rem;letter-spacing:.03em}
   .mini span{margin-left:auto;font-size:.68rem;font-weight:800;padding:4px 11px;border-radius:999px;
     border:1px solid currentColor;white-space:nowrap}
@@ -233,7 +235,7 @@
     .wrap{padding:0 14px 96px}
     .hero{padding-top:calc(18px + env(safe-area-inset-top))}
     .hero__in{padding:0 14px}
-    .marca img{height:38px}
+    .marca img{width:min(82vw,220px);height:auto}
     .id{gap:10px;margin-bottom:2px}
     .id__os{margin-left:0;text-align:left;width:100%;display:flex;align-items:baseline;gap:8px}
     .id__os small{display:inline}
@@ -293,20 +295,20 @@
     .wrap{max-width:none;padding:0}
 
     /* timbre */
-    .hero{background:#fff!important;color:#12212e;padding:0;border-bottom:2.5px solid #1B3F8F}
+    .hero{background:#fff!important;color:#12212e;padding:0;border-bottom:2.5px solid #12294d}
     .hero__in{padding:0}
     .marca{padding-bottom:8px;border-bottom:2px solid #1B6E3B;margin-bottom:12px}
-    .marca img{height:52px;filter:none}
-    .marca div{color:#1B3F8F;font-size:13pt}
+    .marca img{width:250px;height:auto;filter:none}
+    .marca div{color:#12294d;font-size:13pt}
     .marca small{color:#5b6b78}
     .id__pref{font-size:26pt;color:#12212e;text-shadow:none;font-family:Consolas,monospace}
     .id__mod{color:#5b6b78}
-    .id__os small{color:#5b6b78} .id__os b{color:#1B3F8F;font-size:12pt}
+    .id__os small{color:#5b6b78} .id__os b{color:#12294d;font-size:12pt}
 
     /* o desenho técnico em tinta escura */
     .desenho{margin:0;max-height:62mm;overflow:hidden}
     .dw{max-height:62mm}
-    .dw .ln{stroke:#1B3F8F!important;stroke-dashoffset:0!important;animation:none!important}
+    .dw .ln{stroke:#12294d!important;stroke-dashoffset:0!important;animation:none!important}
     .dw .fina{stroke:#7f97b5!important}
     .dw .eixo{stroke:#c9d3da!important}
     .dw .pin{display:none}
@@ -317,23 +319,23 @@
     .selo .pt{display:none}
     .agora{color:#12212e;font-size:10pt;max-width:none}
     .trilha i{background:#dde3e9!important}
-    .trilha i.on,.trilha i.fim{background:#1B3F8F!important;transform:none!important;animation:none!important}
+    .trilha i.on,.trilha i.fim{background:#12294d!important;transform:none!important;animation:none!important}
     .trilha-l{color:#5b6b78}
 
     /* seções */
     .card,.verif{box-shadow:none!important;border:0;border-top:1px solid #c9d3da;border-radius:0;
       padding:12px 0 6px;margin:0;background:#fff!important;color:#12212e!important;
       opacity:1!important;transform:none!important;animation:none!important;break-inside:avoid}
-    .card h2{font-size:10pt;letter-spacing:.14em;text-transform:uppercase;color:#1B3F8F;
+    .card h2{font-size:10pt;letter-spacing:.14em;text-transform:uppercase;color:#12294d;
       border:0;margin-bottom:8px}
     .card h2 .c{background:none;color:#5b6b78}
     .sv{padding:7px 0;border-bottom:1px solid #eef1f4}
     .sv__ic{border:1px solid #9aa6ae;background:#fff!important;color:#1B6E3B!important;
       width:20px;height:20px;flex:0 0 20px;font-size:8pt}
-    .nota{background:#f6f8fa!important;font-size:9pt;border-left:3px solid #1B3F8F}
+    .nota{background:#f6f8fa!important;font-size:9pt;border-left:3px solid #12294d}
 
     /* mídias */
-    .gh{background:#f6f8fa!important;color:#12212e!important;border-left:3px solid #1B3F8F;
+    .gh{background:#f6f8fa!important;color:#12212e!important;border-left:3px solid #12294d;
       border-radius:0;padding:6px 10px;font-size:9pt}
     .mid{grid-template-columns:1fr 1fr 1fr;gap:7px}
     .mi{box-shadow:none;border:1px solid #c9d3da;border-radius:3px;background:#fff;break-inside:avoid}
@@ -347,7 +349,7 @@
       aspect-ratio:4/3;background:#f6f8fa;border-bottom:1px dashed #9aa6ae;
       font-size:7.5pt;color:#5b6b78;padding:8px;font-family:Georgia,serif}
 
-    .verif{text-align:left;border-top:1.5px solid #1B3F8F;margin-top:8px}
+    .verif{text-align:left;border-top:1.5px solid #12294d;margin-top:8px}
     .verif small{color:#5b6b78;opacity:1}
     .verif b{color:#12212e;font-size:15pt;display:inline;margin-right:10px}
     .verif span{color:#5b6b78;font-size:8.5pt}
@@ -356,10 +358,10 @@
 
     /* QR + link: como o cliente leva o relatório de volta pro online */
     .so-papel{display:flex!important;gap:14px;align-items:center;margin-top:14px;
-      padding:12px 14px;border:1.5px solid #1B3F8F;border-radius:5px;break-inside:avoid}
+      padding:12px 14px;border:1.5px solid #12294d;border-radius:5px;break-inside:avoid}
     .qr-img{width:32mm;height:32mm;flex:0 0 32mm;border:1px solid #c9d3da}
     .qr-tx{flex:1}
-    .qr-tx b{font-size:11pt;color:#1B3F8F}
+    .qr-tx b{font-size:11pt;color:#12294d}
     .qr-tx p{margin:2px 0 5px;font-size:9pt;line-height:1.4}
     .qr-url{display:block;font-family:Consolas,monospace;font-size:8.5pt;color:#0E5A8A;word-break:break-all}
     .qr-cod{margin-top:6px;padding-top:5px;border-top:1px dashed #c9d3da;font-size:7.5pt;
@@ -427,7 +429,7 @@ function svgAeronave(cat){
   var s = '<svg class="dw" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">'+
           '<line class="eixo" x1="70" y1="250" x2="850" y2="250"/>'+
           '<g class="pin">'+ c.p.map(function(d,i){
-            return '<path d="'+d+'" fill="'+(i===0?'#1B3F8F':'#16357a')+'"/>'; }).join('') +'</g>';
+            return '<path d="'+d+'" fill="'+(i===0?'#12294d':'#16357a')+'"/>'; }).join('') +'</g>';
   c.t.forEach(function(d,i){ s += '<path class="ln'+(i>1?' fina':'')+'" d="'+d+'"/>'; });
   function hel(h){ return '<g class="helice">'+
     '<circle class="ln fina" cx="'+h.cx+'" cy="'+h.cy+'" r="'+h.r+'" stroke-dasharray="6 8"/>'+
@@ -547,12 +549,12 @@ function desenha(d){
     : '<div class="vazio-m">As fotos e vídeos do serviço aparecem aqui conforme ele avança.</div>';
 
   document.getElementById('tudo').innerHTML =
-    '<div class="mini" id="mini"><img src="assets/img/logo-branca.png" alt="">'+
+    '<div class="mini" id="mini"><img src="assets/img/pj-logo-branca.png" alt="">'+
       '<b>'+esc(a.prefixo)+'</b><span class="'+(fim?'m-lib':'m-and')+'">'+
       (fim?'Liberada':'Etapa '+o.etapa+'/11')+'</span></div>'+
     '<div class="hero"><div class="hero__in">'+
-      '<div class="marca"><img src="assets/img/logo-branca.png" alt="Jusarah">'+
-        '<div>Jusarah Manutenção<small>Acompanhamento de serviço</small></div></div>'+
+      '<div class="marca"><img src="assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">'+
+        '<div>PJ AERO CENTRO<small>Acompanhamento de serviço</small></div></div>'+
       '<div class="id"><div><div class="id__pref">'+esc(a.prefixo)+'</div>'+
         '<div class="id__mod">'+esc(a.modelo||'')+(d.proprietario?' · '+esc(d.proprietario):'')+'</div></div>'+
         '<div class="id__os"><small>Ordem de serviço</small><b>'+esc(o.codigo||'')+'</b></div></div>'+
@@ -586,7 +588,7 @@ function desenha(d){
         '</dl></div>'+
 
       '<div class="card sobe" style="animation-delay:.16s"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+
-        svHtml+'<div class="nota">Na Jusarah, <b>todo serviço é conferido por uma segunda pessoa</b> '+
+        svHtml+'<div class="nota">Na PJ AERO CENTRO, <b>todo serviço é conferido por uma segunda pessoa</b> '+
         'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
 
       pdHtml+
@@ -608,21 +610,21 @@ function desenha(d){
 
       '<div class="verif sobe" style="animation-delay:.34s"><small>Código de autenticidade</small>'+
         '<b>'+esc(o.verificacao||'—')+'</b>'+
-        '<span>Confirme este documento em jusarah.com.br/verificar</span></div>'+
+        '<span>Confirme este documento em '+location.host+'/verificar</span></div>'+
 
-      '<div class="rod"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+      '<div class="rod"><b>PJ AERO CENTRO</b> · Cerejeiras–RO<br>'+
         'Qualquer dúvida sobre o serviço, fale com a gente.</div>'+
       '<div class="so-papel" id="bloco-qr"></div>'+
-      '<div class="impresso"><b>JUSARAH MANUTENÇÃO</b> · Cerejeiras–RO<br>'+
+      '<div class="impresso"><b>PJ AERO CENTRO</b> · Cerejeiras–RO<br>'+
         'Documento emitido em '+dtBR(new Date().toISOString())+' · '+esc(o.codigo||'')+' · '+esc(a.prefixo)+
-        '<br>Confira a autenticidade em jusarah.com.br/verificar</div>'+
+        '<br>Confira a autenticidade em '+location.host+'/verificar</div>'+
     '</div>';
 
   /* QR só faz sentido no papel: na tela a pessoa já está no link */
   (function(){
     var alvo = document.getElementById('bloco-qr'), tk = pegaToken();
     if(!alvo || !tk || typeof QR === 'undefined') return;
-    var url = 'https://jusarah.com.br/os/' + tk;
+    var url = location.origin + '/os/' + tk;
     var qr = QR.dataURI(url, 150);
     if(!qr) return;
     var temVideo = md.some(function(m){ return m.midia === 'video'; });
@@ -686,8 +688,8 @@ function lightbox(m){
 function telaVerificar(){
   document.getElementById('tudo').innerHTML =
     '<div class="vtela"><div><div class="vcard sobe">'+
-      '<div class="vcard__m"><img src="assets/img/logo-branca.png" alt="Jusarah">'+
-        '<div><b>Jusarah Manutenção</b><small>Cerejeiras–RO</small></div></div>'+
+      '<div class="vcard__m"><img src="assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">'+
+        '<div><b>PJ AERO CENTRO</b><small>Cerejeiras–RO</small></div></div>'+
       '<h1>🔒 Verificação de autenticidade</h1>'+
       '<p class="sub">Recebeu um relatório de serviço com o nosso nome? Confirme aqui se ele foi '+
       'mesmo emitido por nós. Os dois dados estão impressos no rodapé do documento.</p>'+
@@ -724,7 +726,7 @@ function telaVerificar(){
         'como está impresso — ou fale com a oficina.</p></div>'; return;
     }
     res.innerHTML='<div class="carimbo"><div class="carimbo__s c-sim"><b>Documento autêntico</b>'+
-        '<span>emitido pela Jusarah Manutenção</span></div></div>'+
+        '<span>emitido pela PJ AERO CENTRO</span></div></div>'+
       '<dl class="vdl">'+
         '<dt>Ordem de serviço</dt><dd>'+esc(d.codigo||'—')+'</dd>'+
         '<dt>Aeronave</dt><dd>'+esc(d.prefixo||'—')+'</dd>'+

@@ -1271,7 +1271,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
     fotosHtml+
 
     (o.token ? (function(){
-      var url = 'https://jusarah.com.br/os/' + o.token;
+      var url = location.origin + '/os/' + o.token;
       var qr  = QR.dataURI(url, 108);
       return '<div class="rp-online">'+
         (qr ? '<img class="rp-qr" src="'+qr+'" alt="QR">' : '')+
@@ -1283,7 +1283,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
           (o.verificacao ? '<div class="rp-cod"><span>Código de autenticidade</span><b>'+
             esc(o.verificacao)+'</b>'+
             '<div class="rp-cod__c">Confira a autenticidade deste documento em '+
-            '<b>jusarah.com.br/verificar</b> — informe o nº da OS e este código.</div></div>' : '')+
+            '<b>'+location.host+'/verificar</b> — informe o nº da OS e este código.</div></div>' : '')+
         '</div></div>' ;
     })() : '')+
 
@@ -2956,7 +2956,7 @@ async function abreOS(id, scrollRestaurar){
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
   $("bt-link").onclick = function(){
     if(!o.token){ toast('Esta OS ainda não tem link. Recarregue a página.','err'); return; }
-    var url = 'https://jusarah.com.br/os/' + o.token;
+    var url = location.origin + '/os/' + o.token;
     var libs = fotos.filter(function(f){ return f.compartilhada !== false && f.caminho_pub; }).length;
     var faltam = fotos.filter(function(f){ return f.compartilhada !== false && !f.caminho_pub; });
     abreModal('Link do proprietário',
