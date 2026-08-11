@@ -399,15 +399,14 @@ var ZONA = {motor:'Motor / hélice', motor_esq:'Motor esquerdo', motor_dir:'Moto
 /* o que está acontecendo agora, em português de gente */
 var ETAPA = [
   {n:'Recebimento',  d:'Sua aeronave chegou à oficina e foi registrada com fotos do estado em que chegou.'},
-  {n:'Documentação', d:'Estamos conferindo a documentação e o histórico da aeronave.'},
-  {n:'Priorização',  d:'Definindo a ordem de atendimento junto às outras aeronaves na oficina.'},
-  {n:'Fila',         d:'Na fila, aguardando uma baia livre no hangar.'},
-  {n:'Entrada',      d:'Sua aeronave entrou no hangar.'},
+  {n:'Ordem de serviço', d:'Abrimos a ordem de serviço com os relatos do piloto e o motivo da manutenção.'},
+  {n:'Serviços e Orçamento', d:'Levantando os serviços necessários e preparando o orçamento das peças.'},
+  {n:'Aguardando fila', d:'Na fila — aguardando peça, aprovação do orçamento ou uma baia livre no hangar.'},
   {n:'Planejamento', d:'Planejando o serviço: separando as peças, o ferramental calibrado e definindo quem executa.'},
   {n:'Execução',     d:'Serviço em execução pelos nossos mecânicos.'},
   {n:'Pendências',   d:'Resolvendo uma pendência antes de poder concluir — assim que liberar, seguimos.'},
   {n:'Conclusão',    d:'Serviço concluído. Seguindo para a conferência final.'},
-  {n:'Conferência',  d:'Uma segunda pessoa está conferindo todo o serviço, item por item.'},
+  {n:'Cross Check',  d:'Uma segunda pessoa está conferindo todo o serviço, item por item.'},
   {n:'Liberação',    d:'Tudo conferido e assinado. Sua aeronave está liberada para voltar a voar.'}
 ];
 
@@ -516,7 +515,7 @@ function desenha(d){
 
   /* assinaturas do serviço */
   var asn = (d.assinaturas||[]).filter(function(x){ return x.tipo!=='entrega' && x.tipo!=='retirada'; });
-  var AS_TX = {7:'Liberação do planejamento', 11:'Aprovação para retorno ao serviço'};
+  var AS_TX = {6:'Liberação do planejamento', 10:'Aprovação para retorno ao serviço'};
   var asHtml = asn.length ? '<div class="card sobe" style="animation-delay:.25s">'+
     '<h2>✍️ Assinaturas<span class="c">'+asn.length+'</span></h2>'+
     asn.map(function(s){
@@ -548,10 +547,18 @@ function desenha(d){
     ? grupo('antes','g-a','ANTES','como chegou') + grupo('depois','g-d','DEPOIS','o que foi feito')
     : '<div class="vazio-m">As fotos e vídeos do serviço aparecem aqui conforme ele avança.</div>';
 
+  var pdAbertas = pd.filter(function(p){ return !p.resolvida_em; });
+  var pdTopo = pdAbertas.length
+    ? '<div class="wrap"><div class="card" style="border:1.5px solid #e6b8b8;background:#fff5f5;animation:none">'+
+      '<h2 style="color:#b03030">⏳ Aguardando para seguir<span class="c">'+pdAbertas.length+'</span></h2>'+
+      pdAbertas.map(function(p){ return '<div class="sv"><div class="sv__ic esp">!</div><div>'+
+        '<div class="sv__t">'+esc(p.descricao)+'</div>'+(p.motivo?'<div class="sv__s">'+esc(p.motivo)+'</div>':'')+'</div></div>'; }).join('')+
+      '</div></div>'
+    : '';
   document.getElementById('tudo').innerHTML =
     '<div class="mini" id="mini"><img src="assets/img/pj-logo-branca.png" alt="">'+
       '<b>'+esc(a.prefixo)+'</b><span class="'+(fim?'m-lib':'m-and')+'">'+
-      (fim?'Liberada':'Etapa '+o.etapa+'/11')+'</span></div>'+
+      (fim?'Liberada':'Etapa '+o.etapa+'/10')+'</span></div>'+
     '<div class="hero"><div class="hero__in">'+
       '<div class="marca"><img src="assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">'+
         '<div>PJ AERO CENTRO<small>Acompanhamento de serviço</small></div></div>'+
@@ -561,13 +568,14 @@ function desenha(d){
       '<div class="desenho">'+svgAeronave(a.categoria)+'</div>'+
       '<div class="sit">'+
         '<div class="selo '+(fim?'s-lib':'s-and')+'"><span class="pt"></span>'+
-          (fim?'Liberada para voltar a voar':'Em manutenção · etapa '+o.etapa+' de 11')+'</div>'+
+          (fim?'Liberada para voltar a voar':'Em manutenção · etapa '+o.etapa+' de 10')+'</div>'+
         '<div class="agora">'+(fim
-          ? 'Serviço concluído em <b>'+dataBR(o.encerrada_em)+'</b>. '+esc(ETAPA[10].d)
+          ? 'Serviço concluído em <b>'+dataBR(o.encerrada_em)+'</b>. '+esc(ETAPA[9].d)
           : '<b>Agora:</b> '+esc(et.d))+'</div>'+
         trilha+
       '</div>'+
     '</div></div>'+
+    pdTopo +
 
     '<div class="wrap">'+
       '<button class="baixar aparece" id="bt-baixar">📄 '+
