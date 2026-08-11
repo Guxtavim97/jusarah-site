@@ -743,6 +743,7 @@
     <div class="spacer"></div>
     <div class="who"><b id="u-nome">—</b><div class="papeis" id="u-papeis"></div></div>
     <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
+    <button class="btn btn--ghost btn--sm" id="btn-notif" style="display:none;position:relative">🔔<span id="notif-badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#e0483d;color:#fff;font-size:.64rem;font-weight:800;min-width:16px;height:16px;border-radius:9px;padding:0 4px;line-height:16px;text-align:center"></span></button>
     <button class="btn btn--ghost btn--sm" id="btn-faceid">🔐 Face ID</button>
     <button class="btn btn--ghost btn--sm" id="btn-senha">🔑 Senha</button>
     <button class="btn btn--ghost btn--sm" id="btn-sair">Sair</button>
@@ -1736,8 +1737,84 @@ async function entrar(){
       'padding:10px 14px;border-radius:10px;text-decoration:none;font-size:.85rem;box-shadow:0 6px 18px rgba(0,0,0,.35)';
     document.body.appendChild(ge);
   }
+
+  // sino de avisos — só para diretor técnico e admin
+  if(temPapel('diretor_tecnico') || ehAdmin()){
+    $("btn-notif").style.display = '';
+    carregaNotifs();
+    if(!window.__notif_timer) window.__notif_timer = setInterval(carregaNotifs, 45000);
+  }
   armaBloqueio();  // modo totem: começa a contar a inatividade
 }
+
+/* ---------------- AVISOS (notificações para diretor/admin) ---------------- */
+var NOTIFS = [];
+async function carregaNotifs(){
+  if(!(temPapel('diretor_tecnico') || ehAdmin())) return;
+  var r = await sb.from('manut_notificacoes').select('*').order('criado_em', {ascending:false}).limit(40);
+  if(r.error){ return; }
+  NOTIFS = r.data || [];
+  var uid = usuario ? usuario.id : null;
+  var naoLidas = NOTIFS.filter(function(n){ return (n.lida_por||[]).indexOf(uid) < 0; });
+  var b = $("notif-badge");
+  if(b){
+    if(naoLidas.length){ b.textContent = naoLidas.length>9 ? '9+' : String(naoLidas.length); b.style.display=''; }
+    else { b.style.display='none'; }
+  }
+  if(document.getElementById('notif-painel')) renderNotifPainel();
+}
+function renderNotifPainel(){
+  var painel = document.getElementById('notif-painel'); if(!painel) return;
+  var uid = usuario ? usuario.id : null, body = painel.querySelector('.np-body');
+  if(!NOTIFS.length){ body.innerHTML = '<div style="padding:22px;color:#8fb4d6;font-size:.85rem;text-align:center">Nenhum aviso ainda.</div>'; return; }
+  body.innerHTML = NOTIFS.map(function(n){
+    var lida = (n.lida_por||[]).indexOf(uid) >= 0;
+    var d = new Date(n.criado_em);
+    var quando = d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="np-item" data-nid="'+n.id+'" data-os="'+(n.os_id||'')+'" style="padding:11px 13px;border-bottom:1px solid rgba(127,212,255,.12);cursor:pointer;'+(lida?'opacity:.55':'background:rgba(74,159,212,.08)')+'">'+
+      '<div style="font-weight:700;font-size:.86rem">'+esc(n.titulo||'')+'</div>'+
+      '<div style="font-size:.78rem;color:#8fb4d6;margin-top:2px">'+esc(n.corpo||'')+'</div>'+
+      '<div style="font-size:.7rem;color:#5f7e9c;margin-top:4px">'+quando+(lida?'':' · novo')+'</div>'+
+    '</div>';
+  }).join('');
+  painel.querySelectorAll('.np-item').forEach(function(el){
+    el.onclick = async function(){
+      var nid = el.getAttribute('data-nid'), osid = el.getAttribute('data-os');
+      await marcaLida(nid); fechaNotif();
+      if(osid) abreOS(osid);
+    };
+  });
+}
+async function marcaLida(nid){
+  var uid = usuario ? usuario.id : null;
+  var n = NOTIFS.filter(function(x){ return x.id===nid; })[0]; if(!n) return;
+  var lp = (n.lida_por||[]).slice();
+  if(lp.indexOf(uid) >= 0) return;
+  lp.push(uid); n.lida_por = lp;
+  await sb.from('manut_notificacoes').update({ lida_por: lp }).eq('id', nid);
+  carregaNotifs();
+}
+function fechaNotif(){ var p=document.getElementById('notif-painel'); if(p) p.remove(); document.removeEventListener('click', fechaOnce); }
+function fechaOnce(ev){ var p=document.getElementById('notif-painel'); if(p && !p.contains(ev.target) && ev.target.id!=='btn-notif'){ fechaNotif(); } }
+if($("btn-notif")) $("btn-notif").onclick = function(e){
+  e.stopPropagation();
+  if(document.getElementById('notif-painel')){ fechaNotif(); return; }
+  var p = document.createElement('div');
+  p.id = 'notif-painel';
+  p.style.cssText = 'position:fixed;top:58px;right:12px;z-index:9600;width:min(360px,92vw);max-height:72vh;overflow:auto;background:#0b1e42;border:1px solid rgba(127,212,255,.22);border-radius:13px;box-shadow:0 14px 40px rgba(0,0,0,.5)';
+  p.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid rgba(127,212,255,.16);position:sticky;top:0;background:#0b1e42">'+
+    '<b style="font-size:.92rem">🔔 Avisos</b>'+
+    '<button id="np-lertodas" style="margin-left:auto;background:none;border:1px solid rgba(127,212,255,.25);color:#8fb4d6;border-radius:7px;padding:4px 9px;font-size:.72rem;cursor:pointer">Marcar todas lidas</button>'+
+    '</div><div class="np-body"></div>';
+  document.body.appendChild(p);
+  renderNotifPainel();
+  document.getElementById('np-lertodas').onclick = async function(ev2){
+    ev2.stopPropagation();
+    var uid = usuario ? usuario.id : null;
+    for(var i=0;i<NOTIFS.length;i++){ if((NOTIFS[i].lida_por||[]).indexOf(uid)<0) await marcaLida(NOTIFS[i].id); }
+  };
+  setTimeout(function(){ document.addEventListener('click', fechaOnce); }, 0);
+};
 
 /* ---------------- NAVEGAÇÃO ---------------- */
 var VIEWS = ['oficina','quadro','aeronaves','proprietarios','arquivo'];
