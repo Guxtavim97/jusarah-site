@@ -3395,12 +3395,25 @@ async function abreOS(id, scrollRestaurar){
           '<option value="tudo">Tudo (inclui 1000/2000h e maiores)</option>'
         : '<option value="100">100 horas</option><option value="50">50 horas</option>';
     }
-    var optModelos = insps.map(function(x,i){ return '<option value="'+i+'">'+esc(x.modelo)+' — '+esc(x.revisao)+'</option>'; }).join('');
+    // escolhe automaticamente a ficha certa pela aeronave desta OS
+    var aerMod = ((o.manut_aeronaves||{}).modelo||'').toLowerCase();
+    function pontua(ins){
+      var m = (ins.modelo||'').toLowerCase(); var p = 0;
+      if(aerMod.indexOf('air tractor')>=0 && m.indexOf('air tractor')>=0) p+=5;
+      if(aerMod.indexOf('ipanema')>=0 && m.indexOf('ipanema')>=0) p+=5;
+      ['at-502','at502','at-504','at504','502','504','203'].forEach(function(k){
+        if(aerMod.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0 && m.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0) p+=2; });
+      return p;
+    }
+    var idxPref = 0, melhorP = -1;
+    insps.forEach(function(x,i){ var p=pontua(x); if(p>melhorP){ melhorP=p; idxPref=i; } });
+    var optModelos = insps.map(function(x,i){ return '<option value="'+i+'"'+(i===idxPref?' selected':'')+'>'+esc(x.modelo)+' — '+esc(x.revisao)+'</option>'; }).join('');
+    var dicaMod = melhorP>0 ? '<div class="no" style="margin:4px 0 0;font-size:.78rem">Já selecionei a ficha da aeronave <b>'+esc((o.manut_aeronaves||{}).modelo||'')+'</b>. Confira antes de carregar.</div>' : '';
     abreModal('Carregar inspeção',
       '<label class="blk">Modelo de inspeção</label>'+
-      '<select class="in" id="ins-modelo">'+optModelos+'</select>'+
+      '<select class="in" id="ins-modelo">'+optModelos+'</select>'+dicaMod+
       '<label class="blk" style="margin-top:10px">Tipo de inspeção</label>'+
-      '<select class="in" id="ins-tipo">'+opcoesTipo(insps[0])+'</select>'+
+      '<select class="in" id="ins-tipo">'+opcoesTipo(insps[idxPref])+'</select>'+
       '<p class="sub" style="margin-top:10px;font-size:.8rem">Adiciona os itens aplicáveis como serviços, agrupados por sistema. Cada item será <b>executado</b> e <b>conferido</b> (cross-check).</p>',
       'Carregar', async function(){
         var insp = insps[parseInt($("ins-modelo").value,10)||0];
