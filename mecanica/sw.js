@@ -3,7 +3,7 @@
 //  - HTML (navegação): rede primeiro (sempre fresco online), cai no cache se offline.
 //  - JS/CSS/imagens e libs de CDN: cache primeiro, atualizando em segundo plano.
 //  - Supabase (dados/escrita): NUNCA cacheia — passa direto (offline falha e o app trata).
-var CACHE = 'pjaero-mec-v12';
+var CACHE = 'pjaero-mec-v13';
 var SHELL = [
   '/mecanica/',
   '/mecanica/index.html',
@@ -72,6 +72,45 @@ self.addEventListener('fetch', function(e){
         return res;
       }).catch(function(){ return hit; });
       return hit || rede;
+    })
+  );
+});
+
+/* ============================================================
+   NOTIFICAÇÕES NO CELULAR (push)
+   Chegam mesmo com o app fechado. O servidor manda o aviso,
+   o service worker mostra, e o toque abre a OS certa.
+   ============================================================ */
+self.addEventListener('push', function(e){
+  var d = {};
+  try{ d = e.data ? e.data.json() : {}; }catch(err){ d = { titulo:'PJ AERO CENTRO', corpo: e.data ? e.data.text() : '' }; }
+  var titulo = d.titulo || 'PJ AERO CENTRO';
+  var opcoes = {
+    body: d.corpo || '',
+    icon: '/mecanica/icon-192.png',
+    badge: '/mecanica/icon-192.png',
+    tag: d.os_id ? ('os-' + d.os_id) : undefined,   // avisos da mesma OS se substituem
+    renotify: true,
+    data: { os_id: d.os_id || null, url: '/mecanica/' }
+  };
+  e.waitUntil(self.registration.showNotification(titulo, opcoes));
+});
+
+/* Tocar no aviso: traz o app para a frente e abre a OS */
+self.addEventListener('notificationclick', function(e){
+  e.notification.close();
+  var osId = e.notification.data && e.notification.data.os_id;
+  var destino = '/mecanica/' + (osId ? ('?os=' + osId) : '');
+  e.waitUntil(
+    self.clients.matchAll({ type:'window', includeUncontrolled:true }).then(function(lista){
+      for(var i=0;i<lista.length;i++){
+        var c = lista[i];
+        if(c.url.indexOf('/mecanica') >= 0 && 'focus' in c){
+          if(osId && c.navigate) { try{ c.navigate(destino); }catch(err){} }
+          return c.focus();
+        }
+      }
+      if(self.clients.openWindow) return self.clients.openWindow(destino);
     })
   );
 });

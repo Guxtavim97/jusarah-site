@@ -1841,7 +1841,116 @@ async function entrar(){
   if(temPapel('diretor_tecnico') || temPapel('chefe_manutencao')){
     try{ await sb.rpc('manut_alerta_paradas', { p_dias: 2 }); carregaNotifs(); }catch(e){}
   }
+  convitePush();   // primeira vez: convida a autorizar os avisos no celular
   armaBloqueio();  // modo totem: começa a contar a inatividade
+}
+
+/* ============================================================
+   AVISOS NO CELULAR (push) — chegam com o app fechado.
+   Nunca pedimos a permissão de supetão: primeiro explicamos para quê
+   serve. Navegador só dá uma chance — se a pessoa nega, fica negado.
+   ============================================================ */
+var VAPID_PUB = 'BEu20hNTy9wo2BQ9LgHncjz_-sZ2Ui_uq0JWNKP6kIB0I748RfU6YWujJx-ajUbPeL_g8UbIbslULiFRLolP41I';
+
+function b64ParaBytes(base64){
+  var pad = '='.repeat((4 - base64.length % 4) % 4);
+  var s = (base64 + pad).replace(/-/g,'+').replace(/_/g,'/');
+  var bin = atob(s), out = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function pushSuportado(){
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+function ehIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent); }
+function appInstalado(){
+  return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+
+/* Faz a inscrição do aparelho e guarda no banco */
+async function inscrevePush(){
+  var reg = await navigator.serviceWorker.ready;
+  var sub = await reg.pushManager.getSubscription();
+  if(!sub){
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: b64ParaBytes(VAPID_PUB)
+    });
+  }
+  var j = sub.toJSON();
+  if(!j || !j.keys) throw new Error('O aparelho não devolveu as chaves de segurança.');
+  var r = await sb.from('manut_push').upsert({
+    user_id: usuario.id,
+    endpoint: j.endpoint,
+    p256dh: j.keys.p256dh,
+    auth: j.keys.auth,
+    aparelho: (navigator.platform || '') + ' · ' + (ehIOS() ? 'Safari' : 'Chrome')
+  }, { onConflict: 'endpoint' });
+  if(r.error) throw new Error(r.error.message);
+  return true;
+}
+
+/* Convite explicativo — aparece uma vez, na primeira entrada */
+function convitePush(){
+  if(!pushSuportado()) return;
+  if(Notification.permission === 'granted'){        // já autorizou: só garante a inscrição
+    inscrevePush().catch(function(){});
+    return;
+  }
+  if(Notification.permission === 'denied') return;  // negou: o navegador não deixa perguntar de novo
+  if(localStorage.getItem('pj_push_convite') === 'depois') return;
+  if(TOTEM) return;                                  // o totem é compartilhado — aviso pessoal não faz sentido
+  if(document.getElementById('ov-push')) return;
+
+  var precisaInstalar = ehIOS() && !appInstalado();
+  var ov = document.createElement('div');
+  ov.id = 'ov-push';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(4,10,22,.85);display:grid;place-items:center;padding:18px';
+  ov.innerHTML =
+    '<div style="background:#0b1e42;border:1px solid rgba(127,212,255,.22);border-radius:16px;max-width:400px;width:100%;padding:22px;color:#e6eef7;line-height:1.55">'+
+      '<div style="font-size:2.2rem;text-align:center">🔔</div>'+
+      '<h3 style="margin:8px 0 6px;font-size:1.1rem;text-align:center">Receber os avisos no celular</h3>'+
+      (precisaInstalar
+        ? '<p style="color:#8fb4d6;font-size:.9rem;margin:0 0 14px">No iPhone, os avisos só funcionam com o app <b>instalado na tela de início</b>.<br><br>'+
+          'Toque em <b>Compartilhar</b> (o quadrado com a seta) → <b>Adicionar à Tela de Início</b>. Depois abra por lá e ative aqui.</p>'
+        : '<p style="color:#8fb4d6;font-size:.9rem;margin:0 0 14px">Assim você fica sabendo na hora, <b>mesmo com o app fechado</b>:</p>'+
+          '<div style="font-size:.88rem;margin-bottom:16px">'+
+            '<div style="padding:3px 0">➡️ quando uma aeronave <b>avança de etapa</b></div>'+
+            '<div style="padding:3px 0">✅ quando um <b>serviço é concluído</b></div>'+
+            '<div style="padding:3px 0">⏰ quando uma OS fica <b>parada esperando o cliente</b></div>'+
+          '</div>')+
+      '<div style="display:flex;gap:8px;flex-direction:column">'+
+        (precisaInstalar ? '' :
+          '<button id="pu-ok" style="border:0;border-radius:10px;padding:13px;background:#1B6E3B;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">Ativar os avisos</button>')+
+        '<button id="pu-no" style="border:0;border-radius:10px;padding:11px;background:#26364a;color:#cfe3f5;font-size:.9rem;cursor:pointer">Agora não</button>'+
+      '</div>'+
+      '<div id="pu-msg" style="font-size:.83rem;margin-top:10px;min-height:1em;text-align:center"></div>'+
+    '</div>';
+  document.body.appendChild(ov);
+
+  document.getElementById('pu-no').onclick = function(){
+    localStorage.setItem('pj_push_convite','depois'); ov.remove();
+  };
+  var bt = document.getElementById('pu-ok');
+  if(bt) bt.onclick = async function(){
+    var msg = document.getElementById('pu-msg');
+    this.disabled = true; msg.style.color='#8fb4d6'; msg.textContent = 'Aguardando a sua autorização…';
+    try{
+      var p = await Notification.requestPermission();
+      if(p !== 'granted'){
+        msg.style.color='#ff9a8a';
+        msg.textContent = 'Você não autorizou. Para ativar depois: toque no cadeado ao lado do endereço → Notificações → Permitir.';
+        this.disabled = false; return;
+      }
+      await inscrevePush();
+      msg.style.color='#9be3b6'; msg.textContent = 'Pronto! Os avisos chegam neste aparelho. ✓';
+      localStorage.removeItem('pj_push_convite');
+      setTimeout(function(){ ov.remove(); }, 1600);
+    }catch(e){
+      msg.style.color='#ff9a8a'; msg.textContent = 'Não deu para ativar: ' + (e.message||e);
+      this.disabled = false;
+    }
+  };
 }
 
 /* ---------------- AVISOS (o banco filtra por papel e por OS) ---------------- */
@@ -1901,9 +2010,34 @@ if($("btn-notif")) $("btn-notif").onclick = function(e){
   p.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 13px;border-bottom:1px solid rgba(127,212,255,.16);position:sticky;top:0;background:#0b1e42">'+
     '<b style="font-size:.92rem">🔔 Avisos</b>'+
     '<button id="np-lertodas" style="margin-left:auto;background:none;border:1px solid rgba(127,212,255,.25);color:#8fb4d6;border-radius:7px;padding:4px 9px;font-size:.72rem;cursor:pointer">Marcar todas lidas</button>'+
-    '</div><div class="np-body"></div>';
+    '</div>'+
+    /* atalho para ligar os avisos no celular, se ainda não estiverem ligados */
+    ((pushSuportado() && Notification.permission !== 'granted' && !TOTEM)
+      ? '<div style="padding:10px 13px;border-bottom:1px solid rgba(127,212,255,.16);background:rgba(74,159,212,.08)">'+
+          '<div style="font-size:.8rem;color:#bcd6ee;margin-bottom:7px">Os avisos não chegam neste celular quando o app está fechado.</div>'+
+          '<button id="np-push" style="width:100%;border:0;border-radius:8px;padding:9px;background:#1B6E3B;color:#fff;font-weight:700;font-size:.82rem;cursor:pointer">🔔 Ativar avisos neste aparelho</button>'+
+          '<div id="np-push-msg" style="font-size:.76rem;margin-top:6px;text-align:center"></div>'+
+        '</div>'
+      : '')+
+    '<div class="np-body"></div>';
   document.body.appendChild(p);
   renderNotifPainel();
+  var bp = document.getElementById('np-push');
+  if(bp) bp.onclick = async function(ev3){
+    ev3.stopPropagation();
+    var m = document.getElementById('np-push-msg');
+    this.disabled = true; m.style.color='#8fb4d6'; m.textContent='Aguardando a autorização…';
+    try{
+      var perm = await Notification.requestPermission();
+      if(perm !== 'granted'){
+        m.style.color='#ff9a8a';
+        m.textContent='Não autorizado. Toque no cadeado ao lado do endereço → Notificações → Permitir.';
+        this.disabled=false; return;
+      }
+      await inscrevePush();
+      m.style.color='#9be3b6'; m.textContent='Pronto! Os avisos chegam neste aparelho ✓';
+    }catch(e){ m.style.color='#ff9a8a'; m.textContent='Falhou: '+(e.message||e); this.disabled=false; }
+  };
   document.getElementById('np-lertodas').onclick = async function(ev2){
     ev2.stopPropagation();
     var uid = usuario ? usuario.id : null;
