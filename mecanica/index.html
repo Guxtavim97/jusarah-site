@@ -1830,19 +1830,23 @@ async function entrar(){
     document.body.appendChild(ge);
   }
 
-  // sino de avisos — só para diretor técnico e admin
-  if(temPapel('diretor_tecnico') || ehAdmin()){
-    $("btn-notif").style.display = '';
-    carregaNotifs();
-    if(!window.__notif_timer) window.__notif_timer = setInterval(carregaNotifs, 45000);
+  // Sino de avisos para todos: o banco decide o que cada um enxerga —
+  // diretor e chefe veem tudo; o mecânico vê só as OS em que trabalhou.
+  $("btn-notif").style.display = '';
+  carregaNotifs();
+  if(!window.__notif_timer) window.__notif_timer = setInterval(carregaNotifs, 45000);
+
+  // Marca as OS que estão paradas há dias (gera o aviso de cobrar o cliente).
+  // Só a gestão dispara, para não repetir a checagem a cada pessoa que entra.
+  if(temPapel('diretor_tecnico') || temPapel('chefe_manutencao')){
+    try{ await sb.rpc('manut_alerta_paradas', { p_dias: 2 }); carregaNotifs(); }catch(e){}
   }
   armaBloqueio();  // modo totem: começa a contar a inatividade
 }
 
-/* ---------------- AVISOS (notificações para diretor/admin) ---------------- */
+/* ---------------- AVISOS (o banco filtra por papel e por OS) ---------------- */
 var NOTIFS = [];
 async function carregaNotifs(){
-  if(!(temPapel('diretor_tecnico') || ehAdmin())) return;
   var r = await sb.from('manut_notificacoes').select('*').order('criado_em', {ascending:false}).limit(40);
   if(r.error){ return; }
   NOTIFS = r.data || [];
@@ -3164,6 +3168,7 @@ async function abreOS(id, scrollRestaurar){
     (encerrada?' · <b style="color:var(--green-d)">ENCERRADA em '+dt(o.encerrada_em)+'</b>':'')+'</div></div>'+
     '<div class="spacer"></div>'+
     '<button class="btn btn--ghost btn--sm" id="bt-link">🔗 Link do proprietário</button>'+
+    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="bt-cobrar">📲 Cobrar proprietário</button>')+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-ficha">📋 Ficha de Inspeção</button>'+
     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
@@ -3214,6 +3219,92 @@ async function abreOS(id, scrollRestaurar){
   };
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  /* ===== COBRAR O PROPRIETÁRIO =========================================
+     Muita OS para esperando algo que só o dono resolve (peça, autorização).
+     O fazendeiro raramente fica olhando o link — então a equipe manda um
+     lembrete pronto pelo WhatsApp, e a OS deixa de contar como "parada". */
+  if($("bt-cobrar")) $("bt-cobrar").onclick = async function(){
+    var cts = a.proprietario_id
+      ? ((await sb.from('manut_prop_contatos').select('*').eq('proprietario_id', a.proprietario_id).order('principal',{ascending:false})).data||[])
+      : [];
+    var comFone = cts.filter(function(c){ return c.fone && soDig(c.fone).length >= 10; });
+    var link = o.token ? (location.origin + '/os/' + o.token) : '';
+    var pref = a.prefixo || 'sua aeronave';
+    var quem = nomeProp(a.proprietario_id) || 'proprietário';
+
+    function molde(tipo, oQue){
+      var ini = 'Olá! Aqui é da PJ AERO CENTRO — Manutenção Aeronáutica.\n\n';
+      var fim = (link ? '\nVocê acompanha o serviço por aqui:\n'+link+'\n' : '')+
+                '\nQualquer dúvida, estamos à disposição. Obrigado!';
+      if(tipo==='peca')
+        return ini+'A aeronave '+pref+' está conosco e o serviço está aguardando a peça'+
+          (oQue?': '+oQue:'')+'.\n\nAssim que conseguir a compra ou o envio, é só nos avisar que retomamos na hora.\n'+fim;
+      if(tipo==='orcamento')
+        return ini+'O orçamento da aeronave '+pref+' está pronto e aguarda a sua autorização para começarmos o serviço.\n\n'+
+          'Quando puder dar o retorno, seguimos imediatamente.\n'+fim;
+      return ini+(oQue||'Estamos aguardando um retorno seu sobre a aeronave '+pref+'.')+'\n'+fim;
+    }
+
+    var optContatos = comFone.length
+      ? comFone.map(function(c,i){ return '<option value="'+i+'">'+esc(c.nome)+(c.funcao?' · '+esc(c.funcao):'')+' — '+esc(c.fone)+'</option>'; }).join('')
+      : '';
+
+    abreModal('Cobrar o proprietário — '+esc(quem),
+      (comFone.length
+        ? '<label class="blk">Enviar para</label><select class="in" id="cb-para">'+optContatos+'</select>'
+        : '<div class="aviso-suave" style="margin-bottom:10px">Nenhum contato com telefone cadastrado para este proprietário. '+
+          'Você pode digitar o número abaixo ou cadastrar em <b>Proprietários → Contatos</b>.</div>'+
+          '<label class="blk">Telefone (com DDD)</label><input class="in" id="cb-fone" placeholder="69 9 9999-9999" inputmode="tel">')+
+      '<label class="blk" style="margin-top:10px">Assunto</label>'+
+      '<select class="in" id="cb-tipo">'+
+        '<option value="peca">Peça — aguardando compra ou envio</option>'+
+        '<option value="orcamento">Orçamento — aguardando autorização</option>'+
+        '<option value="livre">Outro assunto (escrevo abaixo)</option>'+
+      '</select>'+
+      '<label class="blk" style="margin-top:10px" id="cb-lbl">Qual peça? (aparece na mensagem)</label>'+
+      '<input class="in" id="cb-oque" placeholder="ex.: filtro de combustível p/n 52351-1">'+
+      '<label class="blk" style="margin-top:10px">Mensagem que será enviada</label>'+
+      '<textarea class="in" id="cb-msg" rows="9" style="font-size:.88rem"></textarea>'+
+      '<div class="no" style="margin-top:8px">Pode editar o texto à vontade antes de enviar. '+
+        'Ao enviar, a OS deixa de aparecer como <b>parada</b> nos avisos.</div>'+
+      (o.cobranca_em ? '<div class="no" style="margin-top:8px;color:var(--amber)">Última cobrança: <b>'+dt(o.cobranca_em)+'</b>'+(o.cobranca_obs?' — '+esc(o.cobranca_obs):'')+'</div>' : ''),
+      '📲 Abrir o WhatsApp', async function(){
+        var fone = comFone.length ? (comFone[parseInt($("cb-para").value,10)||0].fone) : ($("cb-fone")?$("cb-fone").value:'');
+        var d = soDig(fone||'');
+        if(d.length < 10){ toast('Informe um telefone válido com DDD.','err'); return false; }
+        if(d.length <= 11) d = '55' + d;                     // Brasil
+        var msg = $("cb-msg").value.trim();
+        if(!msg){ toast('A mensagem está vazia.','err'); return false; }
+
+        var tipo = $("cb-tipo").value;
+        var rotulo = tipo==='peca' ? 'Peça' : (tipo==='orcamento' ? 'Orçamento' : 'Outro assunto');
+        var oQue = ($("cb-oque").value||'').trim();
+        var r = await sb.from('manut_os').update({
+          cobranca_em: new Date().toISOString(),
+          cobranca_por: usuario ? usuario.id : null,
+          cobranca_obs: rotulo + (oQue ? ' — ' + oQue : '')
+        }).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+
+        window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg), '_blank');
+        toast('Cobrança registrada. O WhatsApp foi aberto.','ok');
+        recarrega(); return true;
+      });
+
+    /* o texto se refaz sozinho conforme o assunto escolhido */
+    var elTipo = $("cb-tipo"), elOque = $("cb-oque"), elMsg = $("cb-msg"), elLbl = $("cb-lbl");
+    function refaz(){
+      var t = elTipo.value;
+      elLbl.textContent = t==='peca' ? 'Qual peça? (aparece na mensagem)'
+                        : t==='orcamento' ? 'Observação (opcional)'
+                        : 'Escreva o que precisa dizer';
+      var esconde = (t==='orcamento') ? 'none' : '';
+      elOque.style.display = esconde; elLbl.style.display = esconde;
+      elMsg.value = molde(t, (elOque.value||'').trim());
+    }
+    if(elTipo){ elTipo.onchange = refaz; elOque.oninput = refaz; refaz(); }
+  };
+
   $("bt-link").onclick = function(){
     if(!o.token){ toast('Esta OS ainda não tem link. Recarregue a página.','err'); return; }
     var url = location.origin + '/os/' + o.token;
