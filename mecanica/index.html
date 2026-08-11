@@ -1123,6 +1123,49 @@ function montaFicha(o, a, tarefas, pecas, nome){
    '</div>';
 }
 
+/* Emite um documento (Relatório / Ficha) com segurança:
+   - se der erro ao montar, MOSTRA o motivo em vez de falhar calado;
+   - se a impressão não abrir (acontece no totem/app instalado), exibe o
+     documento na tela para a pessoa ler, salvar em PDF ou fotografar. */
+function emiteDoc(titulo, monta, espera){
+  try{
+    monta();
+  }catch(e){
+    toast('Não deu para montar o '+titulo+': '+(e && e.message ? e.message : e), 'err');
+    return;
+  }
+  setTimeout(function(){
+    var abriu = false;
+    try{
+      if(typeof window.print === 'function'){ window.print(); abriu = true; }
+    }catch(e){ abriu = false; }
+    if(!abriu) verDocNaTela(titulo);
+  }, espera || 250);
+}
+
+/* Plano B: mostra o documento na própria tela, com botão de imprimir e fechar */
+function verDocNaTela(titulo){
+  var d = $("doc");
+  if(!d || !d.innerHTML){ toast('O documento saiu vazio.','err'); return; }
+  if(document.getElementById('ov-doc')) return;
+  var ov = document.createElement('div');
+  ov.id = 'ov-doc';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(4,10,22,.85);overflow:auto;padding:14px';
+  ov.innerHTML =
+    '<div style="max-width:820px;margin:0 auto">'+
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">'+
+        '<b style="color:#e6eef7;font-size:.95rem">'+esc(titulo)+'</b>'+
+        '<button id="ovd-imp" style="margin-left:auto;border:0;border-radius:9px;padding:9px 13px;background:#12294d;color:#fff;font-weight:700;cursor:pointer">🖨️ Imprimir / PDF</button>'+
+        '<button id="ovd-fecha" style="border:0;border-radius:9px;padding:9px 13px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
+      '</div>'+
+      '<div id="ovd-corpo" style="background:#fff;color:#12212e;border-radius:10px;padding:18px"></div>'+
+    '</div>';
+  document.body.appendChild(ov);
+  document.getElementById('ovd-corpo').innerHTML = d.innerHTML;
+  document.getElementById('ovd-fecha').onclick = function(){ ov.remove(); };
+  document.getElementById('ovd-imp').onclick = function(){ try{ window.print(); }catch(e){ toast('Este aparelho não permite imprimir. Use o link do proprietário no computador.','err'); } };
+}
+
 function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
   entregas = entregas || [];
   var c = CATS[a.categoria] || CATS['agricola'];
@@ -3094,12 +3137,14 @@ async function abreOS(id, scrollRestaurar){
     };
   };
   $("bt-rel").onclick = function(){
-    montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas);
-    setTimeout(function(){ window.print(); }, 300);   // tempo das fotos entrarem no documento
+    emiteDoc('Relatório', function(){
+      montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas);
+    }, 300);
   };
   if($("bt-ficha")) $("bt-ficha").onclick = function(){
-    montaFicha(o, a, tarefas, pecas, nome);
-    setTimeout(function(){ window.print(); }, 200);
+    emiteDoc('Ficha de Inspeção', function(){
+      montaFicha(o, a, tarefas, pecas, nome);
+    }, 200);
   };
   /* jump rápido por sistema + botão "topo" (checklist extenso) */
   document.querySelectorAll('.jump-sis').forEach(function(b){
