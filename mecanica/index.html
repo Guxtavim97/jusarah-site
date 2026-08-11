@@ -1135,11 +1135,24 @@ function emiteDoc(titulo, monta, espera){
     return;
   }
   setTimeout(function(){
-    var abriu = false;
-    try{
-      if(typeof window.print === 'function'){ window.print(); abriu = true; }
-    }catch(e){ abriu = false; }
-    if(!abriu) verDocNaTela(titulo);
+    /* No computador a janela de impressão abre normalmente.
+       No celular e no totem (e dentro de apps como Gmail/WhatsApp) o
+       navegador ignora o pedido de impressão calado — nada acontece.
+       Detectamos isso: se a impressão não iniciar, mostramos o documento
+       na tela, de onde dá para ler, salvar em PDF ou enviar. */
+    var iniciou = false;
+    function marca(){ iniciou = true; }
+    window.addEventListener('beforeprint', marca);
+    var mq = window.matchMedia ? window.matchMedia('print') : null;
+    if(mq && mq.addListener) mq.addListener(marca);
+
+    try{ window.print(); }catch(e){ /* segue para o plano B */ }
+
+    setTimeout(function(){
+      window.removeEventListener('beforeprint', marca);
+      if(mq && mq.removeListener) mq.removeListener(marca);
+      if(!iniciou) verDocNaTela(titulo);
+    }, 900);
   }, espera || 250);
 }
 

@@ -674,8 +674,58 @@ function desenha(d){
   document.getElementById('bt-baixar').onclick = function(){
     /* garante que o desenho apareça pronto no papel (a animação não roda na impressão) */
     document.querySelectorAll('.dw .ln').forEach(function(el){ el.style.strokeDashoffset = '0'; });
-    setTimeout(function(){ window.print(); }, 120);
+    setTimeout(function(){
+      /* Alguns celulares — e páginas abertas dentro de apps (WhatsApp, Gmail,
+         Instagram) — ignoram o pedido de impressão sem avisar. Se a impressão
+         não começar, explicamos ao cliente como salvar, em vez de não fazer nada. */
+      var iniciou = false;
+      function marca(){ iniciou = true; }
+      window.addEventListener('beforeprint', marca);
+      var mq = window.matchMedia ? window.matchMedia('print') : null;
+      if(mq && mq.addListener) mq.addListener(marca);
+
+      try{ window.print(); }catch(e){ /* segue para a ajuda abaixo */ }
+
+      setTimeout(function(){
+        window.removeEventListener('beforeprint', marca);
+        if(mq && mq.removeListener) mq.removeListener(marca);
+        if(!iniciou) ajudaSalvar();
+      }, 900);
+    }, 120);
   };
+
+  /* Explica como salvar quando o navegador do celular não abre a impressão */
+  function ajudaSalvar(){
+    if(document.getElementById('ov-salvar')) return;
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    var passos = ios
+      ? 'Toque em <b>Compartilhar</b> (o quadrado com a seta) e escolha <b>Imprimir</b> — depois <b>Salvar em PDF</b>.'
+      : 'Toque no menu <b>⋮</b> do navegador e escolha <b>Imprimir</b> ou <b>Compartilhar → Imprimir</b> — depois <b>Salvar como PDF</b>.';
+    var dentroApp = /FBAN|FBAV|Instagram|WhatsApp|Line\//i.test(navigator.userAgent);
+    var ov = document.createElement('div');
+    ov.id = 'ov-salvar';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(4,10,22,.86);display:grid;place-items:center;padding:18px';
+    ov.innerHTML =
+      '<div style="background:#0b1e42;border:1px solid rgba(127,212,255,.22);border-radius:14px;max-width:400px;width:100%;padding:20px;color:#e6eef7;font-family:inherit;line-height:1.55">'+
+        '<h3 style="margin:0 0 8px;font-size:1.05rem">Como salvar este relatório</h3>'+
+        (dentroApp
+          ? '<p style="margin:0 0 12px;color:#8fb4d6;font-size:.88rem">Você abriu por dentro de outro aplicativo, e ele não deixa salvar. Toque em <b>Abrir no navegador</b> (menu ⋮) e tente de novo.</p>'
+          : '<p style="margin:0 0 12px;color:#8fb4d6;font-size:.88rem">Seu celular não abriu a janela de impressão. Faça assim:</p>')+
+        '<p style="margin:0 0 14px;font-size:.9rem">'+passos+'</p>'+
+        '<p style="margin:0 0 14px;color:#8fb4d6;font-size:.82rem">Prefere no computador? Copie o endereço desta página e abra por lá.</p>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button id="ovs-copiar" style="flex:1;border:0;border-radius:9px;padding:11px;background:#12294d;color:#fff;font-weight:700;cursor:pointer">Copiar o link</button>'+
+          '<button id="ovs-fechar" style="border:0;border-radius:9px;padding:11px 14px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(ov);
+    document.getElementById('ovs-fechar').onclick = function(){ ov.remove(); };
+    document.getElementById('ovs-copiar').onclick = function(){
+      var b = this;
+      try{ navigator.clipboard.writeText(location.href); b.textContent = 'Link copiado ✓'; }
+      catch(e){ b.textContent = location.href; }
+    };
+  }
   if(fim) setTimeout(function(){ document.querySelector('.hero').classList.add('vivo'); }, 2300);
   document.querySelectorAll('.mi').forEach(function(el){
     el.onclick = function(){ lightbox(MID[+el.dataset.i]); };
