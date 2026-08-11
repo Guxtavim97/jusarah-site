@@ -125,6 +125,18 @@
     color:var(--muted);margin-top:14px;line-height:1.5}
   .nota b{color:var(--ink)}
 
+  /* ---- tabelas do orçamento ---- */
+  table.orc{width:100%;border-collapse:collapse;font-size:.86rem;min-width:440px}
+  table.orc th{text-align:left;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);border-bottom:1.5px solid rgba(127,142,160,.35);padding:7px 8px;font-weight:700}
+  table.orc td{padding:8px;border-bottom:1px solid rgba(127,142,160,.18);vertical-align:top}
+  table.orc .n{font-family:ui-monospace,Consolas,monospace;color:var(--muted);width:26px;text-align:center}
+  table.orc .r{text-align:right;white-space:nowrap}
+  table.orc .c{text-align:center}
+  table.orc.fecha{margin-top:16px;border:1.5px solid var(--azul,#12294d);border-radius:10px;overflow:hidden;min-width:0}
+  table.orc.fecha td{padding:10px 12px;font-size:.94rem}
+  table.orc.fecha .tg td{background:#12294d;color:#fff;font-weight:800;font-size:1.05rem;border:0;letter-spacing:.04em}
+
   /* mídias */
   .gh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:11px;margin:16px 0 12px}
   .gh b{font-size:.9rem;font-weight:800} .gh i{font-style:normal;font-size:.78rem;opacity:.8}
@@ -487,8 +499,73 @@ function desenha(d){
   trilha += '</div><div class="trilha-l"><span>Recebimento</span><span>'+
     (fim?'Liberada ✓':'Etapa '+o.etapa+' · '+esc(et.n))+'</span></div>';
 
+  /* ===== ORÇAMENTO — o cliente vê aqui, com a nossa identidade ===== */
+  var ex = d.extra || {};
+  function R$(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+  var oSv = ex.servicos || [], oPc = ex.pecas || [];
+  var tSv = Number(ex.total_servicos||0), tTab = Number(ex.total_tabela||0), tPc = Number(ex.total_pecas||0);
+  var econ = tTab - tSv, totalOrc = tSv + tPc;
+  var pctD = ex.desconto_pct != null ? Number(ex.desconto_pct) : null;
+
+  var orcHtml = (oSv.length || oPc.length)
+    ? '<div class="card sobe" id="orcamento" style="animation-delay:.18s"><h2>💰 Orçamento</h2>'+
+      (ex.orcamento_data ? '<div class="nota" style="margin-top:0">Emitido em '+
+         new Date(ex.orcamento_data+'T12:00:00').toLocaleDateString('pt-BR')+'</div>' : '')+
+
+      (oSv.length
+        ? '<h3 style="font-size:.9rem;margin:14px 0 8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">Serviços '+
+            '<span class="c">'+oSv.length+'</span></h3>'+
+          '<div style="overflow-x:auto"><table class="orc"><thead><tr><th>#</th><th>Serviço</th>'+
+            '<th class="r">Valor tabela</th><th class="r">Valor</th></tr></thead><tbody>'+
+          oSv.map(function(s,i){
+            var cor = s.cortesia || Number(s.valor)===0;
+            return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(s.descricao)+'</td>'+
+              '<td class="r" style="color:var(--muted)">'+(Number(s.tabela)>0?R$(s.tabela):'—')+'</td>'+
+              '<td class="r"><b>'+(cor?'<span style="color:#2e9c5a">Cortesia</span>':R$(s.valor))+'</b></td></tr>';
+          }).join('')+'</tbody></table></div>'
+        : '')+
+
+      (oPc.length
+        ? '<h3 style="font-size:.9rem;margin:18px 0 8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">Peças e materiais '+
+            '<span class="c">'+oPc.length+'</span></h3>'+
+          '<div style="overflow-x:auto"><table class="orc"><thead><tr><th>#</th><th>Descrição</th><th>P/N</th>'+
+            '<th class="c">Qtd</th><th class="r">Valor un.</th><th class="r">Total</th></tr></thead><tbody>'+
+          oPc.map(function(p,i){
+            return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(p.descricao)+'</td>'+
+              '<td style="font-family:ui-monospace,Consolas,monospace;font-size:.82em">'+esc(p.pn||'—')+'</td>'+
+              '<td class="c">'+(p.quantidade||1)+'</td>'+
+              '<td class="r">'+(p.valor!=null?R$(p.valor):'a cotar')+'</td>'+
+              '<td class="r">'+(p.valor!=null?R$(p.total):'—')+'</td></tr>';
+          }).join('')+'</tbody></table></div>'
+        : '')+
+
+      '<table class="orc fecha"><tbody>'+
+        (econ>0
+          ? '<tr><td>Serviços pela tabela</td><td class="r" style="color:var(--muted);text-decoration:line-through">'+R$(tTab)+'</td></tr>'+
+            '<tr><td style="color:#2e9c5a">Desconto e cortesias concedidos</td><td class="r" style="color:#2e9c5a;font-weight:700">− '+R$(econ)+'</td></tr>'
+          : '')+
+        (tSv>0?'<tr><td>Serviços</td><td class="r">'+R$(tSv)+'</td></tr>':'')+
+        (tPc>0?'<tr><td>Peças e materiais</td><td class="r">'+R$(tPc)+'</td></tr>':'')+
+        '<tr class="tg"><td>VALOR FINAL DO ORÇAMENTO</td><td class="r">'+R$(totalOrc)+'</td></tr>'+
+      '</tbody></table>'+
+
+      (pctD
+        ? '<div class="nota" style="background:rgba(46,156,90,.10);border-color:rgba(46,156,90,.35)"><b>Condição especial:</b> '+
+          pctD+'% de desconto sobre o valor final, aplicável após a conclusão dos serviços — '+
+          R$(totalOrc*pctD/100)+', deixando o valor em <b>'+R$(totalOrc*(1-pctD/100))+'</b>.</div>'
+        : '')+
+
+      '<div class="nota"><b>Material utilizado:</b> poderá ser fornecido pelo cliente ou cobrado à parte, caso sejam '+
+        'utilizados materiais da PJ Aero Centro. Todo material deve ser aeronáutico e possuir formulário equivalente '+
+        '(FORM), anexado ao Mapa de Componentes da Aeronave.<br><br>'+
+        '<b>Serviços terceirizados:</b> jateamento, soldas de estrutura e trabalhos de torno serão cobrados à parte, '+
+        'com orçamento complementar específico. O polimento total da aeronave é negociado separadamente.'+
+        (ex.orcamento_obs?'<br><br>'+esc(ex.orcamento_obs):'')+'</div>'+
+      '</div>'
+    : '';
+
   /* Documentos que a oficina liberou para o cliente (orçamento em PDF, laudos) */
-  var anx = (d.extra && d.extra.anexos) || [];
+  var anx = ex.anexos || [];
   var ICO = { orcamento:'💰', laudo:'📋', nota:'🧾' };
   var anxHtml = anx.length
     ? '<div class="card sobe" style="animation-delay:.20s"><h2>📎 Documentos<span class="c">'+anx.length+'</span></h2>'+
@@ -628,6 +705,7 @@ function desenha(d){
         'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
 
       pdHtml+
+      orcHtml+
       anxHtml+
 
       '<div class="card sobe" style="animation-delay:.22s"><h2>🎞️ Registro do serviço</h2>'+midHtml+'</div>'+
