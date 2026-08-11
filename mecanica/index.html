@@ -1116,6 +1116,100 @@ function comprimeImagem(file, max){
 /* ============================================================
    RELATÓRIO DE SERVIÇO — o documento que vai pro proprietário
    ============================================================ */
+/* ============================================================
+   ORÇAMENTO — documento oficial que vai para o cliente.
+   O cliente decide com base nisto, então precisa ter a cara da
+   empresa: peças com P/N, opções de fornecedor comparadas, total,
+   validade e o que está incluso. Nada de mensagem solta.
+   ============================================================ */
+function montaOrcamento(o, a, pecas, cots, forn, nome){
+  function moeda(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+  var hoje = new Date();
+  var validade = new Date(hoje.getTime() + 15*86400000);
+  var nomeDe = {}; (forn||[]).forEach(function(f){ nomeDe[f.id] = f; });
+
+  var totalPecas = (pecas||[]).reduce(function(s,p){
+    return s + (Number(p.quantidade||1) * Number(p.valor||0)); }, 0);
+
+  var linhas = (pecas||[]).map(function(p,i){
+    var qt = Number(p.quantidade||1);
+    var sub = qt * Number(p.valor||0);
+    return '<tr><td class="n">'+(i+1)+'</td>'+
+      '<td>'+esc(p.descricao)+(p.ata?'<br><span style="font-size:8pt;color:#5b6b78">ATA '+esc(p.ata)+'</span>':'')+'</td>'+
+      '<td style="font-family:Consolas,monospace">'+esc(p.pn||'—')+'</td>'+
+      '<td style="text-align:center">'+qt+'</td>'+
+      '<td style="text-align:right">'+(p.valor!=null?moeda(p.valor):'a cotar')+'</td>'+
+      '<td style="text-align:right">'+(p.valor!=null?moeda(sub):'—')+'</td></tr>';
+  }).join('');
+
+  /* opções dos fornecedores, da mais barata para a mais cara */
+  var comValor = (cots||[]).filter(function(c){ return c.valor != null; })
+                           .sort(function(x,y){ return Number(x.valor)-Number(y.valor); });
+  var opcoes = comValor.length
+    ? '<h2>Opções de fornecimento</h2>'+
+      '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Fornecedor</th>'+
+        '<th style="width:22%">Prazo de entrega</th><th style="width:24%;text-align:right">Valor total</th></tr></thead><tbody>'+
+      comValor.map(function(c,i){
+        var f = nomeDe[c.fornecedor_id] || {};
+        var melhor = (i===0);
+        return '<tr'+(melhor?' style="background:#eef7f0"':'')+'>'+
+          '<td class="n">'+(i+1)+'</td>'+
+          '<td><b>'+esc(f.nome||'Fornecedor')+'</b>'+(melhor?' <span style="font-size:8pt;color:#1B6E3B">◄ menor valor</span>':'')+
+            (c.observacao?'<br><span style="font-size:8.5pt;color:#5b6b78">'+esc(c.observacao)+'</span>':'')+'</td>'+
+          '<td>'+(c.prazo_dias?c.prazo_dias+' dia(s)':'a confirmar')+'</td>'+
+          '<td style="text-align:right;font-weight:bold">'+moeda(c.valor)+'</td></tr>';
+      }).join('')+'</tbody></table>'
+    : '';
+
+  $("doc").innerHTML =
+   '<div class="rp">'+
+    '<div class="rp-cab"><img src="../assets/img/pj-logo.png" alt="">'+
+      '<div class="emp"><span>Cerejeiras–RO</span></div>'+
+      '<div class="num"><small>Orçamento</small><b>'+esc(codOS(o).replace(/^OS\s*/,''))+'</b></div>'+
+    '</div><div class="rp-fina"></div>'+
+    '<h1>Orçamento de Peças e Materiais</h1>'+
+
+    '<div class="rp-id">'+
+      '<div><dt>Matrícula</dt><dd>'+esc(a.prefixo||'—')+'</dd></div>'+
+      '<div><dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd></div>'+
+      '<div><dt>Proprietário</dt><dd>'+esc(nomeProp(a.proprietario_id)||'—')+'</dd></div>'+
+      '<div><dt>Emitido em</dt><dd>'+dataBR(hoje)+'</dd></div>'+
+    '</div>'+
+
+    '<h2>Peças necessárias</h2>'+
+    '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Descrição</th>'+
+      '<th style="width:20%">P/N</th><th style="width:44px;text-align:center">Qtd</th>'+
+      '<th style="width:16%;text-align:right">Valor un.</th><th style="width:16%;text-align:right">Subtotal</th></tr></thead>'+
+      '<tbody>'+(linhas || '<tr><td colspan="6">Nenhuma peça lançada.</td></tr>')+'</tbody></table>'+
+    (totalPecas > 0
+      ? '<div style="text-align:right;font-size:12pt;font-weight:bold;margin-top:6px;color:#12294d">Total das peças: '+moeda(totalPecas)+'</div>'
+      : '')+
+
+    opcoes +
+
+    '<div class="rp-nota" style="margin-top:16px">'+
+      '<b>COMO FUNCIONA:</b> você pode <b>fechar conosco</b> qualquer uma das opções acima — '+
+      'cuidamos da compra, do recebimento e da instalação, com a peça rastreada na ordem de serviço. '+
+      'Se preferir <b>comprar por conta própria</b>, esta lista traz os códigos (P/N) corretos, '+
+      'retirados do catálogo do fabricante, para você cotar onde quiser. '+
+      'Em ambos os casos a instalação e o registro técnico ficam por nossa conta.'+
+    '</div>'+
+
+    '<div class="rp-nota" style="margin-top:10px;background:#fff8f0;border-color:#e6c9a8">'+
+      '<b>VALIDADE:</b> os valores acima valem até <b>'+dataBR(validade)+'</b>. '+
+      'Preços de peças aeronáuticas variam com câmbio e disponibilidade — depois dessa data pedimos nova cotação.'+
+    '</div>'+
+
+    '<div style="display:flex;justify-content:space-between;margin-top:44px;text-align:center;font-size:9pt">'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">PJ AERO CENTRO</div></div>'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Proprietário / Responsável</div></div>'+
+    '</div>'+
+
+    '<div class="rp-rod"><b>PJ AERO CENTRO</b> · Manutenção Aeronáutica<br>'+
+      'Orçamento emitido por '+esc(PERFIL && PERFIL.nome ? PERFIL.nome : '—')+' em '+dtSeg(hoje)+'</div>'+
+   '</div>';
+}
+
 /* Ficha de Inspeção no formato oficial (checklist por sistema) */
 function montaFicha(o, a, tarefas, pecas, nome){
   var grupos = {}, ordem = [];
@@ -3503,6 +3597,7 @@ async function abreOS(id, scrollRestaurar){
     (encerrada?'':'<button class="btn btn--ghost btn--sm" id="bt-cobrar">📲 Cobrar proprietário</button>')+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-ficha">📋 Ficha de Inspeção</button>'+
+    (pecas.length?'<button class="btn btn--ghost btn--sm" id="bt-orc">💰 Orçamento</button>':'')+
     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
@@ -3519,7 +3614,13 @@ async function abreOS(id, scrollRestaurar){
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 5)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
-     '<div class="box"><h3>🧰 Peças e Materiais</h3>'+pecasHtml+'</div>'+
+     '<div class="box"'+(o.etapa===3?' style="border:1.5px solid #12294d33;background:#f7f9fc"':'')+'>'+
+       '<h3>🧰 Peças e Materiais'+(o.etapa===3?' <span class="c" style="background:#12294d;color:#fff">etapa atual</span>':'')+'</h3>'+
+       (o.etapa===3 && !encerrada
+         ? '<div class="no" style="margin-bottom:10px">Esta é a etapa do <b>orçamento</b>: monte a lista de peças (a busca preenche o P/N certo), '+
+           'peça preço aos fornecedores e envie a comparação ao cliente.</div>'
+         : '')+
+       pecasHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
      '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
@@ -3691,6 +3792,14 @@ async function abreOS(id, scrollRestaurar){
   if($("bt-ficha")) $("bt-ficha").onclick = function(){
     emiteDoc('Ficha de Inspeção', function(){
       montaFicha(o, a, tarefas, pecas, nome);
+    }, 200);
+  };
+  /* Documento do orçamento — é o que o cliente recebe para decidir */
+  if($("bt-orc")) $("bt-orc").onclick = async function(){
+    var cots = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
+    var forn = (await sb.from('manut_fornecedores').select('*')).data||[];
+    emiteDoc('Orçamento', function(){
+      montaOrcamento(o, a, pecas, cots, forn, nome);
     }, 200);
   };
   /* jump rápido por sistema + botão "topo" (checklist extenso) */
@@ -4048,7 +4157,8 @@ async function abreOS(id, scrollRestaurar){
       '<div id="orc-forn">'+fHtml+'</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'+
         '<button class="btn btn--blue btn--sm" id="orc-salvar">💾 Salvar as cotações</button>'+
-        '<button class="btn btn--green btn--sm" id="orc-cliente">📤 Enviar comparação ao cliente</button>'+
+        '<button class="btn btn--ghost btn--sm" id="orc-doc">📄 Gerar o orçamento</button>'+
+        '<button class="btn btn--green btn--sm" id="orc-cliente">📤 Enviar ao cliente</button>'+
       '</div>',
       'Fechar', async function(){ return true; });
 
@@ -4092,6 +4202,13 @@ async function abreOS(id, scrollRestaurar){
       }
       toast(n+' cotação(ões) salva(s) ✓','ok');
       this.disabled = false;
+    };
+
+    /* gerar o documento do orçamento (o que o cliente recebe) */
+    var bd = document.getElementById('orc-doc');
+    if(bd) bd.onclick = async function(){
+      var atuais = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
+      emiteDoc('Orçamento', function(){ montaOrcamento(o, a, pecas, atuais, forn, nome); }, 200);
     };
 
     /* montar a comparação e mandar para o cliente */
