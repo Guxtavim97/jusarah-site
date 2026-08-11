@@ -764,6 +764,7 @@
     <button class="nav" data-view="quadro">Visão do processo</button>
     <button class="nav" data-view="aeronaves">Aeronaves</button>
     <button class="nav" data-view="proprietarios">Proprietários</button>
+    <button class="nav" data-view="manuais">📚 Manuais e Peças</button>
     <button class="nav" data-view="arquivo">Arquivo</button>
   </div>
 
@@ -831,6 +832,28 @@
         <div class="etapas" id="fase2"></div></div>
       <div class="fbloco"><div class="fase-tit f3">Fase 3 · Execução e Conclusão</div>
         <div class="etapas" id="fase3"></div></div>
+    </section>
+
+    <!-- MANUAIS E PEÇAS -->
+    <section id="view-manuais" class="hidden">
+      <div class="box">
+        <h3>🔎 Buscar peça no catálogo</h3>
+        <div class="no" style="margin-bottom:10px">Digite o <b>P/N</b> ou uma palavra da descrição (em inglês, como está no manual):
+          <b>filter</b>, <b>bearing</b>, <b>seal</b>, <b>gasket</b>…</div>
+        <div class="row">
+          <div class="busca" style="margin:0">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="q-peca" placeholder="Ex.: 3115095  ou  oil filter">
+          </div>
+          <select class="in" id="q-peca-mod"><option value="">Todos os motores</option></select>
+        </div>
+        <div id="peca-res" style="margin-top:12px"></div>
+      </div>
+      <div class="box">
+        <h3>📚 Manuais e portais
+          <button class="btn btn--ghost btn--sm" id="man-add" style="margin-left:auto">+ Adicionar link</button></h3>
+        <div id="man-lista"></div>
+      </div>
     </section>
 
     <!-- ARQUIVO -->
@@ -2047,7 +2070,7 @@ if($("btn-notif")) $("btn-notif").onclick = function(e){
 };
 
 /* ---------------- NAVEGAÇÃO ---------------- */
-var VIEWS = ['oficina','quadro','aeronaves','proprietarios','arquivo'];
+var VIEWS = ['oficina','quadro','aeronaves','proprietarios','manuais','arquivo'];
 document.querySelectorAll('.nav').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('.nav').forEach(function(x){ x.classList.remove('is-active'); });
@@ -2056,8 +2079,144 @@ document.querySelectorAll('.nav').forEach(function(b){
     if(b.dataset.view==='aeronaves')     renderAeronaves();
     if(b.dataset.view==='proprietarios') renderProprietarios();
     if(b.dataset.view==='oficina')       carregaOficina();
+    if(b.dataset.view==='manuais')       renderManuais();
   };
 });
+
+/* ============================================================
+   MANUAIS E PEÇAS
+   A busca substitui abrir um PDF de 70 MB no hangar: o mecânico
+   digita o P/N ou uma palavra e acha na hora, pelo celular.
+   ============================================================ */
+function linhaPeca(p, comBotao){
+  return '<div class="oshist" data-pn="'+esc(p.pn)+'" data-desc="'+esc(p.descricao)+'" data-ata="'+esc(p.ata||'')+'" data-cat="'+p.id+'">'+
+    '<span class="oshist__n" style="font-family:Consolas,monospace">'+esc(p.pn)+'</span>'+
+    '<div class="oshist__b"><div class="oshist__t">'+esc(p.descricao)+'</div>'+
+      '<div class="oshist__s">'+(p.ata?'ATA '+esc(p.ata)+' · ':'')+esc(p.modelo||'')+(p.pagina?' · pág. '+p.pagina:'')+'</div></div>'+
+    (comBotao?'<button class="btn btn--blue btn--sm add-peca">+ Usar</button>':
+              '<button class="btn btn--ghost btn--sm cp-peca">Copiar P/N</button>')+
+  '</div>';
+}
+
+var buscaTimer = null;
+async function buscaPecas(termo, modelo, destino, comBotao){
+  var el = document.getElementById(destino);
+  if(!el) return;
+  termo = (termo||'').trim();
+  if(termo.length < 2){ el.innerHTML = '<div class="no">Digite ao menos 2 caracteres.</div>'; return; }
+  el.innerHTML = '<div class="no">Procurando…</div>';
+  var r = await sb.rpc('manut_busca_peca', { p_termo: termo, p_modelo: modelo || null, p_lim: 40 });
+  if(r.error){
+    el.innerHTML = '<div class="no" style="color:var(--red)">'+esc(r.error.message)+
+      '<br>Se diz que a função não existe, rode o SQL do orçamento.</div>';
+    return;
+  }
+  var d = r.data || [];
+  if(!d.length){ el.innerHTML = '<div class="empty">Nada encontrado para “'+esc(termo)+'”. Tente em inglês (ex.: <b>filter</b>, <b>seal</b>) ou parte do P/N.</div>'; return; }
+  el.innerHTML = '<div class="no" style="margin-bottom:8px">'+d.length+' resultado(s)'+(d.length===40?' — refine a busca para ver mais':'')+'</div>'+
+    d.map(function(p){ return linhaPeca(p, comBotao); }).join('');
+  el.querySelectorAll('.cp-peca').forEach(function(b){
+    b.onclick = function(){
+      var pn = b.closest('[data-pn]').getAttribute('data-pn');
+      try{ navigator.clipboard.writeText(pn); toast('P/N '+pn+' copiado ✓','ok'); }
+      catch(e){ toast(pn,'ok'); }
+    };
+  });
+}
+
+async function renderManuais(){
+  // motores disponíveis no catálogo (para filtrar a busca)
+  var sel = $("q-peca-mod");
+  if(sel && sel.options.length <= 1){
+    var m = await sb.from('manut_catalogo_pecas').select('modelo').limit(2000);
+    if(!m.error){
+      var vistos = {};
+      (m.data||[]).forEach(function(x){ if(x.modelo) vistos[x.modelo]=1; });
+      Object.keys(vistos).sort().forEach(function(k){
+        var o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
+      });
+    }
+  }
+  var q = $("q-peca");
+  if(q && !q.__on){
+    q.__on = true;
+    q.oninput = function(){
+      clearTimeout(buscaTimer);
+      var v = this.value, mod = $("q-peca-mod").value;
+      buscaTimer = setTimeout(function(){ buscaPecas(v, mod, 'peca-res', false); }, 350);
+    };
+    if(window.Voz) Voz.ativarTodos(sb, SB_URL);
+  }
+  var selM = $("q-peca-mod");
+  if(selM && !selM.__on){ selM.__on = true; selM.onchange = function(){ buscaPecas($("q-peca").value, this.value, 'peca-res', false); }; }
+
+  // lista de manuais e portais
+  var r = await sb.from('manut_manuais').select('*').order('ordem').order('titulo');
+  var box = $("man-lista");
+  if(r.error){ box.innerHTML = '<div class="no" style="color:var(--red)">'+esc(r.error.message)+'</div>'; return; }
+  var d = r.data || [];
+  if(!d.length){
+    box.innerHTML = '<div class="empty">Nenhum link cadastrado. Use <b>+ Adicionar link</b> para colocar a pasta do Drive com os manuais.</div>';
+  } else {
+    var podeEditar = temPapel('diretor_tecnico') || temPapel('chefe_manutencao');
+    box.innerHTML = d.map(function(x){
+      var ic = x.categoria==='portal' ? '🔐' : '📄';
+      return '<div class="oshist"><span class="oshist__n">'+ic+'</span>'+
+        '<div class="oshist__b"><div class="oshist__t">'+esc(x.titulo)+'</div>'+
+          '<div class="oshist__s">'+
+            (x.usuario?'usuário: <b>'+esc(x.usuario)+'</b>':'')+
+            (x.modelo?(x.usuario?' · ':'')+esc(x.modelo):'')+
+            (x.observacao?'<br>'+esc(x.observacao):'')+
+          '</div></div>'+
+        (x.usuario?'<button class="btn btn--ghost btn--sm cp-user" data-u="'+esc(x.usuario)+'">Copiar usuário</button>':'')+
+        '<a class="btn btn--blue btn--sm" href="'+esc(x.url)+'" target="_blank" rel="noopener">Abrir</a>'+
+        (podeEditar?'<button class="btn btn--ghost btn--sm man-del" data-id="'+x.id+'" style="color:#ff9a8a">🗑️</button>':'')+
+      '</div>';
+    }).join('');
+    box.querySelectorAll('.cp-user').forEach(function(b){
+      b.onclick = function(){
+        try{ navigator.clipboard.writeText(b.dataset.u); toast('Usuário copiado ✓','ok'); }catch(e){}
+      };
+    });
+    box.querySelectorAll('.man-del').forEach(function(b){
+      b.onclick = async function(){
+        if(!confirm('Remover este link?')) return;
+        var rr = await sb.from('manut_manuais').delete().eq('id', b.dataset.id);
+        if(rr.error){ toast(rr.error.message,'err'); return; }
+        renderManuais();
+      };
+    });
+  }
+  var add = $("man-add");
+  if(add && !add.__on){
+    add.__on = true;
+    add.onclick = function(){
+      abreModal('Adicionar link',
+        '<div class="no" style="margin-bottom:12px">Coloque aqui a pasta do <b>Google Drive</b> com os manuais, ou o endereço de um portal. '+
+          '<b>Nunca guarde a senha aqui</b> — deixe o aparelho salvá-la no primeiro acesso.</div>'+
+        '<label class="blk">Título *</label><input class="in" id="ml-tit" placeholder="Ex.: Manuais Air Tractor (Drive)">'+
+        '<label class="blk" style="margin-top:8px">Endereço (link) *</label><input class="in" id="ml-url" placeholder="https://drive.google.com/...">'+
+        '<label class="blk" style="margin-top:8px">Tipo</label>'+
+        '<select class="in" id="ml-cat"><option value="manual">Manual / pasta de arquivos</option><option value="portal">Portal do fabricante</option></select>'+
+        '<label class="blk" style="margin-top:8px">Usuário do portal (opcional)</label><input class="in" id="ml-user" placeholder="só o login — sem senha">'+
+        '<label class="blk" style="margin-top:8px">Aplica-se a (opcional)</label><input class="in" id="ml-mod" placeholder="Ex.: PT6A-67AG, AT-502B">'+
+        '<label class="blk" style="margin-top:8px">Observação (opcional)</label><input class="in" id="ml-obs">',
+        'Salvar', async function(){
+          var t = $("ml-tit").value.trim(), u = $("ml-url").value.trim();
+          if(!t || !u){ toast('Preencha o título e o link.','err'); return false; }
+          if(!/^https?:\/\//i.test(u)){ toast('O link deve começar com https://','err'); return false; }
+          var rr = await sb.from('manut_manuais').insert({
+            titulo:t, url:u, categoria:$("ml-cat").value,
+            usuario:$("ml-user").value.trim()||null,
+            modelo:$("ml-mod").value.trim()||null,
+            observacao:$("ml-obs").value.trim()||null
+          });
+          if(rr.error){ toast(rr.error.message,'err'); return false; }
+          toast('Link salvo ✓','ok'); renderManuais(); return true;
+        });
+    };
+  }
+}
 
 /* ============================================================
    PROPRIETÁRIOS — cadastrado UMA vez, vale pra várias aeronaves.
@@ -3810,6 +3969,12 @@ async function abreOS(id, scrollRestaurar){
   };
   if($("peca-add")) $("peca-add").onclick = function(){
     abreModal('Peça / Material',
+      /* Busca no catálogo dos manuais: evita digitar P/N errado no orçamento */
+      '<div style="background:#f6f8fb;border:1px solid #dbe3ec;border-radius:10px;padding:11px;margin-bottom:12px">'+
+        '<label class="blk" style="margin-top:0">🔎 Procurar no catálogo dos manuais</label>'+
+        '<input class="in" id="pc-busca" placeholder="P/N ou palavra em inglês: filter, seal, bearing…">'+
+        '<div id="pc-res" style="max-height:230px;overflow:auto;margin-top:8px"></div>'+
+      '</div>'+
       '<div class="row"><div><label class="blk">Qtd</label><input class="in" id="pc-qtd" type="text" inputmode="decimal" value="1"></div>'+
       '<div style="flex:2"><label class="blk">Descrição *</label><input class="in" id="pc-desc"></div></div>'+
       '<div class="row" style="margin-top:8px"><div><label class="blk">P/N</label><input class="in" id="pc-pn"></div>'+
@@ -3825,6 +3990,25 @@ async function abreOS(id, scrollRestaurar){
         if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
       });
+
+    /* busca no catálogo: escolher um resultado preenche P/N e descrição */
+    var bq = $("pc-busca");
+    if(bq) bq.oninput = function(){
+      clearTimeout(buscaTimer);
+      var v = this.value;
+      buscaTimer = setTimeout(async function(){
+        await buscaPecas(v, null, 'pc-res', true);
+        document.querySelectorAll('#pc-res .add-peca').forEach(function(b){
+          b.onclick = function(){
+            var el = b.closest('[data-pn]');
+            $("pc-pn").value   = el.getAttribute('data-pn');
+            $("pc-desc").value = el.getAttribute('data-desc');
+            $("pc-res").innerHTML = '<div class="no" style="color:var(--green-d)">✓ Peça escolhida: <b>'+
+              esc(el.getAttribute('data-pn'))+'</b> — confira a quantidade e o valor abaixo.</div>';
+          };
+        });
+      }, 350);
+    };
   };
   document.querySelectorAll('.peca-del').forEach(function(b){
     b.onclick = async function(){
