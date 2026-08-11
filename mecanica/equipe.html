@@ -248,8 +248,8 @@
     TOKEN = session.access_token;
     var p = await sb.from('perfis').select('papeis, nivel').eq('id', session.user.id).maybeSingle();
     var papeis = (p.data && p.data.papeis) || [];
-    var nivel = (p.data && p.data.nivel) || 0;
-    if(papeis.indexOf('diretor_tecnico')<0 && nivel<3){ bloqueio('Acesso restrito', 'Só o diretor técnico pode gerir a equipe.'); return; }
+    // Acesso à Gestão de Equipe = papel diretor_tecnico. O nível do painel Jusarah não vale aqui.
+    if(papeis.indexOf('diretor_tecnico')<0){ bloqueio('Acesso restrito', 'Só o Diretor Técnico pode gerir a equipe.'); return; }
     $('app').classList.remove('hidden');
     chips($('n-paps'), []);
     carrega();

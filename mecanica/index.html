@@ -1396,7 +1396,9 @@ function contaMidia(lista){
   return p.length ? p.join(' · ') : '0';
 }
 function temPapel(p){ return !!(PERFIL && PERFIL.papeis && PERFIL.papeis.indexOf(p)>=0); }
-function ehAdmin(){ return PERFIL && PERFIL.nivel >= 3; }
+// Admin da OFICINA = papel diretor_tecnico (concedido pelo diretor/admin na Gestão de Equipe).
+// O nível do painel da Jusarah NÃO vale aqui — quem determina as funções na oficina é o diretor.
+function ehAdmin(){ return temPapel('diretor_tecnico'); }
 
 /* ---------------- AUTH ---------------- */
 $("btn-entrar").onclick = async function(){
