@@ -3384,26 +3384,58 @@ async function abreOS(id, scrollRestaurar){
   if($("carregar-insp")) $("carregar-insp").onclick = async function(){
     var insps = (await sb.from('manut_inspecoes').select('*').eq('vigente',true).order('modelo')).data||[];
     if(!insps.length){ toast('Nenhum modelo de inspeção cadastrado ainda (rode o SQL da inspeção).','err'); return; }
-    var insp = insps[0];
-    abreModal('Carregar inspeção — '+esc(insp.modelo),
-      '<div class="no" style="margin-bottom:10px">'+esc(insp.revisao)+'</div>'+
-      '<label class="blk">Tipo de inspeção</label>'+
-      '<select class="in" id="ins-tipo"><option value="100">100 horas</option><option value="50">50 horas</option></select>'+
-      '<p class="sub" style="margin-top:10px;font-size:.8rem">Adiciona todos os itens aplicáveis como serviços, agrupados por sistema. Cada item será <b>executado</b> e <b>conferido</b> (cross-check).</p>',
+    // quais modelos usam INTERVALO (Air Tractor: 100/200/300/Anual) e quais usam 50/100h (Ipanema)
+    var comInt = (await sb.from('manut_inspecao_itens').select('inspecao_id').not('intervalo','is',null)).data||[];
+    var setInt = {}; comInt.forEach(function(x){ setInt[x.inspecao_id]=true; });
+    function ehIntervalo(ins){ return !!setInt[ins.id]; }
+    function opcoesTipo(ins){
+      return ehIntervalo(ins)
+        ? '<option value="100">100 horas</option><option value="200">200 horas (inclui 100)</option>'+
+          '<option value="300">300 horas (inclui 100 e 200)</option><option value="anual">Anual (100/200/300 + anuais)</option>'+
+          '<option value="tudo">Tudo (inclui 1000/2000h e maiores)</option>'
+        : '<option value="100">100 horas</option><option value="50">50 horas</option>';
+    }
+    var optModelos = insps.map(function(x,i){ return '<option value="'+i+'">'+esc(x.modelo)+' — '+esc(x.revisao)+'</option>'; }).join('');
+    abreModal('Carregar inspeção',
+      '<label class="blk">Modelo de inspeção</label>'+
+      '<select class="in" id="ins-modelo">'+optModelos+'</select>'+
+      '<label class="blk" style="margin-top:10px">Tipo de inspeção</label>'+
+      '<select class="in" id="ins-tipo">'+opcoesTipo(insps[0])+'</select>'+
+      '<p class="sub" style="margin-top:10px;font-size:.8rem">Adiciona os itens aplicáveis como serviços, agrupados por sistema. Cada item será <b>executado</b> e <b>conferido</b> (cross-check).</p>',
       'Carregar', async function(){
+        var insp = insps[parseInt($("ins-modelo").value,10)||0];
         var tipo = $("ins-tipo").value;
-        var col = tipo==='50' ? 'ap_50' : 'ap_100';
-        var itens = (await sb.from('manut_inspecao_itens').select('*').eq('inspecao_id',insp.id).eq(col,true)
-          .order('sistema').order('ordem')).data||[];
+        var itens;
+        if(ehIntervalo(insp)){
+          // conjunto de intervalos aplicáveis (cumulativo)
+          var todos = (await sb.from('manut_inspecao_itens').select('*').eq('inspecao_id',insp.id)
+            .order('sistema').order('ordem')).data||[];
+          var ref = function(it){ return !it.intervalo || it.intervalo==='—'; }; // itens de referência (--- ) sempre entram
+          var permite;
+          if(tipo==='100') permite={'100':1};
+          else if(tipo==='200') permite={'100':1,'200':1};
+          else if(tipo==='300') permite={'100':1,'200':1,'300':1};
+          else if(tipo==='anual') permite={'100':1,'200':1,'300':1,'Anual':1};
+          else permite=null; // tudo
+          itens = todos.filter(function(it){ return ref(it) || !permite || permite[it.intervalo]; });
+        } else {
+          var col = tipo==='50' ? 'ap_50' : 'ap_100';
+          itens = (await sb.from('manut_inspecao_itens').select('*').eq('inspecao_id',insp.id).eq(col,true)
+            .order('sistema').order('ordem')).data||[];
+        }
         if(!itens.length){ toast('Sem itens para esse tipo.','err'); return false; }
         var rows = itens.map(function(it){ return { os_id:id, sistema:it.sistema,
-          descricao:(it.codigo?it.codigo+' · ':'')+it.descricao,
+          descricao:(it.codigo?it.codigo+' · ':'')+it.descricao+(it.intervalo && it.intervalo!=='—'?' ('+it.intervalo+(/^\d+$/.test(it.intervalo)?'h':'')+')':''),
           referencia_manual: it.nota?('Nota '+it.nota):null }; });
         var r = await sb.from('manut_os_tarefas').insert(rows);
         if(r.error){ toast(r.error.message,'err'); return false; }
-        await sb.from('manut_os').update({ tipo:'Inspeção '+tipo+'h · '+insp.modelo }).eq('id', id);
+        var rotulo = ehIntervalo(insp) ? (tipo==='tudo'?'Completa':tipo==='anual'?'Anual':tipo+'h') : tipo+'h';
+        await sb.from('manut_os').update({ tipo:'Inspeção '+rotulo+' · '+insp.modelo }).eq('id', id);
         toast(itens.length+' itens carregados.','ok'); recarrega(); return true;
       });
+    // troca as opções de tipo conforme o modelo escolhido
+    var selM = $("ins-modelo");
+    if(selM) selM.onchange = function(){ $("ins-tipo").innerHTML = opcoesTipo(insps[parseInt(this.value,10)||0]); };
   };
   if($("add-pend")) $("add-pend").onclick = function(){
     abreModal('Nova pendência',
