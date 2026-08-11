@@ -2863,10 +2863,13 @@ async function abreOS(id, scrollRestaurar){
                 : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')))+
       '</td></tr>';
   });
+  var tInsp = tarefas.filter(function(t){ return t.sistema; });          // vieram de uma inspeção
+  var tInspLivres = tInsp.filter(function(t){ return !t.executado_em && !t.conferido_em; });
   tHtml+='</tbody></table>'+(encerrada?'':
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
       '<button class="btn btn--ghost btn--sm" id="add-tarefa">+ Tarefa</button>'+
       '<button class="btn btn--blue btn--sm" id="carregar-insp">📋 Carregar inspeção</button>'+
+      (tInsp.length ? '<button class="btn btn--ghost btn--sm" id="tirar-insp" style="color:#c2703a">↩️ Desfazer inspeção carregada</button>' : '')+
     '</div>');
 
   /* --- pendências --- */
@@ -2962,6 +2965,84 @@ async function abreOS(id, scrollRestaurar){
     : '<div class="no">Aeronave trazida pelo próprio piloto/proprietário.'+
       (encerrada?'':' Se foi a <b>PJ AERO CENTRO</b> que buscou, registre abaixo.')+'</div>';
   var trBtn = encerrada ? '' : '<button class="btn btn--ghost btn--sm" id="tr-edit" style="margin-top:10px">✈️ '+(o.translado_jusarah?'Editar':'Registrar')+' translado</button>';
+
+  /* ============ O QUE FALTA NESTA ETAPA ============================
+     Painel no alto da OS: mostra, para a etapa atual, o que precisa estar
+     pronto ANTES de passar para a próxima. Cada item é conferido de verdade
+     nos dados da OS — não é lembrete decorativo. */
+  var guiaHtml = (function(){
+    if(encerrada) return '';
+    var e = o.etapa, lista = [];
+    function it(ok, txt, comoFazer){ lista.push({ok:!!ok, t:txt, c:comoFazer||''}); }
+
+    var semExec  = tarefas.filter(function(t){ return !t.executado_em; }).length;
+    var semConf  = tarefas.filter(function(t){ return t.executado_em && !t.conferido_em; }).length;
+    var pendAb   = pend.filter(function(p){ return !p.resolvida_em; }).length;
+    var fAntes   = fotos.filter(function(f){ return f.tipo==='antes'; }).length;
+    var fDepois  = fotos.filter(function(f){ return f.tipo==='depois'; }).length;
+    var cp       = o.componentes || {};
+    var temComp  = !!(cp.celula || cp.motor || cp.helice);
+    /* gate: conta os obrigatórios visíveis e quantos faltam conferir */
+    var gateVis = 0, gateOkN = 0, gateFalta = 0;
+    if(o.gate_checklist_id){
+      itens.forEach(function(i){
+        if(i.so_terceiro && !o.terceiro) return;
+        gateVis++;
+        var marcado = resp[i.id] && resp[i.id].ok;
+        if(marcado) gateOkN++;
+        else if(i.obrigatorio) gateFalta++;
+      });
+    }
+
+    if(e===1){
+      it(o.motivo_manutencao, 'Motivo da manutenção registrado', 'Editar recebimento');
+      it(o.relatos_piloto,    'Relatos do piloto anotados', 'É a “queixa” que orienta o serviço');
+      it(fAntes,              'Fotos do ANTES (como a aeronave chegou)', 'Registrar em “Registro do serviço”');
+    } else if(e===2){
+      it(o.prioridade,        'Prioridade definida (Urgente ou Normal)');
+      it(!(o.prioridade<=1) || o.prioridade_motivo, 'Se é URGENTE, o motivo está escrito', 'Urgente sem motivo confunde a fila');
+    } else if(e===3){
+      it(tarefas.length,      'Lista de serviços montada ('+tarefas.length+')', 'Use “Carregar inspeção” ou “+ Tarefa”');
+      it(temComp,             'Tempos dos componentes (célula / motor / hélice)', 'Precisam sair na ficha de inspeção');
+    } else if(e===4){
+      it(o.aguardando_motivo, 'Motivo da espera registrado', 'Diga por que está parada — peça, cliente, autorização');
+    } else if(e===5){
+      it(o.gate_checklist_id, 'Checklist do gate carregado');
+      it(o.gate_checklist_id && gateFalta===0, 'Todos os itens obrigatórios do gate conferidos'+(o.gate_checklist_id?' ('+gateOkN+' de '+gateVis+')':''), 'O gatekeeper libera a execução');
+    } else if(e===6){
+      it(tarefas.length && semExec===0, 'Todos os serviços executados'+(semExec?' — faltam '+semExec:''), 'Marque cada item conforme faz');
+      it(pendAb===0,          pendAb? pendAb+' pendência(s) aberta(s)' : 'Sem pendência aberta', 'Pendência aberta trava a Conclusão');
+    } else if(e===7){
+      it(pendAb===0,          pendAb? 'Resolver as '+pendAb+' pendência(s) aberta(s)' : 'Todas as pendências resolvidas', 'O sistema não deixa concluir com pendência');
+    } else if(e===8){
+      it(pendAb===0,          'Nenhuma pendência aberta');
+      it(fDepois,             'Fotos do DEPOIS (como ficou)', 'É o que o cliente vê no link');
+      it(semExec===0,         'Nada em aberto na lista de serviços');
+    } else if(e===9){
+      it(semConf===0,         semConf? semConf+' serviço(s) sem cross check' : 'Todo serviço conferido por 2ª pessoa', 'Quem executou não pode conferir');
+    } else if(e===10){
+      it(tarefas.length && semExec===0 && semConf===0, 'Tudo executado e conferido', 'O sistema exige para encerrar');
+      it(assins.filter(function(x){ return x.tipo==='retirada'; }).length || o.retirada_nome, 'Assinatura de quem retirou a aeronave', 'Link de assinatura em “Cadeia de custódia”');
+    }
+    if(!lista.length) return '';
+
+    var faltam = lista.filter(function(x){ return !x.ok; });
+    var prox = ETAPAS[e] ? ETAPAS[e].t : null;   // ETAPAS é 0-based: índice e = próxima
+    var cor = faltam.length ? '#c2703a' : '#1B6E3B';
+    var fundo = faltam.length ? '#fff8f0' : '#f2f9f4';
+    return '<div class="box" style="border:1.5px solid '+cor+'33;background:'+fundo+'">'+
+      '<h3 style="margin-top:0;color:'+cor+'">'+(faltam.length?'📌 Antes de seguir':'✅ Etapa pronta')+
+        (prox?' <span class="c" style="font-weight:600">→ '+esc(prox)+'</span>':'')+'</h3>'+
+      lista.map(function(x){
+        return '<div style="display:flex;gap:9px;align-items:flex-start;padding:5px 0;font-size:.92rem">'+
+          '<span style="flex:0 0 auto;font-size:1rem">'+(x.ok?'✅':'⬜')+'</span>'+
+          '<span'+(x.ok?' style="color:#5b6b78"':' style="font-weight:600"')+'>'+esc(x.t)+
+            (x.c && !x.ok ? '<br><span class="no" style="font-weight:400">'+esc(x.c)+'</span>' : '')+
+          '</span></div>';
+      }).join('')+
+      (faltam.length ? '' : '<div class="no" style="margin-top:6px">Pode avançar para a próxima etapa.</div>')+
+    '</div>';
+  })();
 
   /* --- recebimento: relatos do piloto + motivo (a "consulta") + motivo da espera --- */
   var recebHtml =
@@ -3062,6 +3143,7 @@ async function abreOS(id, scrollRestaurar){
      (abertas.length ? '<div class="box" style="border:1.5px solid #e6b8b8;background:#fdf3f3"><h3 style="color:#b03030;margin-top:0">⚠️ '+abertas.length+' pendência(s) aberta(s)</h3>'+
         abertas.map(function(p){ return '<div style="padding:3px 0;font-size:.92rem">• <b>'+esc(p.descricao)+'</b>'+(p.motivo?' — '+esc(p.motivo):'')+'</div>'; }).join('')+
         '<div class="no" style="margin-top:6px">Precisa ser resolvida para concluir a OS.</div></div>' : '')+
+     guiaHtml +
      '<details class="pranc-det" open><summary style="cursor:pointer;font-weight:700;font-size:.82rem;color:var(--blue);padding:7px 0">✈️ Desenho técnico — tocar para recolher</summary>'+prancheta(a, tarefas, o)+'</details>'+
      '<div class="box"><h3>📋 Recebimento</h3>'+recebHtml+'</div>'+
      '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 10')+'</span></h3>'+
@@ -3591,6 +3673,39 @@ async function abreOS(id, scrollRestaurar){
     // troca as opções de tipo conforme o modelo escolhido
     var selM = $("ins-modelo");
     if(selM) selM.onchange = function(){ $("ins-tipo").innerHTML = opcoesTipo(insps[parseInt(this.value,10)||0]); };
+  };
+
+  /* Carregou a inspeção errada? Desfaz — mas NUNCA apaga serviço já
+     executado ou conferido: isso é registro do que foi feito na aeronave. */
+  if($("tirar-insp")) $("tirar-insp").onclick = function(){
+    var feitas = tInsp.length - tInspLivres.length;
+    if(!tInspLivres.length){
+      toast('Todos os itens da inspeção já foram executados ou conferidos — não dá para desfazer.','err');
+      return;
+    }
+    if(!temPapel('diretor_tecnico')){
+      abreModal('Desfazer inspeção carregada',
+        '<div class="no">Só o <b>Diretor Técnico</b> pode remover itens de uma OS — é a trava que protege o registro do serviço.</div>'+
+        '<div style="margin-top:12px;font-size:.92rem">Chame o Diretor Técnico e peça para desfazer. '+
+          'Enquanto isso, <b>não execute</b> os itens errados, para eles poderem ser removidos.</div>');
+      return;
+    }
+    abreModal('Desfazer inspeção carregada',
+      '<div class="no" style="margin-bottom:12px">Isto remove os itens de inspeção que <b>ainda não foram tocados</b>, '+
+        'para você carregar a ficha certa no lugar.</div>'+
+      '<div style="background:#f6f8fb;border:1px solid #dbe3ec;border-radius:10px;padding:12px;font-size:.9rem">'+
+        '<div>Itens que serão <b>removidos</b>: <b>'+tInspLivres.length+'</b></div>'+
+        (feitas ? '<div style="margin-top:6px;color:#b06a2a">Itens que serão <b>mantidos</b> (já executados ou conferidos): <b>'+feitas+'</b></div>' : '')+
+      '</div>'+
+      (feitas ? '<div class="no" style="margin-top:10px">Serviço já executado não é apagado — ele é registro do que foi feito na aeronave.</div>' : ''),
+      'Remover '+tInspLivres.length+' itens', async function(){
+        var ids = tInspLivres.map(function(t){ return t.id; });
+        var r = await sb.from('manut_os_tarefas').delete().in('id', ids);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        if(!feitas) await sb.from('manut_os').update({ tipo:null }).eq('id', id);  // some a etiqueta da inspeção
+        toast(ids.length+' itens removidos. Agora carregue a inspeção certa.','ok');
+        recarrega(); return true;
+      });
   };
   if($("add-pend")) $("add-pend").onclick = function(){
     abreModal('Nova pendência',
