@@ -3539,7 +3539,7 @@ async function abreOS(id, scrollRestaurar){
     (totalPecas>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em peças: '+fmtR(totalPecas)+'</div>':'')+
     (encerrada?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
       '<button class="btn btn--ghost btn--sm" id="peca-add">+ Peça / Material</button>'+
-      (pecas.length?'<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>':'')+
+      '<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>'+
     '</div>');
 
   /* --- fotos: problema e resolução --- */
@@ -3597,7 +3597,7 @@ async function abreOS(id, scrollRestaurar){
     (encerrada?'':'<button class="btn btn--ghost btn--sm" id="bt-cobrar">📲 Cobrar proprietário</button>')+
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-ficha">📋 Ficha de Inspeção</button>'+
-    (pecas.length?'<button class="btn btn--ghost btn--sm" id="bt-orc">💰 Orçamento</button>':'')+
+    '<button class="btn btn--ghost btn--sm" id="bt-orc">💰 Orçamento</button>'+
     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
@@ -3796,6 +3796,11 @@ async function abreOS(id, scrollRestaurar){
   };
   /* Documento do orçamento — é o que o cliente recebe para decidir */
   if($("bt-orc")) $("bt-orc").onclick = async function(){
+    if(!pecas.length){
+      toast('Esta OS ainda não tem peças. Adicione em “Peças e Materiais” para gerar o orçamento.','err');
+      var cx = document.getElementById('peca-add'); if(cx) cx.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
     var cots = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
     var forn = (await sb.from('manut_fornecedores').select('*')).data||[];
     emiteDoc('Orçamento', function(){
@@ -4122,6 +4127,17 @@ async function abreOS(id, scrollRestaurar){
      o cliente — que decide fechar conosco ou comprar por conta.
      ============================================================ */
   if($("orc-abrir")) $("orc-abrir").onclick = async function(){
+    if(!pecas.length){
+      abreModal('Orçamento e cotações',
+        '<div class="no">O orçamento começa pela <b>lista de peças</b>.</div>'+
+        '<div style="margin-top:12px;font-size:.92rem">Use <b>+ Peça / Material</b> e busque no catálogo dos manuais — '+
+          'o P/N e a descrição vêm preenchidos certos. Depois volte aqui para pedir preço aos fornecedores.</div>',
+        'Adicionar a primeira peça', async function(){
+          var b = document.getElementById('peca-add'); if(b) setTimeout(function(){ b.click(); }, 120);
+          return true;
+        });
+      return;
+    }
     var forn = (await sb.from('manut_fornecedores').select('*').eq('ativo',true).order('nome')).data||[];
     var cots = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
     var porForn = {}; cots.forEach(function(c){ porForn[c.fornecedor_id]=c; });
