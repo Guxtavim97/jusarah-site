@@ -668,7 +668,7 @@
   <div class="auth__brand">
     <img class="auth__logo" src="../assets/img/pj-logo-branca.png" alt="PJ AERO CENTRO">
     <div class="auth__pitch">
-      <h3>Manutenção Aeronáutica</h3>
+      <h3>Sistema da oficina</h3>
       <p>Ordens de serviço, planejamento e controle técnico da oficina.</p>
     </div>
     <div class="auth__foot"><span>Controle de OS</span><span>Cross check</span><span>Cerejeiras–RO</span></div>
@@ -741,7 +741,7 @@
 <div id="app" class="hidden">
   <div class="top"><div class="top__in">
     <img class="top__logo" src="../assets/img/pj-logo.png" alt="PJ AERO CENTRO">
-    <div class="top__t">Manutenção<small>Ordens de Serviço</small></div>
+    <div class="top__t">Ordens de Serviço</div>
     <div class="spacer"></div>
     <div class="who"><b id="u-nome">—</b><div class="papeis" id="u-papeis"></div></div>
     <button class="btn btn--blue btn--sm" id="btn-nova-os">+ Nova OS</button>
@@ -1099,7 +1099,7 @@ function montaFicha(o, a, tarefas, pecas, nome){
   $("doc").innerHTML =
    '<div class="rp">'+
     '<div class="rp-cab"><img src="../assets/img/pj-logo.png" alt="">'+
-      '<div class="emp"><b>PJ AERO CENTRO</b><span>Manutenção Aeronáutica · Cerejeiras–RO</span></div>'+
+      '<div class="emp"><span>Cerejeiras–RO</span></div>'+
       '<div class="num"><small>Ficha de Inspeção</small><b>'+esc(codOS(o))+'</b></div></div>'+
     '<div class="rp-fina"></div>'+
     '<h1>Ficha de Inspeção</h1>'+
@@ -1229,7 +1229,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome){
    '<div class="rp">'+
     '<div class="rp-cab">'+
       '<img src="../assets/img/pj-logo.png" alt="">'+
-      '<div class="emp"><b>PJ AERO CENTRO</b><span>Manutenção Aeronáutica · Cerejeiras–RO</span></div>'+
+      '<div class="emp"><span>Cerejeiras–RO</span></div>'+
       '<div class="num"><small>Ordem de Serviço</small><b>'+
         esc(codOS(o).replace(/^OS\s*/,''))+'</b></div>'+
     '</div><div class="rp-fina"></div>'+
