@@ -18,7 +18,17 @@ window.Voz = (function(){
       rec.lang='pt-BR'; rec.continuous=false; rec.interimResults=true; rec.maxAlternatives=1;
       base = (campo.value||'').trim();
       ouvindo=true; botao.textContent='🔴'; botao.title='Toque para parar';
-      var finalTxt='';
+      var finalTxt='', comecou=false;
+      rec.onstart = function(){ comecou = true; };
+      /* Em alguns aparelhos o ditado nem começa e nem dá erro — fica mudo.
+         Se em 2 segundos não começou, explicamos em vez de deixar no vácuo. */
+      setTimeout(function(){
+        if(!comecou && ouvindo){
+          ouvindo=false; botao.textContent='🎤';
+          try{ rec.abort(); }catch(e){}
+          if(window.toast) toast('O ditado por voz não iniciou neste aparelho. Abra pelo Chrome (não pelo app) ou digite o texto.','err');
+        }
+      }, 2000);
       rec.onresult = function(e){
         var interim='', fin='';
         for(var i=e.resultIndex;i<e.results.length;i++){
@@ -28,9 +38,26 @@ window.Voz = (function(){
         if(fin) finalTxt += fin;
         campo.value = (base ? base+' ' : '') + (finalTxt+interim).replace(/\s+/g,' ').trim();
       };
+      /* Antes isto falhava calado: a pessoa tocava e nada acontecia.
+         Agora cada motivo tem uma explicação do que fazer. */
       rec.onerror = function(ev){
-        ouvindo=false; botao.textContent='🎤';
-        if(ev && ev.error==='not-allowed' && window.toast) toast('Permita o microfone no navegador.','err');
+        ouvindo=false; botao.textContent='🎤'; botao.title='Ditar por voz';
+        var e = ev && ev.error, msg;
+        if(e==='not-allowed' || e==='permission-denied')
+          msg = 'Libere o microfone: toque no cadeado ao lado do endereço → Microfone → Permitir.';
+        else if(e==='service-not-allowed')
+          msg = 'Este aparelho não libera o ditado por voz dentro do app. Abra pelo Chrome ou digite o texto.';
+        else if(e==='network')
+          msg = 'O ditado por voz precisa de internet e não conseguiu conectar. Verifique a rede.';
+        else if(e==='audio-capture')
+          msg = 'Nenhum microfone encontrado neste aparelho.';
+        else if(e==='no-speech')
+          msg = 'Não ouvi nada. Toque de novo e fale perto do aparelho.';
+        else if(e==='aborted')
+          msg = null;                       // a pessoa mesmo cancelou — não precisa avisar
+        else
+          msg = 'O ditado por voz falhou aqui ('+(e||'motivo desconhecido')+'). Pode digitar normalmente.';
+        if(msg && window.toast) toast(msg,'err');
       };
       rec.onend = async function(){
         ouvindo=false; botao.textContent='🎤'; botao.title='Ditar por voz';
@@ -48,7 +75,11 @@ window.Voz = (function(){
           botao.textContent='🎤';
         }
       };
-      try{ rec.start(); }catch(e){ ouvindo=false; botao.textContent='🎤'; }
+      try{ rec.start(); }
+      catch(e){
+        ouvindo=false; botao.textContent='🎤';
+        if(window.toast) toast('Não foi possível ligar o microfone aqui. Pode digitar normalmente.','err');
+      }
     };
   }
 

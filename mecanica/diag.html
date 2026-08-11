@@ -28,6 +28,13 @@
   <div id="veredito" class="big">testando…</div>
   <div class="card" id="lista"></div>
   <div class="card">
+    <b style="font-size:.9rem">🎤 Teste do microfone</b>
+    <p class="sub" style="margin:6px 0 0">Toque no botão e <b>fale alguma coisa</b>. Diz exatamente o que acontece.</p>
+    <button id="mic-test">Testar o microfone</button>
+    <div id="mic-res" style="font-size:.85rem;margin-top:10px;min-height:1.2em;white-space:pre-wrap"></div>
+  </div>
+
+  <div class="card">
     <b style="font-size:.9rem">Resumo para enviar</b>
     <textarea id="resumo" readonly></textarea>
     <button id="copiar">Copiar resumo</button>
@@ -139,6 +146,50 @@
     document.head.appendChild(s);
   }
   for(var k=0;k<alvos.length;k++) testa(alvos[k][0], alvos[k][1], alvos[k][2]);
+
+  /* ---- Teste REAL do ditado por voz: não basta o recurso "existir",
+         em muitos Android ele existe e mesmo assim não funciona. ---- */
+  document.getElementById('mic-test').onclick = function(){
+    var b = this, out = document.getElementById('mic-res');
+    b.disabled = true; out.className = ''; out.textContent = 'Pedindo permissão do microfone…';
+    var SRc = window.SpeechRecognition || window.webkitSpeechRecognition;
+    function fim(txt, cls){
+      out.className = cls || ''; out.textContent = txt;
+      b.disabled = false; b.textContent = 'Testar de novo';
+      linhas.push('[MIC] ' + txt.replace(/\n/g,' '));
+      document.getElementById('resumo').value = linhas.join('\n');
+    }
+    if(!SRc){ fim('✗ Este navegador não tem ditado por voz.', 'no'); return; }
+
+    var r, comecou = false, ouviu = '';
+    try{ r = new SRc(); }catch(e){ fim('✗ Não deu para criar o ditado: '+e.message, 'no'); return; }
+    r.lang = 'pt-BR'; r.interimResults = true; r.continuous = false;
+
+    r.onstart  = function(){ comecou = true; out.className='ok'; out.textContent = '🔴 Ouvindo… fale alguma coisa.'; };
+    r.onresult = function(e){
+      var t = '';
+      for(var i=e.resultIndex;i<e.results.length;i++) t += e.results[i][0].transcript;
+      ouviu = t; out.className='ok'; out.textContent = '🔴 Ouvindo…\nEntendi: "'+t+'"';
+    };
+    r.onerror  = function(ev){
+      var e = ev && ev.error;
+      var expl = {
+        'not-allowed'        : 'permissão do microfone NEGADA — libere no cadeado ao lado do endereço',
+        'service-not-allowed': 'o aparelho NÃO LIBERA o ditado (típico de app instalado no Android)',
+        'network'            : 'sem conexão com o serviço de voz (precisa de internet)',
+        'audio-capture'      : 'nenhum microfone encontrado',
+        'no-speech'          : 'não ouviu nenhuma fala'
+      }[e] || e;
+      fim('✗ FALHOU: '+expl, 'no');
+    };
+    r.onend = function(){
+      if(!comecou) fim('✗ NÃO INICIOU: ficou mudo, sem erro. Típico de app instalado no Android.', 'no');
+      else if(ouviu) fim('✓ FUNCIONOU! Entendi: "'+ouviu+'"', 'ok');
+      else fim('— Iniciou, mas não entendeu nenhuma fala.', 'warn');
+    };
+    try{ r.start(); }catch(e){ fim('✗ Não deu para iniciar: '+e.message, 'no'); return; }
+    setTimeout(function(){ if(!comecou){ try{ r.abort(); }catch(e){} } }, 3000);
+  };
 
   document.getElementById('copiar').onclick = function(){
     var ta = document.getElementById('resumo');
