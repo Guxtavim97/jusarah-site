@@ -3,7 +3,7 @@
 //  - HTML (navegação): rede primeiro (sempre fresco online), cai no cache se offline.
 //  - JS/CSS/imagens e libs de CDN: cache primeiro, atualizando em segundo plano.
 //  - Supabase (dados/escrita): NUNCA cacheia — passa direto (offline falha e o app trata).
-var CACHE = 'pjaero-mec-v4';
+var CACHE = 'pjaero-mec-v5';
 var SHELL = [
   '/mecanica/',
   '/mecanica/index.html',
@@ -47,9 +47,9 @@ self.addEventListener('fetch', function(e){
 
   var aceita = req.headers.get('accept') || '';
   if(req.mode === 'navigate' || aceita.indexOf('text/html') >= 0){
-    // HTML: rede primeiro, cache se offline
+    // HTML: rede primeiro (sem cache do navegador), cache só se offline
     e.respondWith(
-      fetch(req).then(function(res){
+      fetch(req.url, { cache: 'no-store' }).then(function(res){
         var copy = res.clone();
         caches.open(CACHE).then(function(c){ c.put('/mecanica/index.html', copy); });
         return res;
