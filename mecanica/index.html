@@ -689,8 +689,8 @@
       <button class="btn btn--green btn--block" id="btn-entrar-fid">🔐 Entrar com Face ID</button>
       <button class="btn btn--blue btn--block" id="btn-entrar-rosto" style="margin-top:8px">🙂 Entrar com o rosto</button>
       <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular:</b> use o Face ID. <b>Totem da oficina:</b> use o rosto (câmera). Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
-      <p class="sub" style="text-align:center;margin-top:12px;font-size:.8rem">Novo na equipe? Seu acesso é criado pelo <b>Diretor Técnico</b> na Gestão de Equipe — você recebe login e senha prontos, na hora.</p>
-      <p class="sub" style="text-align:center;margin-top:8px"><a href="#" id="lk-reset" style="color:#8fb4d6;text-decoration:none">Esqueci minha senha</a></p>
+      <p class="sub" style="text-align:center;margin-top:12px">Ainda não tem conta? <a href="#" id="lk-criar" style="color:#4a9fd4;font-weight:700;text-decoration:none">Criar conta</a></p>
+      <p class="sub" style="text-align:center;margin-top:4px"><a href="#" id="lk-reset" style="color:#8fb4d6;text-decoration:none">Esqueci minha senha</a></p>
     </div>
     <div id="tela-reset" class="hidden">
       <div class="eyebrow">Recuperar acesso</div>
@@ -1543,12 +1543,13 @@ if($("btn-criar")) $("btn-criar").onclick = async function(){
   var nome=$("cr-nome").value.trim(), email=$("cr-email").value.trim(), senha=$("cr-senha").value, msg=$("cr-msg");
   if(!nome || !email || (senha||'').length < 6){ msg.style.color='#ff9a8a'; msg.textContent='Preencha nome, e-mail e senha (mínimo 6).'; return; }
   var b=this; b.disabled=true; b.textContent='Criando…';
-  var r = await sb.auth.signUp({ email:email, password:senha, options:{ data:{ nome:nome } } });
+  var r = await sb.auth.signUp({ email:email, password:senha, options:{ data:{ nome:nome, origem:'oficina' } } });
   b.disabled=false; b.textContent='Criar conta';
   if(r.error){ msg.style.color='#ff9a8a'; msg.textContent = /registered|already/i.test(r.error.message)?'Esse e-mail já tem conta — faça login.':r.error.message; return; }
-  try{ if(r.data && r.data.user) await sb.from('perfis').update({nome:nome}).eq('id', r.data.user.id); }catch(e){}
-  if(r.data && r.data.session){ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Entrando…'; entrar(); }
-  else{ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Se pedir, confirme pelo e-mail. Depois avise o Diretor Técnico para liberar seu acesso.'; }
+  // marca setor=oficina para a conta aparecer na Gestão de Equipe (e não só no painel da Jusarah)
+  try{ if(r.data && r.data.user) await sb.from('perfis').update({nome:nome, setor:'oficina'}).eq('id', r.data.user.id); }catch(e){}
+  if(r.data && r.data.session){ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Você já aparece na Gestão de Equipe. Entrando…'; entrar(); }
+  else{ msg.style.color='#9be3b6'; msg.textContent='Conta criada! Avise o Diretor Técnico — sua conta já está na Gestão de Equipe, ele só libera suas funções.'; }
 };
 
 /* ---------------- FACE ID (assinatura interna) ---------------- */
