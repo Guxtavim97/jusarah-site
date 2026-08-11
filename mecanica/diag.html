@@ -253,6 +253,19 @@
         txt.textContent = veredito;
         linhas.push('[SOM] ' + veredito);
         document.getElementById('resumo').value = linhas.join('\n');
+        /* lista os microfones que o Android enxerga — separa "sem hardware"
+           de "tem hardware mas está mudo/bloqueado" */
+        if(navigator.mediaDevices.enumerateDevices){
+          navigator.mediaDevices.enumerateDevices().then(function(ds){
+            var mics = ds.filter(function(d){ return d.kind==='audioinput'; });
+            var desc = mics.length
+              ? mics.map(function(d,i){ return (i+1)+') '+(d.label||'(sem nome)'); }).join('  ')
+              : 'NENHUM microfone listado pelo aparelho';
+            txt.textContent = veredito + '\nMicrofones encontrados: ' + desc;
+            linhas.push('[MICS] ' + desc);
+            document.getElementById('resumo').value = linhas.join('\n');
+          });
+        }
       })();
     }).catch(function(e){
       barra.style.display='block'; b.disabled=false; b.textContent='Medir de novo';
