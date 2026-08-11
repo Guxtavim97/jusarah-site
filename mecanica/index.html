@@ -1116,128 +1116,149 @@ function comprimeImagem(file, max){
 /* ============================================================
    RELATÓRIO DE SERVIÇO — o documento que vai pro proprietário
    ============================================================ */
+
 /* ============================================================
-   ORÇAMENTO — documento oficial que vai para o cliente.
-   O cliente decide com base nisto, então precisa ter a cara da
-   empresa: peças com P/N, opções de fornecedor comparadas, total,
-   validade e o que está incluso. Nada de mensagem solta.
+   ORÇAMENTO DE SERVIÇOS — no formato que a PJ AERO já usa.
+   Duas colunas de preço: o VALOR DE TABELA e o VALOR COBRADO.
+   A diferença entre elas é o desconto que a oficina está dando —
+   e é isso que faz o cliente enxergar o valor do negócio.
+   Item sem cobrança sai como CORTESIA.
    ============================================================ */
+var EMPRESA = {
+  nome: 'PJ AERO CENTRO',
+  endereco: 'Linha 2, KM 2, 3° p/ 2° eixo · CEP 76997-000 · Cerejeiras – RO',
+  cnpj: '61.078.588/0001-90',
+  fone: '(65) 9994-3131',
+  email: 'manutencao@voejusarah.com'
+};
+var ORC_OBS_PADRAO =
+  '<b>Material utilizado:</b> poderá ser fornecido pelo cliente ou cobrado à parte, caso sejam utilizados materiais '+
+  'da PJ Aero Centro, tais como graxas, óleos, desengraxantes, desengripantes, AV-GAS, etanol, abraçadeiras, '+
+  'roldanas, rolamentos, cabos, entre outros produtos. Todo material utilizado deve ser aeronáutico e possuir '+
+  'formulário equivalente (FORM), a ser anexado à documentação do Mapa de Componentes da Aeronave.'+
+  '<br><br><b>Serviços terceirizados:</b> como jateamento de areia em peças, soldas de estrutura e trabalhos de torno, '+
+  'serão cobrados à parte, conforme necessidade e verificação após o início da revisão geral da aeronave, sendo '+
+  'emitido um orçamento complementar específico para esses serviços.'+
+  '<br><br>O polimento total da aeronave será negociado e cobrado separadamente.';
+
 function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
-  maoObra = maoObra || [];
+  maoObra = maoObra || []; pecas = pecas || [];
   function moeda(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
-  var hoje = new Date();
-  var validade = new Date(hoje.getTime() + 15*86400000);
-  var nomeDe = {}; (forn||[]).forEach(function(f){ nomeDe[f.id] = f; });
 
-  var totalPecas = (pecas||[]).reduce(function(s,p){
-    return s + (Number(p.quantidade||1) * Number(p.valor||0)); }, 0);
+  /* valor efetivamente cobrado de um serviço */
+  function cobrado(m){
+    if(m.cortesia) return 0;
+    if(m.valor != null) return Number(m.valor);
+    return Number(m.horas||0) * Number(m.valor_hora||0);
+  }
+  function tabela(m){ return m.valor_tabela != null ? Number(m.valor_tabela) : cobrado(m); }
 
-  var linhas = (pecas||[]).map(function(p,i){
-    var qt = Number(p.quantidade||1);
-    var sub = qt * Number(p.valor||0);
+  /* em ordem alfabética, como no orçamento que a oficina já emite */
+  var itens = maoObra.slice().sort(function(x,y){
+    return (x.descricao||'').localeCompare(y.descricao||'', 'pt-BR');
+  });
+  var somaTabela = itens.reduce(function(s,m){ return s + tabela(m); }, 0);
+  var somaCobrada = itens.reduce(function(s,m){ return s + cobrado(m); }, 0);
+  var economia = somaTabela - somaCobrada;
+
+  var linhas = itens.map(function(m,i){
     return '<tr><td class="n">'+(i+1)+'</td>'+
-      '<td>'+esc(p.descricao)+(p.ata?'<br><span style="font-size:8pt;color:#5b6b78">ATA '+esc(p.ata)+'</span>':'')+'</td>'+
-      '<td style="font-family:Consolas,monospace">'+esc(p.pn||'—')+'</td>'+
-      '<td style="text-align:center">'+qt+'</td>'+
-      '<td style="text-align:right">'+(p.valor!=null?moeda(p.valor):'a cotar')+'</td>'+
-      '<td style="text-align:right">'+(p.valor!=null?moeda(sub):'—')+'</td></tr>';
+      '<td>'+esc((m.descricao||'').toUpperCase())+'</td>'+
+      '<td style="text-align:right">'+(tabela(m)>0?moeda(tabela(m)):'—')+'</td>'+
+      '<td style="text-align:right;font-weight:bold">'+
+        (m.cortesia || cobrado(m)===0
+          ? '<span style="color:#1B6E3B">Cortesia</span>'
+          : moeda(cobrado(m)))+'</td></tr>';
   }).join('');
 
-  /* mão de obra: por hora ou valor fechado */
-  function valMO(m){ return m.valor != null ? Number(m.valor)
-                   : (Number(m.horas||0) * Number(m.valor_hora||0)); }
-  var totalMO = maoObra.reduce(function(s,m){ return s + valMO(m); }, 0);
-  var linhasMO = maoObra.length
-    ? '<h2>Mão de obra</h2>'+
-      '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Serviço</th>'+
-        '<th style="width:15%;text-align:center">Horas</th><th style="width:18%;text-align:right">Valor/hora</th>'+
-        '<th style="width:18%;text-align:right">Total</th></tr></thead><tbody>'+
-      maoObra.map(function(m,i){
-        return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
-          '<td style="text-align:center">'+(m.horas!=null?esc(m.horas):'—')+'</td>'+
-          '<td style="text-align:right">'+(m.valor_hora!=null?moeda(m.valor_hora):'valor fechado')+'</td>'+
-          '<td style="text-align:right">'+moeda(valMO(m))+'</td></tr>';
-      }).join('')+'</tbody></table>'+
-      '<div style="text-align:right;font-size:11pt;font-weight:bold;margin-top:6px;color:#12294d">Subtotal de mão de obra: '+moeda(totalMO)+'</div>'
-    : '';
-
-  /* fecho com o total geral — é o número que o cliente procura */
-  var resumoTotal = (totalPecas > 0 || totalMO > 0)
-    ? '<table class="rp-t" style="margin-top:18px;border:1.5px solid #12294d"><tbody>'+
-        '<tr><td style="padding:7px 10px">Peças e materiais</td><td style="text-align:right;padding:7px 10px">'+moeda(totalPecas)+'</td></tr>'+
-        '<tr><td style="padding:7px 10px">Mão de obra</td><td style="text-align:right;padding:7px 10px">'+moeda(totalMO)+'</td></tr>'+
-        '<tr style="background:#12294d;color:#fff"><td style="padding:9px 10px;font-size:12pt;font-weight:bold;letter-spacing:.06em">TOTAL GERAL</td>'+
-          '<td style="text-align:right;padding:9px 10px;font-size:14pt;font-weight:bold">'+moeda(totalPecas+totalMO)+'</td></tr>'+
-      '</tbody></table>'
-    : '';
-
-  /* opções dos fornecedores, da mais barata para a mais cara */
-  var comValor = (cots||[]).filter(function(c){ return c.valor != null; })
-                           .sort(function(x,y){ return Number(x.valor)-Number(y.valor); });
-  var opcoes = comValor.length
-    ? '<h2>Opções de fornecimento</h2>'+
-      '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Fornecedor</th>'+
-        '<th style="width:22%">Prazo de entrega</th><th style="width:24%;text-align:right">Valor total</th></tr></thead><tbody>'+
-      comValor.map(function(c,i){
-        var f = nomeDe[c.fornecedor_id] || {};
-        var melhor = (i===0);
-        return '<tr'+(melhor?' style="background:#eef7f0"':'')+'>'+
-          '<td class="n">'+(i+1)+'</td>'+
-          '<td><b>'+esc(f.nome||'Fornecedor')+'</b>'+(melhor?' <span style="font-size:8pt;color:#1B6E3B">◄ menor valor</span>':'')+
-            (c.observacao?'<br><span style="font-size:8.5pt;color:#5b6b78">'+esc(c.observacao)+'</span>':'')+'</td>'+
-          '<td>'+(c.prazo_dias?c.prazo_dias+' dia(s)':'a confirmar')+'</td>'+
-          '<td style="text-align:right;font-weight:bold">'+moeda(c.valor)+'</td></tr>';
+  /* peças, quando a oficina fornece (vai como seção separada) */
+  var totalPecas = pecas.reduce(function(s,p){ return s + (Number(p.quantidade||1) * Number(p.valor||0)); }, 0);
+  var pecasHtml = pecas.length
+    ? '<h2>Peças e materiais</h2>'+
+      '<table class="rp-t"><thead><tr><th style="width:34px">Item</th><th>Descrição</th>'+
+        '<th style="width:18%">P/N</th><th style="width:44px;text-align:center">Qtd</th>'+
+        '<th style="width:17%;text-align:right">Valor un.</th><th style="width:17%;text-align:right">Total</th></tr></thead><tbody>'+
+      pecas.map(function(p,i){
+        var q = Number(p.quantidade||1);
+        return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(p.descricao)+'</td>'+
+          '<td style="font-family:Consolas,monospace">'+esc(p.pn||'—')+'</td>'+
+          '<td style="text-align:center">'+q+'</td>'+
+          '<td style="text-align:right">'+(p.valor!=null?moeda(p.valor):'a cotar')+'</td>'+
+          '<td style="text-align:right">'+(p.valor!=null?moeda(q*Number(p.valor)):'—')+'</td></tr>';
       }).join('')+'</tbody></table>'
     : '';
 
+  var totalFinal = somaCobrada + totalPecas;
+  var pct = o.orcamento_desconto_pct != null ? Number(o.orcamento_desconto_pct) : null;
+  var dataOrc = o.orcamento_data ? new Date(o.orcamento_data+'T12:00:00') : new Date();
+
   $("doc").innerHTML =
    '<div class="rp">'+
-    '<div class="rp-cab"><img src="../assets/img/pj-logo.png" alt="">'+
-      '<div class="emp"><span>Cerejeiras–RO</span></div>'+
-      '<div class="num"><small>Orçamento</small><b>'+esc(codOS(o).replace(/^OS\s*/,''))+'</b></div>'+
-    '</div><div class="rp-fina"></div>'+
-    '<h1>Orçamento de Peças e Materiais</h1>'+
-
-    '<div class="rp-id">'+
-      '<div><dt>Matrícula</dt><dd>'+esc(a.prefixo||'—')+'</dd></div>'+
-      '<div><dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd></div>'+
-      '<div><dt>Proprietário</dt><dd>'+esc(nomeProp(a.proprietario_id)||'—')+'</dd></div>'+
-      '<div><dt>Emitido em</dt><dd>'+dataBR(hoje)+'</dd></div>'+
+    /* ---- timbre com os dados da empresa ---- */
+    '<div style="display:flex;gap:16px;align-items:center;border:1px solid #333;padding:10px 14px">'+
+      '<img src="../assets/img/pj-logo.png" alt="" style="height:52px">'+
+      '<div style="flex:1;text-align:center;font-size:8.5pt;line-height:1.5;color:#12294d">'+
+        '<b style="font-size:11pt;letter-spacing:.04em">'+EMPRESA.nome+'</b><br>'+
+        'Endereço: '+EMPRESA.endereco+'<br>'+
+        'CNPJ: '+EMPRESA.cnpj+'<br>'+
+        'Telefone: '+EMPRESA.fone+' · E-mail: '+EMPRESA.email+
+      '</div>'+
     '</div>'+
 
-    '<h2>Peças necessárias</h2>'+
-    '<table class="rp-t"><thead><tr><th style="width:34px">#</th><th>Descrição</th>'+
-      '<th style="width:20%">P/N</th><th style="width:44px;text-align:center">Qtd</th>'+
-      '<th style="width:16%;text-align:right">Valor un.</th><th style="width:16%;text-align:right">Subtotal</th></tr></thead>'+
-      '<tbody>'+(linhas || '<tr><td colspan="6">Nenhuma peça lançada.</td></tr>')+'</tbody></table>'+
-    (totalPecas > 0
-      ? '<div style="text-align:right;font-size:11pt;font-weight:bold;margin-top:6px;color:#12294d">Subtotal de peças: '+moeda(totalPecas)+'</div>'
+    '<h1 style="margin:14px 0 10px">Orçamento de Serviços</h1>'+
+
+    /* ---- identificação, como no modelo da oficina ---- */
+    '<table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px">'+
+      '<tr><td style="padding:2px 0"><b>Proprietário:</b> '+esc((nomeProp(a.proprietario_id)||'—').toUpperCase())+'</td>'+
+          '<td style="padding:2px 0"><b>Marca:</b> '+esc(a.prefixo||'—')+'</td></tr>'+
+      '<tr><td style="padding:2px 0"><b>Aeronave modelo:</b> '+esc(a.modelo||'—')+'</td>'+
+          '<td style="padding:2px 0"><b>N° de série:</b> '+esc(a.numero_serie||'—')+'</td></tr>'+
+      '<tr><td style="padding:2px 0"><b>N° da OS:</b> '+esc(String(o.numero||''))+'</td>'+
+          '<td style="padding:2px 0"><b>Data:</b> '+dataBR(dataOrc)+'</td></tr>'+
+    '</table>'+
+
+    /* ---- serviços: tabela x cobrado ---- */
+    '<table class="rp-t"><thead><tr>'+
+      '<th style="width:38px;text-align:center">Item</th>'+
+      '<th>Descrição dos serviços</th>'+
+      '<th style="width:19%;text-align:right">Valor tabela (R$)</th>'+
+      '<th style="width:19%;text-align:right">Valor (R$)</th></tr></thead>'+
+      '<tbody>'+(linhas || '<tr><td colspan="4" style="padding:10px">Nenhum serviço lançado nesta OS.</td></tr>')+'</tbody></table>'+
+
+    pecasHtml +
+    (totalPecas>0 ? '<div style="text-align:right;font-size:10pt;margin-top:5px">Subtotal de peças: <b>'+moeda(totalPecas)+'</b></div>' : '')+
+
+    /* ---- fechamento ---- */
+    '<table class="rp-t" style="margin-top:14px;border:1.5px solid #12294d"><tbody>'+
+      (economia > 0
+        ? '<tr><td style="padding:6px 10px;color:#5b6b78">Soma pela tabela</td>'+
+          '<td style="text-align:right;padding:6px 10px;color:#5b6b78;text-decoration:line-through">'+moeda(somaTabela + totalPecas)+'</td></tr>'+
+          '<tr><td style="padding:6px 10px;color:#1B6E3B">Desconto e cortesias concedidos</td>'+
+          '<td style="text-align:right;padding:6px 10px;color:#1B6E3B;font-weight:bold">− '+moeda(economia)+'</td></tr>'
+        : '')+
+      '<tr style="background:#12294d;color:#fff">'+
+        '<td style="padding:9px 10px;font-size:11pt;font-weight:bold;letter-spacing:.05em">VALOR FINAL DO ORÇAMENTO</td>'+
+        '<td style="text-align:right;padding:9px 10px;font-size:14pt;font-weight:bold">'+moeda(totalFinal)+'</td></tr>'+
+    '</tbody></table>'+
+
+    (pct
+      ? '<div class="rp-nota" style="margin-top:10px;border-left-color:#1B6E3B;background:#f2f9f4"><b>OBS:</b> '+
+        'como condição especial, será concedido ao cliente <b>'+String(pct).replace('.',',')+'% de desconto</b> '+
+        'sobre o valor final deste orçamento, aplicável após a conclusão dos serviços — o que representa '+
+        moeda(totalFinal * pct / 100)+', deixando o valor em <b>'+moeda(totalFinal * (1 - pct/100))+'</b>.</div>'
       : '')+
 
-    linhasMO +
-    resumoTotal +
-    opcoes +
+    '<h2 style="margin-top:18px">Observações importantes</h2>'+
+    '<div class="rp-nota" style="margin-top:0">'+ORC_OBS_PADRAO+
+      (o.orcamento_obs ? '<br><br>'+esc(o.orcamento_obs).replace(/\n/g,'<br>') : '')+'</div>'+
 
-    '<div class="rp-nota" style="margin-top:16px">'+
-      '<b>COMO FUNCIONA:</b> você pode <b>fechar conosco</b> qualquer uma das opções acima — '+
-      'cuidamos da compra, do recebimento e da instalação, com a peça rastreada na ordem de serviço. '+
-      'Se preferir <b>comprar por conta própria</b>, esta lista traz os códigos (P/N) corretos, '+
-      'retirados do catálogo do fabricante, para você cotar onde quiser. '+
-      'Em ambos os casos a instalação e o registro técnico ficam por nossa conta.'+
-    '</div>'+
-
-    '<div class="rp-nota" style="margin-top:10px;background:#fff8f0;border-color:#e6c9a8">'+
-      '<b>VALIDADE:</b> os valores acima valem até <b>'+dataBR(validade)+'</b>. '+
-      'Preços de peças aeronáuticas variam com câmbio e disponibilidade — depois dessa data pedimos nova cotação.'+
-    '</div>'+
-
-    '<div style="display:flex;justify-content:space-between;margin-top:44px;text-align:center;font-size:9pt">'+
-      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">PJ AERO CENTRO</div></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:40px;text-align:center;font-size:9pt">'+
+      '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">'+EMPRESA.nome+'</div></div>'+
       '<div style="flex:1"><div style="border-top:1px solid #333;margin:0 12px;padding-top:4px">Proprietário / Responsável</div></div>'+
     '</div>'+
 
-    '<div class="rp-rod"><b>PJ AERO CENTRO</b> · Manutenção Aeronáutica<br>'+
-      'Orçamento emitido por '+esc(PERFIL && PERFIL.nome ? PERFIL.nome : '—')+' em '+dtSeg(hoje)+'</div>'+
+    '<div class="rp-rod"><b>'+EMPRESA.nome+'</b> · Manutenção Aeronáutica · CNPJ '+EMPRESA.cnpj+'<br>'+
+      'Orçamento emitido por '+esc(PERFIL && PERFIL.nome ? PERFIL.nome : '—')+' em '+dtSeg(new Date())+'</div>'+
    '</div>';
 }
 
@@ -3575,22 +3596,39 @@ async function abreOS(id, scrollRestaurar){
       '<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>'+
     '</div>');
 
-  /* --- MÃO DE OBRA: por hora ou valor fechado --- */
-  function valorMO(m){ return m.valor != null ? Number(m.valor)
-                     : (Number(m.horas||0) * Number(m.valor_hora||0)); }
-  var totalMO = maoObra.reduce(function(s,m){ return s + valorMO(m); }, 0);
+  /* --- SERVIÇOS: valor de tabela x valor cobrado (a diferença é o desconto) --- */
+  function valorMO(m){
+    if(m.cortesia) return 0;
+    if(m.valor != null) return Number(m.valor);
+    return Number(m.horas||0) * Number(m.valor_hora||0);
+  }
+  function tabelaMO(m){ return m.valor_tabela != null ? Number(m.valor_tabela) : valorMO(m); }
+  var totalMO   = maoObra.reduce(function(s,m){ return s + valorMO(m); }, 0);
+  var totalTab  = maoObra.reduce(function(s,m){ return s + tabelaMO(m); }, 0);
+  var descMO    = totalTab - totalMO;
+  var moOrdenada = maoObra.slice().sort(function(x,y){
+    return (x.descricao||'').localeCompare(y.descricao||'', 'pt-BR'); });
+
   var moHtml = (maoObra.length
-    ? '<table class="t" style="font-size:.85rem"><thead><tr><th>Serviço</th><th>Horas</th><th>Valor/hora</th><th>Total</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
-      maoObra.map(function(m){
-        return '<tr><td>'+esc(m.descricao)+'</td>'+
-          '<td>'+(m.horas!=null?esc(m.horas):'<span class="no">fechado</span>')+'</td>'+
-          '<td>'+(m.valor_hora!=null?fmtR(m.valor_hora):'—')+'</td>'+
-          '<td><b>'+fmtR(valorMO(m))+'</b></td>'+
+    ? '<table class="t" style="font-size:.85rem"><thead><tr><th style="width:34px">#</th><th>Descrição do serviço</th>'+
+      '<th style="text-align:right">Valor tabela</th><th style="text-align:right">Valor cobrado</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
+      moOrdenada.map(function(m,i){
+        var cort = m.cortesia || valorMO(m)===0;
+        return '<tr><td>'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
+          '<td style="text-align:right">'+(tabelaMO(m)>0?fmtR(tabelaMO(m)):'—')+'</td>'+
+          '<td style="text-align:right"><b>'+(cort?'<span style="color:var(--green-d)">Cortesia</span>':fmtR(valorMO(m)))+'</b></td>'+
           (encerrada?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'">🗑️</button></td>')+'</tr>';
       }).join('')+'</tbody></table>'
-    : '<div class="no">Nenhum serviço de mão de obra lançado.</div>')+
-    (totalMO>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em mão de obra: '+fmtR(totalMO)+'</div>':'')+
-    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="mo-add" style="margin-top:8px">+ Serviço / Mão de obra</button>');
+    : '<div class="no">Nenhum serviço lançado. É esta lista que vira o orçamento do cliente.</div>')+
+    (totalTab>0
+      ? '<div style="text-align:right;margin-top:6px;font-size:.88rem">'+
+        (descMO>0?'<div style="color:var(--green-d)">Desconto e cortesias: <b>− '+fmtR(descMO)+'</b></div>':'')+
+        '<div style="font-weight:800;font-size:1rem">Total em serviços: '+fmtR(totalMO)+'</div></div>'
+      : '')+
+    (encerrada?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+      '<button class="btn btn--blue btn--sm" id="mo-add">+ Serviço</button>'+
+      '<button class="btn btn--ghost btn--sm" id="orc-cfg">⚙️ Desconto e observações</button>'+
+    '</div>');
 
   /* --- ANEXOS: o PDF que a oficina já faz, visível ao cliente --- */
   var anxHtml = (anexos.length
@@ -4416,26 +4454,62 @@ async function abreOS(id, scrollRestaurar){
       }, 350);
     };
   };
-  /* ---- MÃO DE OBRA ---- */
+  /* ---- SERVIÇOS (o que vira o orçamento) ---- */
   if($("mo-add")) $("mo-add").onclick = function(){
-    abreModal('Serviço / Mão de obra',
-      '<label class="blk">O que foi feito *'+(window.Voz?Voz.botao('mo-desc','serviço de mão de obra'):'')+'</label>'+
-      '<input class="in" id="mo-desc" placeholder="ex.: Remoção e instalação do motor">'+
-      '<div class="no" style="margin:12px 0 6px">Cobre <b>por hora</b> ou por <b>valor fechado</b> — preencha só um dos dois lados.</div>'+
-      '<div class="row"><div><label class="blk">Horas</label><input class="in" id="mo-h" type="text" inputmode="decimal" placeholder="ex.: 8"></div>'+
-      '<div><label class="blk">Valor por hora</label><input class="in" id="mo-vh" type="text" inputmode="decimal" placeholder="0,00"></div>'+
-      '<div><label class="blk">ou Valor fechado</label><input class="in" id="mo-v" type="text" inputmode="decimal" placeholder="0,00"></div></div>',
+    abreModal('Serviço do orçamento',
+      '<label class="blk">Descrição do serviço *'+(window.Voz?Voz.botao('mo-desc','descrição do serviço'):'')+'</label>'+
+      '<input class="in" id="mo-desc" placeholder="ex.: REVISÃO DE 100 HORAS">'+
+      '<div class="row" style="margin-top:10px">'+
+        '<div><label class="blk">Valor de tabela</label><input class="in" id="mo-vt" type="text" inputmode="decimal" placeholder="0,00"></div>'+
+        '<div><label class="blk">Valor cobrado</label><input class="in" id="mo-v" type="text" inputmode="decimal" placeholder="deixe vazio = igual à tabela"></div>'+
+      '</div>'+
+      '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.92rem;cursor:pointer">'+
+        '<input type="checkbox" id="mo-cort"> Conceder como <b>cortesia</b> (aparece sem cobrança no orçamento)</label>'+
+      '<div class="no" style="margin-top:10px">A diferença entre a <b>tabela</b> e o <b>cobrado</b> é o desconto que aparece para o cliente — '+
+        'é o que mostra o valor do negócio que ele está fazendo com vocês.</div>'+
+      '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:.86rem;color:var(--blue)">Cobrar por hora</summary>'+
+        '<div class="row" style="margin-top:8px">'+
+          '<div><label class="blk">Horas</label><input class="in" id="mo-h" type="text" inputmode="decimal" placeholder="ex.: 8"></div>'+
+          '<div><label class="blk">Valor por hora</label><input class="in" id="mo-vh" type="text" inputmode="decimal" placeholder="0,00"></div>'+
+        '</div><div class="no" style="margin-top:6px">Se preencher os dois, o valor cobrado é calculado (horas × valor/hora).</div>'+
+      '</details>',
       'Adicionar', async function(){
         var d = $("mo-desc").value.trim();
         if(!d){ toast('Descreva o serviço.','err'); return false; }
         var num = function(el){ var s=(el.value||'').trim().replace(/\./g,'').replace(',','.'); return s?Number(s):null; };
-        var h = num($("mo-h")), vh = num($("mo-vh")), v = num($("mo-v"));
-        if(v==null && (h==null || vh==null)){ toast('Informe horas + valor/hora, ou um valor fechado.','err'); return false; }
-        var r = await sb.from('manut_os_mao_obra').insert({ os_id:id, descricao:d, horas:h, valor_hora:vh, valor:v });
+        var vt = num($("mo-vt")), v = num($("mo-v")), h = num($("mo-h")), vh = num($("mo-vh"));
+        var cort = $("mo-cort").checked;
+        if(h!=null && vh!=null && v==null) v = h*vh;          // por hora
+        if(v==null && !cort) v = vt;                           // cobrado = tabela
+        if(vt==null && v!=null) vt = v;                        // tabela = cobrado
+        if(vt==null && !cort){ toast('Informe ao menos um valor, ou marque cortesia.','err'); return false; }
+        var r = await sb.from('manut_os_mao_obra').insert({ os_id:id, descricao:d,
+          horas:h, valor_hora:vh, valor: cort?0:v, valor_tabela:vt, cortesia:cort });
         if(r.error){ toast(r.error.message,'err'); return false; }
         recarrega(); return true;
       });
     if(window.Voz) Voz.ativarTodos(sb, SB_URL);
+  };
+  /* desconto final e observações extras do orçamento */
+  if($("orc-cfg")) $("orc-cfg").onclick = function(){
+    abreModal('Desconto e observações do orçamento',
+      '<label class="blk">Desconto final (%)</label>'+
+      '<input class="in" id="oc-pct" type="text" inputmode="decimal" placeholder="ex.: 5" value="'+esc(o.orcamento_desconto_pct!=null?String(o.orcamento_desconto_pct).replace('.',','):'')+'">'+
+      '<div class="no" style="margin-top:6px">Sai no orçamento como <i>“será concedido 5% de desconto sobre o valor final, aplicável após a conclusão dos serviços”</i>. Deixe vazio para não oferecer.</div>'+
+      '<label class="blk" style="margin-top:12px">Data do orçamento</label>'+
+      '<input class="in" id="oc-data" type="date" value="'+esc(o.orcamento_data||'')+'">'+
+      '<label class="blk" style="margin-top:12px">Observações adicionais</label>'+
+      '<textarea class="in" id="oc-obs" rows="4" placeholder="algo específico desta OS — as cláusulas padrão de material e serviços terceirizados já saem no documento">'+esc(o.orcamento_obs||'')+'</textarea>',
+      'Salvar', async function(){
+        var p = ($("oc-pct").value||'').trim().replace(',','.');
+        var r = await sb.from('manut_os').update({
+          orcamento_desconto_pct: p?Number(p):null,
+          orcamento_data: $("oc-data").value || null,
+          orcamento_obs: $("oc-obs").value.trim() || null
+        }).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Salvo ✓','ok'); recarrega(); return true;
+      });
   };
   document.querySelectorAll('.mo-del').forEach(function(b){
     b.onclick = async function(){
