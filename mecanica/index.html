@@ -2098,6 +2098,25 @@ function linhaPeca(p, comBotao){
   '</div>';
 }
 
+/* O catálogo é um arquivo do próprio site (~85 KB comprimido). Baixa uma vez,
+   fica guardado no aparelho e a busca roda aqui mesmo — instantânea e
+   funcionando OFFLINE, que é como o hangar costuma estar. */
+var CATALOGO = null, catalogoCarregando = null;
+async function carregaCatalogo(){
+  if(CATALOGO) return CATALOGO;
+  if(catalogoCarregando) return catalogoCarregando;
+  catalogoCarregando = fetch('../assets/dados/pecas.json')
+    .then(function(r){ if(!r.ok) throw new Error('não baixou'); return r.json(); })
+    .then(function(j){
+      CATALOGO = (j.itens||[]).map(function(a){
+        return { pn:a[0], descricao:a[1], ata:j.atas[a[2]]||'', modelo:j.modelos[a[3]]||'', pagina:a[4],
+                 busca:(a[0]+' '+a[1]).toUpperCase() };
+      });
+      return CATALOGO;
+    });
+  return catalogoCarregando;
+}
+
 var buscaTimer = null;
 async function buscaPecas(termo, modelo, destino, comBotao){
   var el = document.getElementById(destino);
@@ -2105,15 +2124,32 @@ async function buscaPecas(termo, modelo, destino, comBotao){
   termo = (termo||'').trim();
   if(termo.length < 2){ el.innerHTML = '<div class="no">Digite ao menos 2 caracteres.</div>'; return; }
   el.innerHTML = '<div class="no">Procurando…</div>';
-  var r = await sb.rpc('manut_busca_peca', { p_termo: termo, p_modelo: modelo || null, p_lim: 40 });
-  if(r.error){
-    el.innerHTML = '<div class="no" style="color:var(--red)">'+esc(r.error.message)+
-      '<br>Se diz que a função não existe, rode o SQL do orçamento.</div>';
-    return;
+
+  var base;
+  try{ base = await carregaCatalogo(); }
+  catch(e){ el.innerHTML = '<div class="no" style="color:var(--red)">Não foi possível abrir o catálogo de peças. Verifique a internet e recarregue.</div>'; return; }
+
+  var alvo = termo.toUpperCase(), palavras = alvo.split(/\s+/).filter(Boolean);
+  var achados = [];
+  for(var i=0;i<base.length && achados.length<400;i++){
+    var p = base[i];
+    if(modelo && p.modelo !== modelo) continue;
+    var ok = true;
+    for(var k=0;k<palavras.length;k++){ if(p.busca.indexOf(palavras[k]) < 0){ ok=false; break; } }
+    if(ok) achados.push(p);
   }
-  var d = r.data || [];
+  // P/N exato primeiro, depois quem começa com o termo
+  achados.sort(function(a,b){
+    var pa = a.pn.toUpperCase()===alvo?0:(a.pn.toUpperCase().indexOf(alvo)===0?1:2);
+    var pb = b.pn.toUpperCase()===alvo?0:(b.pn.toUpperCase().indexOf(alvo)===0?1:2);
+    return pa!==pb ? pa-pb : a.descricao.localeCompare(b.descricao);
+  });
+  var total = achados.length;
+  var d = achados.slice(0, 40).map(function(p,i){ return { id:'c'+i, pn:p.pn, descricao:p.descricao, ata:p.ata, modelo:p.modelo, pagina:p.pagina }; });
+  if(total > 40) el.setAttribute('data-mais', total-40);
   if(!d.length){ el.innerHTML = '<div class="empty">Nada encontrado para “'+esc(termo)+'”. Tente em inglês (ex.: <b>filter</b>, <b>seal</b>) ou parte do P/N.</div>'; return; }
-  el.innerHTML = '<div class="no" style="margin-bottom:8px">'+d.length+' resultado(s)'+(d.length===40?' — refine a busca para ver mais':'')+'</div>'+
+  el.innerHTML = '<div class="no" style="margin-bottom:8px">'+total+' encontrada(s)'+
+      (total>40?' — mostrando as 40 primeiras; refine a busca':'')+'</div>'+
     d.map(function(p){ return linhaPeca(p, comBotao); }).join('');
   el.querySelectorAll('.cp-peca').forEach(function(b){
     b.onclick = function(){
@@ -2128,14 +2164,14 @@ async function renderManuais(){
   // motores disponíveis no catálogo (para filtrar a busca)
   var sel = $("q-peca-mod");
   if(sel && sel.options.length <= 1){
-    var m = await sb.from('manut_catalogo_pecas').select('modelo').limit(2000);
-    if(!m.error){
+    try{
+      var base = await carregaCatalogo();
       var vistos = {};
-      (m.data||[]).forEach(function(x){ if(x.modelo) vistos[x.modelo]=1; });
+      base.forEach(function(x){ if(x.modelo) vistos[x.modelo]=1; });
       Object.keys(vistos).sort().forEach(function(k){
         var o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
       });
-    }
+    }catch(e){ /* sem internet na primeira vez: o aviso aparece ao buscar */ }
   }
   var q = $("q-peca");
   if(q && !q.__on){
@@ -3407,7 +3443,10 @@ async function abreOS(id, scrollRestaurar){
       }).join('')+'</tbody></table>'
     : '<div class="no">Nenhuma peça registrada.</div>')+
     (totalPecas>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em peças: '+fmtR(totalPecas)+'</div>':'')+
-    (encerrada?'':'<button class="btn btn--ghost btn--sm" id="peca-add" style="margin-top:8px">+ Peça / Material</button>');
+    (encerrada?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+      '<button class="btn btn--ghost btn--sm" id="peca-add">+ Peça / Material</button>'+
+      (pecas.length?'<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>':'')+
+    '</div>');
 
   /* --- fotos: problema e resolução --- */
   /* Galeria como dossiê: a sequência conta a história do serviço, na ordem em que aconteceu. */
@@ -3967,6 +4006,159 @@ async function abreOS(id, scrollRestaurar){
         recarrega(); return true;
       });
   };
+  /* ============================================================
+     ORÇAMENTO E COTAÇÕES
+     A equipe monta a lista de peças, pede preço aos fornecedores pelo
+     WhatsApp, anota o que cada um respondeu e manda a comparação para
+     o cliente — que decide fechar conosco ou comprar por conta.
+     ============================================================ */
+  if($("orc-abrir")) $("orc-abrir").onclick = async function(){
+    var forn = (await sb.from('manut_fornecedores').select('*').eq('ativo',true).order('nome')).data||[];
+    var cots = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
+    var porForn = {}; cots.forEach(function(c){ porForn[c.fornecedor_id]=c; });
+
+    function listaTexto(){
+      return pecas.map(function(p,i){
+        return (i+1)+') '+(p.quantidade?('x'+p.quantidade+' '):'')+p.descricao+(p.pn?' — P/N '+p.pn:'');
+      }).join('\n');
+    }
+    function moeda(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+
+    var fHtml = forn.length ? forn.map(function(f){
+      var c = porForn[f.id] || {};
+      return '<div style="border-top:1px solid #e3e9f0;padding:11px 0" data-forn="'+f.id+'">'+
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+          '<b style="font-size:.95rem">'+esc(f.nome)+'</b>'+
+          (f.whatsapp?'<span class="no">'+esc(f.whatsapp)+'</span>':'<span class="no" style="color:var(--amber)">sem WhatsApp</span>')+
+          (f.whatsapp?'<button class="btn btn--green btn--sm orc-wa" style="margin-left:auto">📲 Pedir cotação</button>':'')+
+        '</div>'+
+        '<div class="row" style="margin-top:8px">'+
+          '<div><label class="blk">Valor total</label><input class="in orc-v" type="text" inputmode="decimal" placeholder="0,00" value="'+(c.valor!=null?String(c.valor).replace('.',','):'')+'"></div>'+
+          '<div><label class="blk">Prazo (dias)</label><input class="in orc-p" type="text" inputmode="numeric" value="'+esc(c.prazo_dias!=null?c.prazo_dias:'')+'"></div>'+
+          '<div style="flex:2"><label class="blk">Observação</label><input class="in orc-o" value="'+esc(c.observacao||'')+'"></div>'+
+        '</div>'+
+        (c.pedido_em?'<div class="no" style="margin-top:5px">cotação pedida em '+dt(c.pedido_em)+(c.respondido_em?' · respondida em '+dt(c.respondido_em):'')+'</div>':'')+
+      '</div>';
+    }).join('') : '<div class="no">Nenhum fornecedor cadastrado ainda.</div>';
+
+    abreModal('Orçamento — '+esc(codOS(o)),
+      '<div class="no" style="margin-bottom:10px"><b>'+pecas.length+' peça(s)</b> na lista desta OS:</div>'+
+      '<div style="background:#f6f8fb;border:1px solid #dbe3ec;border-radius:10px;padding:11px;font-size:.86rem;max-height:150px;overflow:auto;white-space:pre-wrap">'+esc(listaTexto())+'</div>'+
+      '<h3 style="font-size:.95rem;margin:16px 0 0">Fornecedores <button class="btn btn--ghost btn--sm" id="orc-novo" style="margin-left:auto">+ Novo</button></h3>'+
+      '<div id="orc-forn">'+fHtml+'</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'+
+        '<button class="btn btn--blue btn--sm" id="orc-salvar">💾 Salvar as cotações</button>'+
+        '<button class="btn btn--green btn--sm" id="orc-cliente">📤 Enviar comparação ao cliente</button>'+
+      '</div>',
+      'Fechar', async function(){ return true; });
+
+    /* pedir cotação a um fornecedor pelo WhatsApp */
+    document.querySelectorAll('#orc-forn .orc-wa').forEach(function(b){
+      b.onclick = async function(){
+        var bloco = b.closest('[data-forn]'), fid = bloco.getAttribute('data-forn');
+        var f = forn.filter(function(x){ return x.id===fid; })[0];
+        var d = soDig(f.whatsapp||''); if(d.length<10){ toast('Fornecedor sem WhatsApp válido.','err'); return; }
+        if(d.length<=11) d='55'+d;
+        var msg = 'Olá! Aqui é da PJ AERO CENTRO — Manutenção Aeronáutica.\n\n'+
+          'Precisamos de cotação para as peças abaixo (aeronave '+(a.prefixo||'')+', '+codOS(o)+'):\n\n'+
+          listaTexto()+'\n\n'+
+          'Pode nos informar o valor e o prazo de entrega? Obrigado!';
+        await sb.from('manut_cotacoes').upsert({ os_id:id, fornecedor_id:fid, peca_id:null,
+          pedido_em:new Date().toISOString() }, { onConflict:'id' });
+        window.open('https://wa.me/'+d+'?text='+encodeURIComponent(msg), '_blank');
+        toast('Cotação pedida a '+f.nome,'ok');
+      };
+    });
+
+    /* salvar o que cada fornecedor respondeu */
+    var bs = document.getElementById('orc-salvar');
+    if(bs) bs.onclick = async function(){
+      this.disabled = true;
+      var blocos = document.querySelectorAll('#orc-forn [data-forn]'), n = 0;
+      for(var i=0;i<blocos.length;i++){
+        var bl = blocos[i], fid = bl.getAttribute('data-forn');
+        var v = (bl.querySelector('.orc-v').value||'').trim().replace(/\./g,'').replace(',','.');
+        var p = (bl.querySelector('.orc-p').value||'').trim();
+        var ob= (bl.querySelector('.orc-o').value||'').trim();
+        if(!v && !p && !ob) continue;
+        var atual = porForn[fid];
+        var dados = { os_id:id, fornecedor_id:fid, peca_id:null,
+          valor: v?Number(v):null, prazo_dias: p?parseInt(p,10):null, observacao: ob||null,
+          respondido_em: (v||p) ? new Date().toISOString() : null };
+        var r = atual ? await sb.from('manut_cotacoes').update(dados).eq('id', atual.id)
+                      : await sb.from('manut_cotacoes').insert(dados);
+        if(r.error){ toast(r.error.message,'err'); this.disabled=false; return; }
+        n++;
+      }
+      toast(n+' cotação(ões) salva(s) ✓','ok');
+      this.disabled = false;
+    };
+
+    /* montar a comparação e mandar para o cliente */
+    var bc = document.getElementById('orc-cliente');
+    if(bc) bc.onclick = async function(){
+      var atuais = (await sb.from('manut_cotacoes').select('*').eq('os_id',id).is('peca_id',null)).data||[];
+      var comValor = atuais.filter(function(c){ return c.valor != null; });
+      if(!comValor.length){ toast('Salve ao menos uma cotação com valor antes de enviar.','err'); return; }
+      comValor.sort(function(x,y){ return Number(x.valor)-Number(y.valor); });
+
+      var nomeDe = {}; forn.forEach(function(f){ nomeDe[f.id]=f.nome; });
+      var linhas = comValor.map(function(c,i){
+        return (i+1)+') '+(nomeDe[c.fornecedor_id]||'Fornecedor')+': '+moeda(c.valor)+
+          (c.prazo_dias?' · entrega em '+c.prazo_dias+' dia(s)':'')+
+          (c.observacao?' — '+c.observacao:'');
+      }).join('\n');
+      var link = o.token ? (location.origin + '/os/' + o.token) : '';
+
+      var texto = 'Olá! Aqui é da PJ AERO CENTRO — Manutenção Aeronáutica.\n\n'+
+        'Segue o orçamento das peças da aeronave '+(a.prefixo||'')+':\n\n'+
+        'PEÇAS NECESSÁRIAS\n'+listaTexto()+'\n\n'+
+        'COTAÇÕES QUE LEVANTAMOS\n'+linhas+'\n\n'+
+        'Você pode fechar conosco por qualquer uma dessas opções — cuidamos da compra e da instalação. '+
+        'Se preferir buscar por conta própria, a lista acima tem os códigos (P/N) certos para você cotar.\n'+
+        (link?'\nAcompanhe o serviço por aqui:\n'+link+'\n':'')+
+        '\nFicamos no aguardo da sua decisão. Obrigado!';
+
+      abreModal('Enviar orçamento ao cliente',
+        '<label class="blk">Mensagem</label>'+
+        '<textarea class="in" id="oc-msg" rows="14" style="font-size:.85rem">'+esc(texto)+'</textarea>'+
+        '<label class="blk" style="margin-top:10px">WhatsApp do cliente (com DDD)</label>'+
+        '<input class="in" id="oc-fone" placeholder="69 9 9999-9999" inputmode="tel">'+
+        '<div class="no" style="margin-top:8px">Pode editar o texto antes de enviar.</div>',
+        '📲 Abrir o WhatsApp', async function(){
+          var d = soDig($("oc-fone").value||'');
+          if(d.length<10){ toast('Informe o telefone com DDD.','err'); return false; }
+          if(d.length<=11) d='55'+d;
+          await sb.from('manut_os').update({ cobranca_em:new Date().toISOString(),
+            cobranca_por: usuario?usuario.id:null, cobranca_obs:'Orçamento enviado' }).eq('id', id);
+          window.open('https://wa.me/'+d+'?text='+encodeURIComponent($("oc-msg").value), '_blank');
+          toast('Orçamento enviado ao cliente ✓','ok'); recarrega(); return true;
+        });
+    };
+
+    /* cadastrar fornecedor na hora */
+    var bn = document.getElementById('orc-novo');
+    if(bn) bn.onclick = function(){
+      abreModal('Novo fornecedor',
+        '<label class="blk">Nome *</label><input class="in" id="fo-nome">'+
+        '<label class="blk" style="margin-top:8px">WhatsApp (com DDD)</label><input class="in" id="fo-wa" placeholder="69 9 9999-9999" inputmode="tel">'+
+        '<label class="blk" style="margin-top:8px">Contato</label><input class="in" id="fo-ct" placeholder="nome de quem atende">'+
+        '<label class="blk" style="margin-top:8px">Observação</label><input class="in" id="fo-ob" placeholder="ex.: peças de motor P&W">',
+        'Salvar', async function(){
+          var n = $("fo-nome").value.trim();
+          if(!n){ toast('Informe o nome.','err'); return false; }
+          var r = await sb.from('manut_fornecedores').insert({ nome:n,
+            whatsapp:$("fo-wa").value.trim()||null, contato:$("fo-ct").value.trim()||null,
+            observacao:$("fo-ob").value.trim()||null });
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Fornecedor cadastrado ✓','ok');
+          document.querySelectorAll('.ov').forEach(function(x,i){ if(i>0) x.remove(); });
+          $("orc-abrir").click();      // reabre já com o novo na lista
+          return true;
+        });
+    };
+  };
+
   if($("peca-add")) $("peca-add").onclick = function(){
     abreModal('Peça / Material',
       /* Busca no catálogo dos manuais: evita digitar P/N errado no orçamento */
