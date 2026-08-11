@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Diagnóstico do aparelho · PJ AERO CENTRO</title>
+<style>
+  body{margin:0;background:#071228;color:#e6eef7;font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:640px;margin:0 auto;padding:18px}
+  h1{font-size:1.15rem;margin:0 0 4px}
+  .sub{color:#8fb4d6;font-size:.85rem;margin:0 0 16px}
+  .card{background:#0b1e42;border:1px solid rgba(127,212,255,.16);border-radius:12px;padding:14px;margin-bottom:12px}
+  .l{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid rgba(127,212,255,.1);font-size:.9rem}
+  .l:first-child{border-top:0}
+  .l b{flex:0 0 auto}
+  .ok{color:#9be3b6} .no{color:#ff9a8a} .warn{color:#ffd98a}
+  .val{color:#bcd6ee;word-break:break-word}
+  textarea{width:100%;box-sizing:border-box;height:150px;background:#0b1a2e;color:#cfe3f5;border:1px solid rgba(127,212,255,.2);border-radius:9px;padding:10px;font-family:monospace;font-size:.75rem}
+  button{width:100%;border:0;border-radius:10px;padding:13px;font-weight:700;font-size:.95rem;cursor:pointer;color:#fff;background:#12294d;margin-top:10px}
+  .big{font-size:1.05rem;font-weight:800;padding:12px;border-radius:10px;text-align:center;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🩺 Diagnóstico deste aparelho</h1>
+  <p class="sub">Abra esta página <b>no aparelho com problema</b>. Ela testa o que o navegador suporta e monta um resumo para enviar.</p>
+  <div id="veredito" class="big">testando…</div>
+  <div class="card" id="lista"></div>
+  <div class="card">
+    <b style="font-size:.9rem">Resumo para enviar</b>
+    <textarea id="resumo" readonly></textarea>
+    <button id="copiar">Copiar resumo</button>
+  </div>
+</div>
+<script>
+/* Tudo aqui é JavaScript ANTIGO (ES5) de propósito: precisa rodar até
+   no navegador mais velho, senão o diagnóstico não apareceria. */
+(function(){
+  var testes = [];
+  function t(nome, ok, valor, critico){
+    testes.push({ nome:nome, ok:ok, valor:valor==null?'':String(valor), critico:!!critico });
+  }
+  function suporta(codigo){
+    try{ eval(codigo); return true; }catch(e){ return false; }
+  }
+
+  var ua = navigator.userAgent || '';
+  var mChrome = /Chrome\/(\d+)/.exec(ua);
+  var versaoChrome = mChrome ? parseInt(mChrome[1],10) : 0;
+
+  t('Navegador', true, ua);
+  t('Versão do Chrome/WebView', versaoChrome>0, versaoChrome||'não identificada');
+
+  // Estes são os recursos que o sistema da oficina realmente usa:
+  t('async / await (o sistema usa muito)', suporta('(async function(){})'), '', true);
+  t('Promise',            typeof Promise !== 'undefined', '', true);
+  t('fetch (falar com o servidor)', typeof fetch !== 'undefined', '', true);
+  t('Object.assign',      typeof Object.assign === 'function', '', true);
+  t('Array.forEach em listas do HTML', !!(document.querySelectorAll('div').forEach), '');
+  t('Impressão (window.print)', typeof window.print === 'function', '');
+  t('Ditado por voz (microfone)', !!(window.SpeechRecognition||window.webkitSpeechRecognition), '');
+  t('Câmera (login por rosto)', !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), '');
+  t('IndexedDB (trabalho offline)', typeof indexedDB !== 'undefined', '');
+  t('Service Worker (app instalado)', 'serviceWorker' in navigator, '');
+  t('Está aberto como app instalado', !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches), '');
+
+  var falhouCritico = false;
+  var html = '';
+  for(var i=0;i<testes.length;i++){
+    var x = testes[i];
+    if(x.critico && !x.ok) falhouCritico = true;
+    var marca = x.ok ? '<span class="ok">✓</span>' : (x.critico?'<span class="no">✗</span>':'<span class="warn">—</span>');
+    html += '<div class="l">'+marca+'<b>'+x.nome+'</b><span class="val">'+x.valor+'</span></div>';
+  }
+  document.getElementById('lista').innerHTML = html;
+
+  var v = document.getElementById('veredito');
+  if(falhouCritico){
+    v.style.background = '#5a1f1a'; v.style.color = '#ffd0c8';
+    v.innerHTML = '✗ Este navegador é <b>antigo demais</b> para o sistema.<br><span style="font-weight:400;font-size:.85rem">É por isso que os botões não respondem aqui.</span>';
+  } else {
+    v.style.background = '#12401f'; v.style.color = '#c8f0d4';
+    v.innerHTML = '✓ Este navegador <b>suporta o sistema</b>.<br><span style="font-weight:400;font-size:.85rem">Se os botões não funcionam, o problema é outro (versão guardada em cache).</span>';
+  }
+
+  // resumo em texto para enviar
+  var linhas = ['DIAGNOSTICO PJ AERO — ' + new Date().toLocaleString('pt-BR')];
+  for(var j=0;j<testes.length;j++){
+    linhas.push((testes[j].ok?'[OK]  ':'[FALHA] ') + testes[j].nome + (testes[j].valor?': '+testes[j].valor:''));
+  }
+  // qual versao do app esta guardada
+  if(window.caches && caches.keys){
+    caches.keys().then(function(ks){
+      linhas.push('Cache guardado: ' + (ks.join(', ')||'nenhum'));
+      document.getElementById('resumo').value = linhas.join('\n');
+    });
+  }
+  document.getElementById('resumo').value = linhas.join('\n');
+
+  document.getElementById('copiar').onclick = function(){
+    var ta = document.getElementById('resumo');
+    ta.removeAttribute('readonly'); ta.select();
+    try{ document.execCommand('copy'); this.textContent = 'Copiado ✓'; }
+    catch(e){ this.textContent = 'Selecione o texto acima e copie'; }
+    ta.setAttribute('readonly','readonly');
+  };
+})();
+</script>
+</body>
+</html>
