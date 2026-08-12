@@ -1576,13 +1576,22 @@ function novaMidia(osId, o, recarrega, forcar, depois){
     '<label class="blk" style="margin-top:10px">Legenda *</label>'+
     '<input class="in" id="f-leg" placeholder="Ex.: vazamento no comando do profundor">'+
     '<label class="blk" style="margin-top:10px">Foto ou vídeo *</label>'+
-    '<input class="in" id="f-arq" type="file" accept="image/*,video/*" capture="environment">'+
+    /* Sem "capture": o celular passa a oferecer câmera E galeria.
+       Os dois botões deixam a escolha na cara de quem está no hangar. */
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<label class="btn btn--blue btn--sm" style="cursor:pointer;flex:1;text-align:center">📷 Tirar agora'+
+        '<input type="file" id="f-cam" accept="image/*,video/*" capture="environment" style="display:none"></label>'+
+      '<label class="btn btn--ghost btn--sm" style="cursor:pointer;flex:1;text-align:center">🖼️ Escolher da galeria'+
+        '<input type="file" id="f-gal" accept="image/*,video/*" style="display:none"></label>'+
+    '</div>'+
+    '<input class="in" id="f-arq" type="file" accept="image/*,video/*" style="margin-top:8px">'+
+    '<div id="f-nome" class="no" style="margin-top:6px"></div>'+
     '<div class="no" style="margin-top:8px">📷 Foto é reduzida no aparelho antes de subir.<br>'+
     '🎥 Vídeo (com som) até <b>'+MAX_VIDEO_MB+' MB</b> — uns 30 segundos de celular. '+
     'Grave só o sintoma; vídeo longo não sobe com sinal ruim.<br>'+
     'Tudo fica em área privada, visível só para a oficina.</div>',
     'Enviar', async function(){
-      var arq = $("f-arq").files[0];
+      var arq = window.__arqMidia || ($("f-arq").files && $("f-arq").files[0]);
       if(!arq){ toast('Escolha uma foto ou vídeo.','err'); return false; }
       var leg = $("f-leg").value.trim();
       if(!leg){ toast('Escreva a legenda — é ela que explica o registro.','err'); return false; }
@@ -1611,6 +1620,21 @@ function novaMidia(osId, o, recarrega, forcar, depois){
       if(depois) depois(); else recarrega();
       return true;
     });
+
+  /* Câmera OU galeria: os três campos alimentam a mesma escolha.
+     Antes o "capture" obrigava a câmera e não deixava pegar da galeria. */
+  window.__arqMidia = null;
+  function escolheu(f){
+    if(!f) return;
+    window.__arqMidia = f;
+    var mb = (f.size/1048576).toFixed(1);
+    var el = document.getElementById('f-nome');
+    if(el) el.innerHTML = '✅ Selecionado: <b>'+esc(f.name||'arquivo')+'</b> ('+mb+' MB)';
+  }
+  ['f-cam','f-gal','f-arq'].forEach(function(idc){
+    var el = document.getElementById(idc);
+    if(el) el.onchange = function(){ escolheu(this.files && this.files[0]); };
+  });
 }
 
 /* mede cada traço pra ele se desenhar sozinho */
