@@ -417,12 +417,12 @@ var ETAPA = [
   {n:'Recebimento',  d:'Sua aeronave chegou à oficina e foi registrada com fotos do estado em que chegou.'},
   {n:'Ordem de serviço', d:'Abrimos a ordem de serviço com os relatos do piloto e o motivo da manutenção.'},
   {n:'Serviços e Orçamento', d:'Levantando os serviços necessários e preparando o orçamento das peças.'},
-  {n:'Aguardando fila', d:'Na fila — aguardando peça, aprovação do orçamento ou uma baia livre no hangar.'},
+  {n:'Pendências',   d:'Aguardando itens que dependem de terceiros — peça solicitada, aprovação do orçamento ou documento. Assim que chegar, seguimos.'},
+  {n:'Aguardando fila', d:'Na fila — aguardando uma baia livre no hangar para iniciar a preparação.'},
   {n:'Planejamento', d:'Planejando o serviço: separando as peças, o ferramental calibrado e definindo quem executa.'},
   {n:'Execução',     d:'Serviço em execução pelos nossos mecânicos.'},
-  {n:'Pendências',   d:'Resolvendo uma pendência antes de poder concluir — assim que liberar, seguimos.'},
   {n:'Conclusão',    d:'Serviço concluído. Seguindo para a conferência final.'},
-  {n:'Cross Check',  d:'Uma segunda pessoa está conferindo todo o serviço, item por item.'},
+  {n:'Cross Check',  d:'Inspeção final por um segundo profissional habilitado, item por item.'},
   {n:'Liberação',    d:'Tudo conferido e assinado. Sua aeronave está liberada para voltar a voar.'}
 ];
 
@@ -501,6 +501,20 @@ function desenha(d){
 
   /* ===== ORÇAMENTO — o cliente vê aqui, com a nossa identidade ===== */
   var ex = d.extra || {};
+
+  /* Serviço fora de base: o dono acompanha o deslocamento da equipe */
+  var fbHtml = ex.fora_base
+    ? '<div class="card sobe" style="animation-delay:.12s"><h2>🚚 Atendimento fora de base</h2>'+
+      '<div style="display:flex;gap:12px;align-items:center;padding:6px 0">'+
+        '<span style="font-size:1.9rem">'+(ex.fb_status==='no_local'?'🔧':'🚚')+'</span>'+
+        '<div><b style="font-size:1.02rem">'+
+          (ex.fb_status==='no_local'
+            ? 'Nossa equipe está no local, preparando a manutenção'
+            : 'Nossa equipe está em deslocamento até você')+'</b>'+
+          (ex.fb_local?'<div style="color:var(--muted);font-size:.88rem;margin-top:2px">Atendimento em <b>'+esc(ex.fb_local)+'</b></div>':'')+
+        '</div></div>'+
+      '<div class="nota">Este serviço está sendo realizado fora da nossa base, no local da aeronave.</div></div>'
+    : '';
   function R$(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
   var oSv = ex.servicos || [], oPc = ex.pecas || [];
   var tSv = Number(ex.total_servicos||0), tTab = Number(ex.total_tabela||0), tPc = Number(ex.total_pecas||0);
@@ -566,7 +580,7 @@ function desenha(d){
 
   /* Documentos que a oficina liberou para o cliente (orçamento em PDF, laudos) */
   var anx = ex.anexos || [];
-  var ICO = { orcamento:'💰', laudo:'📋', nota:'🧾' };
+  var ICO = { orcamento:'💰', laudo:'📋', nota:'🧾', form:'📑' };
   var anxHtml = anx.length
     ? '<div class="card sobe" style="animation-delay:.20s"><h2>📎 Documentos<span class="c">'+anx.length+'</span></h2>'+
       anx.map(function(x){
@@ -614,12 +628,14 @@ function desenha(d){
         (res?'resolvido em '+dataBR(p.resolvida_em):'<b style="color:var(--amber)">em resolução</b>')+
         '</div></div></div>';
     }).join('')+
-    '<div class="nota">Imprevisto acontece — falta de peça, prazo de fornecedor. '+
-    'Preferimos <b>mostrar</b> a esconder: é isso que explica o tempo da sua aeronave aqui.</div></div>' : '';
+    '<div class="nota">Durante a manutenção podem ocorrer situações que fogem ao nosso controle — '+
+    'peças em atraso, prazos de fornecedores ou inspeções adicionais exigidas em serviço. '+
+    'Cada ocorrência é registrada aqui para que você acompanhe, <b>com transparência</b>, '+
+    'os motivos que impactam o prazo da sua aeronave.</div></div>' : '';
 
   /* assinaturas do serviço */
   var asn = (d.assinaturas||[]).filter(function(x){ return x.tipo!=='entrega' && x.tipo!=='retirada'; });
-  var AS_TX = {6:'Liberação do planejamento', 10:'Aprovação para retorno ao serviço'};
+  var AS_TX = {6:'Liberação do planejamento', 7:'Liberação da execução', 10:'Aprovação para retorno ao serviço'};
   var asHtml = asn.length ? '<div class="card sobe" style="animation-delay:.25s">'+
     '<h2>✍️ Assinaturas<span class="c">'+asn.length+'</span></h2>'+
     asn.map(function(s){
@@ -701,9 +717,11 @@ function desenha(d){
         '</dl></div>'+
 
       '<div class="card sobe" style="animation-delay:.16s"><h2>🔧 Serviços<span class="c">'+sv.length+'</span></h2>'+
-        svHtml+'<div class="nota">Na PJ AERO CENTRO, <b>todo serviço é conferido por uma segunda pessoa</b> '+
-        'antes de a aeronave ser liberada. É assim que garantimos que nada passa batido.</div></div>'+
+        svHtml+'<div class="nota">Na PJ AERO CENTRO, todos os serviços passam por <b>inspeção final de conformidade '+
+        'realizada por um segundo profissional habilitado</b> — a dupla inspeção — antes da aprovação para '+
+        'retorno ao serviço, em conformidade com as boas práticas de manutenção aeronáutica.</div></div>'+
 
+      fbHtml+
       pdHtml+
       orcHtml+
       anxHtml+

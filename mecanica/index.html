@@ -934,19 +934,21 @@ var sb = window.supabase.createClient(SB_URL, SB_KEY);
 var $ = function(id){ return document.getElementById(id); };
 var usuario = null, PERFIL = null, AERONAVES = [], OSS = [], PROPS = [], PROPMAP = {};
 
+/* Pendências logo após o orçamento (pedido do Aislan): orçou, o avião
+   vai ao pátio esperando peça e aprovação do cliente — a pendência é aí. */
 var ETAPAS = [
   {n:1,  t:'Recebimento',               f:1},
   {n:2,  t:'OS',                        f:1},
   {n:3,  t:'Serviços e Orçamento',      f:2},
-  {n:4,  t:'Aguardando Fila',           f:2},
-  {n:5,  t:'Planejamento e Preparação', f:2, gate:true},
-  {n:6,  t:'Execução',                  f:3},
-  {n:7,  t:'Pendências',                f:3},
+  {n:4,  t:'Pendências',                f:2},
+  {n:5,  t:'Aguardando Fila',           f:2},
+  {n:6,  t:'Planejamento e Preparação', f:2, gate:true},
+  {n:7,  t:'Execução',                  f:3},
   {n:8,  t:'Conclusão',                 f:3},
   {n:9,  t:'Cross Check',               f:3},
   {n:10, t:'Encerramento',              f:3}
 ];
-var N_ETAPAS = 10, ETAPA_GATE = 5, ETAPA_FIM = 10;
+var N_ETAPAS = 10, ETAPA_GATE = 6, ETAPA_EXEC = 7, ETAPA_FIM = 10;
 var PAPEL_LBL = {gatekeeper:'Gatekeeper', controle_tecnico:'Controle Técnico',
   mecanico:'Mecânico', chefe_manutencao:'Chefe de Manutenção', diretor_tecnico:'Diretor Técnico'};
 
@@ -1021,7 +1023,7 @@ var CATS = {
   pin:['M400 40 L494 40 L494 460 L400 460 Z','M150 228 L648 218 Q712 226 730 250 Q712 274 648 282 L150 272 Q138 250 150 228 Z','M160 190 L256 204 L256 296 L160 310 Z'],
   zonas:{motor:[742,250],cabine:[540,250],asa_dir:[447,100],asa_esq:[447,400],fuselagem:[320,250],empenagem:[196,250],trem:[660,208]}}
 };
-var ZONA_LBL = {motor:'Motor / hélice', motor_esq:'Motor esquerdo', motor_dir:'Motor direito',
+var ZONA_LBL = {aeronave:'✈️ Aeronave completa', motor:'Motor / hélice', motor_esq:'Motor esquerdo', motor_dir:'Motor direito',
   cabine:'Cabine / instrumentos', fuselagem:'Fuselagem / célula', asa_esq:'Asa esquerda',
   asa_dir:'Asa direita', empenagem:'Empenagem', trem:'Trem de pouso',
   hopper:'Hopper', barra:'Barra de pulverização'};
@@ -1405,7 +1407,8 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
       }).join('')+'</tbody></table>' : '';
 
   var aEtapa = assins.filter(function(x){ return x.tipo==='etapa'; });
-  var sigGate = aEtapa.filter(function(x){ return x.para_etapa===6; })[0];
+  /* aceita os dois números do gate (6 no fluxo antigo, 7 no atual) */
+  var sigGate = aEtapa.filter(function(x){ return x.para_etapa===7 || x.para_etapa===6; })[0];
   var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===10; })[0];
   var sigInternas =
     (sigGate ? '<div><div class="q">Liberação do planejamento (Gate)</div><div class="n">'+
@@ -2287,6 +2290,18 @@ async function carregaCatalogo(){
   return catalogoCarregando;
 }
 
+/* Tabela de preços de serviços da oficina (546 itens) — mesmo esquema do
+   catálogo de peças: arquivo do site, guardado no aparelho, busca offline. */
+var TABELA_SERV = null, tabelaCarregando = null;
+async function carregaTabelaServicos(){
+  if(TABELA_SERV) return TABELA_SERV;
+  if(tabelaCarregando) return tabelaCarregando;
+  tabelaCarregando = fetch('../assets/dados/servicos.json')
+    .then(function(r){ if(!r.ok) throw new Error('não baixou'); return r.json(); })
+    .then(function(j){ TABELA_SERV = j.itens || []; return TABELA_SERV; });
+  return tabelaCarregando;
+}
+
 var buscaTimer = null;
 async function buscaPecas(termo, modelo, destino, comBotao){
   var el = document.getElementById(destino);
@@ -2910,7 +2925,7 @@ $("q-arq").addEventListener('input', renderArquivo);
    As zonas da planta agrupam as 10 etapas:
    1..4 Pátio · 5 Planejamento(gate) · 6..8 Baias · 9..10 Liberação
    ============================================================ */
-function zonaDaEtapa(e){ return e<=4?1:(e===5?2:(e<=8?3:4)); }
+function zonaDaEtapa(e){ return e<=5?1:(e===6?2:(e<=8?3:4)); }
 function diasDesde(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 
 async function carregaOficina(){
@@ -3330,7 +3345,7 @@ async function abreOS(id, scrollRestaurar){
   /* --- gate --- */
   var gateHtml='';
   if(!o.gate_checklist_id){
-    gateHtml = '<div class="no">O checklist é carregado quando a OS entra na <b>Etapa 5</b> (Planejamento e Preparação). '+
+    gateHtml = '<div class="no">O checklist é carregado quando a OS entra na <b>Etapa 6</b> (Planejamento e Preparação). '+
                'A versão vigente fica congelada nesta OS.</div>';
   } else {
     var blocoAtual='', vis=0, ok=0;
@@ -3387,14 +3402,19 @@ async function abreOS(id, scrollRestaurar){
       '<td class="sig">'+(t.conferido_em?'<b>'+esc(nome(t.conferente_id))+'</b><span>'+dt(t.conferido_em)+'</span>':'<span class="no">—</span>')+'</td>'+
       '<td style="text-align:right">'+
         (encerrada ? '' :
-          (!t.executado_em
-            ? '<button class="btn btn--blue btn--sm" data-exec="'+t.id+'">Executei</button>'
-            : (!t.conferido_em
-                ? (meuExec
-                    ? '<span class="aguarda">⏳ aguarda 2ª pessoa'+
-                      '<small>você executou — o cross check exige outra pessoa</small></span>'
-                    : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'">Conferir</button>')
-                : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')))+
+          /* Executar/conferir só valem a partir da EXECUÇÃO (pedido do Aislan):
+             antes disso o avião nem entrou no hangar. */
+          (o.etapa < ETAPA_EXEC
+            ? (t.executado_em ? '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>'
+                              : '<span class="no" title="Disponível quando a OS entrar em Execução">🔒 na Execução</span>')
+            : (!t.executado_em
+              ? '<button class="btn btn--blue btn--sm" data-exec="'+t.id+'">Executei</button>'
+              : (!t.conferido_em
+                  ? (meuExec
+                      ? '<span class="aguarda">⏳ aguarda 2ª pessoa'+
+                        '<small>você executou — o cross check exige outra pessoa</small></span>'
+                      : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'">Conferir</button>')
+                  : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>'))))+
       '</td></tr>';
   });
   var tInsp = tarefas.filter(function(t){ return t.sistema; });          // vieram de uma inspeção
@@ -3539,15 +3559,16 @@ async function abreOS(id, scrollRestaurar){
       it(tarefas.length,      'Lista de serviços montada ('+tarefas.length+')', 'Use “Carregar inspeção” ou “+ Tarefa”');
       it(temComp,             'Tempos dos componentes (célula / motor / hélice)', 'Precisam sair na ficha de inspeção');
     } else if(e===4){
-      it(o.aguardando_motivo, 'Motivo da espera registrado', 'Diga por que está parada — peça, cliente, autorização');
+      it(true, 'Registre o que a OS está esperando (peça, aprovação do cliente)', 'Use “+ Pendência” — ex.: aguardando peça solicitada ao cliente');
+      it(o.cobranca_em, 'Cliente avisado do que falta', 'Use “Cobrar proprietário” se depende dele');
     } else if(e===5){
+      it(o.aguardando_motivo, 'Motivo da espera registrado', 'Diga por que está na fila');
+    } else if(e===6){
       it(o.gate_checklist_id, 'Checklist do gate carregado');
       it(o.gate_checklist_id && gateFalta===0, 'Todos os itens obrigatórios do gate conferidos'+(o.gate_checklist_id?' ('+gateOkN+' de '+gateVis+')':''), 'O gatekeeper libera a execução');
-    } else if(e===6){
+    } else if(e===7){
       it(tarefas.length && semExec===0, 'Todos os serviços executados'+(semExec?' — faltam '+semExec:''), 'Marque cada item conforme faz');
       it(pendAb===0,          pendAb? pendAb+' pendência(s) aberta(s)' : 'Sem pendência aberta', 'Pendência aberta trava a Conclusão');
-    } else if(e===7){
-      it(pendAb===0,          pendAb? 'Resolver as '+pendAb+' pendência(s) aberta(s)' : 'Todas as pendências resolvidas', 'O sistema não deixa concluir com pendência');
     } else if(e===8){
       it(pendAb===0,          'Nenhuma pendência aberta');
       it(fDepois,             'Fotos do DEPOIS (como ficou)', 'É o que o cliente vê no link');
@@ -3741,7 +3762,7 @@ async function abreOS(id, scrollRestaurar){
        '<div class="steps">'+steps+'</div>'+acoes+
        (o.prioridade_motivo?'<div class="no" style="margin-top:10px">Prioridade '+o.prioridade+' — '+esc(o.prioridade_motivo)+'</div>':'')+
        (o.descricao?'<div style="margin-top:10px">'+esc(o.descricao)+'</div>':'')+'</div>'+
-     '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 5)</h3>'+gateHtml+'</div>'+
+     '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
      '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
      '<div class="box"'+(o.etapa===3?' style="border:1.5px solid #12294d33;background:#f7f9fc"':'')+'>'+
@@ -3766,6 +3787,22 @@ async function abreOS(id, scrollRestaurar){
        'O que for <b>liberado ao cliente</b> aparece no link de acompanhamento dele.</div>'+anxHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
+     /* Fora de base (Aislan): serviço na cidade do cliente, com status
+        de deslocamento visível também no link do proprietário. */
+     '<div class="box"'+(o.fora_base?' style="border:1.5px solid #b8860b55;background:#fffbf2"':'')+'>'+
+       '<h3>🚚 Serviço fora de base'+
+       (o.fora_base && o.fb_status==='deslocamento'?' <span class="c" style="background:#b8860b;color:#fff">equipe em deslocamento</span>':'')+
+       (o.fora_base && o.fb_status==='no_local'?' <span class="c" style="background:#1B6E3B;color:#fff">equipe no local</span>':'')+
+       '</h3>'+
+       (o.fora_base
+         ? '<dl class="dl">'+
+             '<dt>Local</dt><dd>'+esc(o.fb_local||'—')+'</dd>'+
+             '<dt>Situação</dt><dd>'+(o.fb_status==='deslocamento'?'Equipe em deslocamento':(o.fb_status==='no_local'?'Equipe no local, preparando a manutenção':'—'))+'</dd>'+
+             (o.fb_km?'<dt>Deslocamento</dt><dd>'+o.fb_km+' km ida + '+o.fb_km+' km volta = <b>'+(o.fb_km*2)+' km</b> × '+fmtR(o.fb_km_valor||3.90)+' = <b>'+fmtR(o.fb_km*2*(o.fb_km_valor||3.90))+'</b> <span class="no">(inclui hospedagem e alimentação)</span></dd>':'')+
+           '</dl>'
+         : '<div class="no">Serviço na nossa base. Se a equipe vai até o cliente, marque aqui — o dono acompanha o deslocamento pelo link.</div>')+
+       (encerrada?'':'<button class="btn btn--ghost btn--sm" id="fb-edit" style="margin-top:8px">'+(o.fora_base?'✏️ Atualizar':'🚚 É fora de base')+'</button>')+
+     '</div>'+
      '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
      '<div class="box"><h3>🎞️ Registro do serviço <span class="c">'+contaMidia(fotos)+'</span>'+
        (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Registrar</button>')+
@@ -4193,8 +4230,12 @@ async function abreOS(id, scrollRestaurar){
   });
   if($("add-tarefa")) $("add-tarefa").onclick = function(){
     var cat = CATS[a.categoria] || CATS['agricola'];
-    var zops = '<option value="">— sem zona —</option>' + Object.keys(cat.zonas).map(function(z){
-      return '<option value="'+z+'">'+esc(ZONA_LBL[z]||z)+'</option>'; }).join('');
+    /* "Aeronave completa" primeiro (pedido do Aislan): revisão de 300h
+       mexe no avião inteiro — todo mundo já entende de cara. */
+    var zops = '<option value="">— sem zona —</option>'+
+      '<option value="aeronave">✈️ Aeronave completa</option>'+
+      Object.keys(cat.zonas).map(function(z){
+        return '<option value="'+z+'">'+esc(ZONA_LBL[z]||z)+'</option>'; }).join('');
     abreModal('Nova tarefa',
       '<label class="blk">Descrição do serviço *'+(window.Voz?Voz.botao('t-desc','descrição do serviço'):'')+'</label><input class="in" id="t-desc">'+
       '<label class="blk" style="margin-top:10px">Zona da aeronave <span style="font-weight:600;text-transform:none;letter-spacing:0">(marca o ponto na prancheta)</span></label>'+
@@ -4478,9 +4519,66 @@ async function abreOS(id, scrollRestaurar){
       }, 350);
     };
   };
+  /* ---- FORA DE BASE + calculadora de KM ---- */
+  if($("fb-edit")) $("fb-edit").onclick = function(){
+    abreModal('Serviço fora de base',
+      '<label style="display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer">'+
+        '<input type="checkbox" id="fb-on" '+(o.fora_base?'checked':'')+'> Esta OS é <b>fora de base</b> (equipe vai até o cliente)</label>'+
+      '<label class="blk" style="margin-top:10px">Local do serviço</label>'+
+      '<input class="in" id="fb-loc" placeholder="ex.: Porto Velho – RO" value="'+esc(o.fb_local||'')+'">'+
+      '<label class="blk" style="margin-top:10px">Situação da equipe</label>'+
+      '<select class="in" id="fb-st">'+
+        '<option value="deslocamento"'+(o.fb_status==='deslocamento'?' selected':'')+'>🚚 Equipe em deslocamento</option>'+
+        '<option value="no_local"'+(o.fb_status==='no_local'?' selected':'')+'>🔧 Equipe no local, preparando a manutenção</option>'+
+      '</select>'+
+      '<div style="background:#f6f8fb;border:1px solid #dbe3ec;border-radius:10px;padding:11px;margin-top:12px">'+
+        '<label class="blk" style="margin-top:0">🧮 Deslocamento (km só de IDA — a volta dobra sozinha)</label>'+
+        '<div class="row"><div><label class="blk">KM de ida</label><input class="in" id="fb-km" type="text" inputmode="numeric" value="'+esc(o.fb_km||'')+'"></div>'+
+        '<div><label class="blk">R$ por km</label><input class="in" id="fb-vkm" type="text" inputmode="decimal" value="'+esc(o.fb_km_valor!=null?String(o.fb_km_valor).replace('.',','):'3,90')+'"></div></div>'+
+        '<div id="fb-calc" style="font-size:.9rem;margin-top:8px;font-weight:700"></div>'+
+        '<div class="no" style="margin-top:4px">O valor por km já inclui hospedagem e alimentação da equipe.</div>'+
+        '<label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.88rem;cursor:pointer">'+
+          '<input type="checkbox" id="fb-lanca" checked> Lançar o deslocamento como serviço no orçamento</label>'+
+      '</div>',
+      'Salvar', async function(){
+        var num = function(el){ var s=(el.value||'').trim().replace(/\./g,'').replace(',','.'); return s?Number(s):null; };
+        var km = num($("fb-km")), vkm = num($("fb-vkm")) || 3.90;
+        var patch = { fora_base: $("fb-on").checked,
+          fb_local: $("fb-loc").value.trim()||null,
+          fb_status: $("fb-on").checked ? $("fb-st").value : null,
+          fb_km: km, fb_km_valor: vkm };
+        var r = await sb.from('manut_os').update(patch).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        if($("fb-on").checked && $("fb-lanca").checked && km){
+          var total = km*2*vkm;
+          var descr = 'DESLOCAMENTO'+(patch.fb_local?' — '+patch.fb_local.toUpperCase():'')+
+            ' ('+km+' KM IDA + '+km+' KM VOLTA = '+(km*2)+' KM × '+fmtR(vkm)+'; INCLUI HOSPEDAGEM E ALIMENTAÇÃO)';
+          // substitui o lançamento anterior de deslocamento, se houver
+          await sb.from('manut_os_mao_obra').delete().eq('os_id', id).like('descricao', 'DESLOCAMENTO%');
+          var r2 = await sb.from('manut_os_mao_obra').insert({ os_id:id, descricao:descr, valor:total, valor_tabela:total });
+          if(r2.error){ toast(r2.error.message,'err'); return false; }
+        }
+        toast('Fora de base atualizado ✓','ok'); recarrega(); return true;
+      });
+    /* a conta aparece na hora, enquanto digita */
+    function conta(){
+      var km = parseFloat(($("fb-km").value||'').replace(',','.'))||0;
+      var v  = parseFloat(($("fb-vkm").value||'').replace(/\./g,'').replace(',','.'))||3.90;
+      $("fb-calc").textContent = km ? (km+' ida + '+km+' volta = '+(km*2)+' km × '+fmtR(v)+' = '+fmtR(km*2*v)) : '';
+    }
+    $("fb-km").oninput = conta; $("fb-vkm").oninput = conta; conta();
+  };
+
   /* ---- SERVIÇOS (o que vira o orçamento) ---- */
   if($("mo-add")) $("mo-add").onclick = function(){
     abreModal('Serviço do orçamento',
+      /* Tabela de preços da oficina (pedido da Bianca): 546 serviços já
+         tabelados — escolher um preenche a descrição e o valor de tabela. */
+      '<div style="background:#f6f8fb;border:1px solid #dbe3ec;border-radius:10px;padding:11px;margin-bottom:12px">'+
+        '<label class="blk" style="margin-top:0">🔎 Buscar na tabela de serviços da oficina</label>'+
+        '<input class="in" id="mo-busca" placeholder="ex.: revisão 100, magneto, pastilha…">'+
+        '<div id="mo-res" style="max-height:200px;overflow:auto;margin-top:8px"></div>'+
+      '</div>'+
       '<label class="blk">Descrição do serviço *'+(window.Voz?Voz.botao('mo-desc','descrição do serviço'):'')+'</label>'+
       '<input class="in" id="mo-desc" placeholder="ex.: REVISÃO DE 100 HORAS">'+
       '<div class="row" style="margin-top:10px">'+
@@ -4513,6 +4611,40 @@ async function abreOS(id, scrollRestaurar){
         recarrega(); return true;
       });
     if(window.Voz) Voz.ativarTodos(sb, SB_URL);
+
+    /* busca na tabela de serviços: escolher preenche descrição e valor de tabela */
+    var bq = $("mo-busca");
+    if(bq) bq.oninput = function(){
+      clearTimeout(buscaTimer);
+      var v = this.value;
+      buscaTimer = setTimeout(async function(){
+        var el = $("mo-res"); if(!el) return;
+        var termo = (v||'').trim().toUpperCase();
+        if(termo.length < 2){ el.innerHTML=''; return; }
+        var base;
+        try{ base = await carregaTabelaServicos(); }
+        catch(e){ el.innerHTML = '<div class="no">Não deu para abrir a tabela. Digite o serviço manualmente.</div>'; return; }
+        var palavras = termo.split(/\s+/).filter(Boolean);
+        var achou = base.filter(function(s){
+          for(var k=0;k<palavras.length;k++){ if(s.d.toUpperCase().indexOf(palavras[k])<0) return false; }
+          return true;
+        }).slice(0, 25);
+        if(!achou.length){ el.innerHTML = '<div class="no">Nada na tabela para “'+esc(v)+'”. Digite manualmente abaixo.</div>'; return; }
+        el.innerHTML = achou.map(function(s){
+          return '<div class="oshist" data-d="'+esc(s.d)+'" data-v="'+(s.v!=null?s.v:'')+'" style="cursor:pointer">'+
+            '<div class="oshist__b"><div class="oshist__t" style="font-size:.86rem">'+esc(s.d)+'</div></div>'+
+            '<b style="white-space:nowrap">'+(s.v!=null?fmtR(s.v):'<span class="no">sem preço</span>')+'</b></div>';
+        }).join('');
+        el.querySelectorAll('[data-d]').forEach(function(li){
+          li.onclick = function(){
+            $("mo-desc").value = li.getAttribute('data-d');
+            var val = li.getAttribute('data-v');
+            if(val) $("mo-vt").value = String(Number(val).toFixed(2)).replace('.',',');
+            el.innerHTML = '<div class="no" style="color:var(--green-d)">✓ Preenchido da tabela — ajuste o valor cobrado se tiver desconto.</div>';
+          };
+        });
+      }, 300);
+    };
   };
   /* desconto final e observações extras do orçamento */
   if($("orc-cfg")) $("orc-cfg").onclick = function(){
@@ -4545,19 +4677,37 @@ async function abreOS(id, scrollRestaurar){
   });
 
   /* ---- ANEXOS (PDF do orçamento que a oficina já faz) ---- */
-  if($("anx-file")) $("anx-file").onchange = async function(){
+  if($("anx-file")) $("anx-file").onchange = function(){
     var f = this.files && this.files[0]; if(!f) return;
     if(f.size > 10*1024*1024){ toast('Arquivo maior que 10 MB. Reduza e tente de novo.','err'); this.value=''; return; }
-    var lbl = this.parentNode; var txtOrig = lbl.textContent;
-    lbl.textContent = 'Enviando…';
-    var ext = (f.name.split('.').pop()||'pdf').toLowerCase();
-    var caminho = 'os/'+id+'/anexos/'+Date.now()+'.'+ext;
-    var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf' });
-    if(up.error){ toast(up.error.message,'err'); lbl.textContent = txtOrig; this.value=''; return; }
-    var r = await sb.from('manut_os_anexos').insert({ os_id:id, titulo:f.name, caminho:caminho, tamanho:f.size });
-    if(r.error){ toast(r.error.message,'err'); lbl.textContent = txtOrig; return; }
-    toast('Arquivo anexado ✓ Libere ao cliente se quiser que ele veja.','ok');
-    recarrega();
+    var input = this;
+    /* Pergunta o tipo antes de subir (pedido da Bianca): FORM e nota fiscal
+       de cada peça vão anexados à documentação física da aeronave. */
+    abreModal('Anexar documento',
+      '<label class="blk">Nome do documento *</label>'+
+      '<input class="in" id="ax-tit" value="'+esc(f.name)+'">'+
+      '<label class="blk" style="margin-top:10px">Tipo</label>'+
+      '<select class="in" id="ax-tipo">'+
+        '<option value="form">📑 FORM (formulário da peça/componente)</option>'+
+        '<option value="nota">🧾 Nota fiscal</option>'+
+        '<option value="orcamento">💰 Orçamento</option>'+
+        '<option value="laudo">📋 Laudo</option>'+
+        '<option value="outro">📄 Outro</option>'+
+      '</select>'+
+      '<div class="no" style="margin-top:8px">FORM e nota fiscal ficam ligados a esta OS e acompanham a documentação da aeronave.</div>',
+      'Enviar', async function(){
+        var tit = $("ax-tit").value.trim() || f.name;
+        var ext = (f.name.split('.').pop()||'pdf').toLowerCase();
+        var caminho = 'os/'+id+'/anexos/'+Date.now()+'.'+ext;
+        var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf' });
+        if(up.error){ toast(up.error.message,'err'); return false; }
+        var r = await sb.from('manut_os_anexos').insert({ os_id:id, titulo:tit,
+          tipo:$("ax-tipo").value, caminho:caminho, tamanho:f.size });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        input.value = '';
+        toast('Documento anexado ✓ Libere ao cliente se quiser que ele veja.','ok');
+        recarrega(); return true;
+      });
   };
   document.querySelectorAll('.anx-ver').forEach(function(b){
     b.onclick = async function(){
