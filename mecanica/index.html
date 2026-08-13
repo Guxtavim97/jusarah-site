@@ -551,20 +551,35 @@
        que o visor, o que jogava metade dela pra fora e sumia o título) */
     .ov{padding:0;place-items:stretch;overflow-y:auto}
     .sheet{width:100%;max-width:none;max-height:none;min-height:100%;border-radius:0}
-    .sheet__h{padding:13px 14px;flex-wrap:wrap;gap:9px}
-    .sheet__h h2{font-size:1.08rem;width:100%;line-height:1.25}
-    .sheet__h .spacer{display:none}
-    .sheet__h .btn{flex:1 1 auto}
-    .sheet__b{padding:14px 14px 44px;gap:12px}
-    .box{padding:15px 14px}
-    .box h3{font-size:.95rem;flex-wrap:wrap}
 
-    /* prancheta: o carimbo sai de cima do desenho e vira legenda embaixo */
+    /* Cabeçalho da OS: título em cima, botões em grade de 2 — nada de
+       fileira comprida estourando a tela. E ele NÃO fica grudado no topo
+       no celular (grudado, comia metade do visor). */
+    .sheet__h{padding:12px 14px;position:static;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sheet__h>div:first-child{grid-column:1/-1}
+    .sheet__h h2{font-size:1.06rem;line-height:1.25}
+    .sheet__h .spacer{display:none}
+    .sheet__h .btn{width:100%;margin:0;padding:11px 8px;font-size:.82rem;text-align:center;
+      white-space:normal;line-height:1.2;min-height:44px}
+    .sheet__b{padding:12px 12px 48px;gap:12px}
+    .box{padding:14px 13px;border-radius:12px}
+    .box h3{font-size:.95rem;flex-wrap:wrap;line-height:1.3}
+
+    /* iPhone dá zoom sozinho em campo com letra menor que 16px — evita isso
+       e de quebra deixa tudo mais confortável de tocar */
+    .in, input, select, textarea{font-size:16px!important}
+    .btn{min-height:42px}
+    .btn--sm{min-height:38px}
+
+    /* PRANCHETA: no celular o desenho começa RECOLHIDO (um toque abre)
+       e, aberto, ocupa no máximo metade do visor — nada de mapa gigante */
+    .pranc-det>summary{padding:12px 4px!important;font-size:.9rem!important}
+    .pr .dw{max-height:44vh}
     .pr__carimbo{position:static;display:block;margin:0;border:0;border-top:1px solid rgba(127,212,255,.16);
       border-radius:0;background:rgba(7,18,40,.6)}
     .pr__carimbo div{padding:5px 12px}
     .pr__selo{font-size:.5rem;letter-spacing:.14em}
-    .pr__nota{font-size:.54rem;line-height:1.4}
+    .pr__nota{display:none}
 
     /* tabelas passam a rolar sozinhas em vez de espremer */
     table.t{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -577,7 +592,15 @@
     .gal{grid-template-columns:1fr 1fr;gap:10px}
     .cust{flex-wrap:wrap}
     .cust__b{flex:1 1 100%;order:2}
-    .row>*{min-width:100%}
+    .row{display:grid;grid-template-columns:1fr;gap:8px}
+    .row>*{min-width:0;width:100%}
+    .dl{grid-template-columns:1fr}
+
+    /* cartões de serviço: botão embaixo da descrição, largura total —
+       dedo acerta fácil e o texto respira */
+    .tk-acao{flex:1 1 100%!important}
+    .tk-acao .btn{width:100%}
+    .tk-acao .aguarda{display:block;text-align:center}
   }
 
   /* ============================================================
@@ -3538,13 +3561,13 @@ async function abreOS(id, scrollRestaurar){
                   : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'" style="white-space:nowrap">✔ Conferir</button>')
               : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')));
     tHtml+='<div style="border:1px solid #e3e9f0;border-left:3.5px solid '+cor+';border-radius:10px;padding:9px 11px;margin-bottom:7px;background:#fff">'+
-      '<div style="display:flex;gap:10px;align-items:center">'+
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+
         '<span style="flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
           'border:1.5px solid '+cor+';color:'+cor+';font-weight:800;font-size:.75rem;font-family:var(--mono)">'+(ti+1)+'</span>'+
-        '<div style="flex:1;min-width:0;overflow-wrap:anywhere"><b style="font-size:.9rem">'+esc(t.descricao)+'</b>'+
+        '<div style="flex:1;min-width:200px;overflow-wrap:anywhere"><b style="font-size:.9rem">'+esc(t.descricao)+'</b>'+
           (t.zona?'<span class="no" style="margin-left:7px">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
           (t.referencia_manual?'<span class="no" style="margin-left:7px">'+esc(t.referencia_manual)+'</span>':'')+'</div>'+
-        '<div style="flex:0 0 auto">'+acao+'</div>'+
+        '<div class="tk-acao" style="flex:0 1 auto">'+acao+'</div>'+
       '</div>'+
       ((t.executado_em || t.conferido_em)
         ? '<div style="display:flex;flex-wrap:wrap;gap:3px 16px;margin-top:6px;padding-left:34px;font-size:.75rem;color:#5b6b78">'+
@@ -3928,7 +3951,8 @@ async function abreOS(id, scrollRestaurar){
         '<div class="no" style="margin-top:6px">Precisa ser resolvida para concluir a OS.</div></div>' : '')+
      guiaHtml +
      avBanner +
-     '<details class="pranc-det" open><summary style="cursor:pointer;font-weight:700;font-size:.82rem;color:var(--blue);padding:7px 0">✈️ Desenho técnico — tocar para recolher</summary>'+prancheta(a, tarefas, o)+'</details>'+
+     /* no celular o desenho começa recolhido — um toque abre; no computador, aberto */
+     '<details class="pranc-det"'+(window.innerWidth<760?'':' open')+'><summary style="cursor:pointer;font-weight:700;font-size:.82rem;color:var(--blue);padding:7px 0">✈️ Desenho técnico da aeronave — tocar para '+(window.innerWidth<760?'abrir':'recolher')+'</summary>'+prancheta(a, tarefas, o)+'</details>'+
      '<div class="box"><h3>📋 Recebimento</h3>'+recebHtml+'</div>'+
      '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 10')+'</span></h3>'+
        '<div class="steps">'+steps+'</div>'+acoes+
@@ -3997,6 +4021,9 @@ async function abreOS(id, scrollRestaurar){
     var sh0 = document.querySelector('.sheet'); if(sh0) sh0.scrollTop = scrollRestaurar;
   } else {
     medirTracos();   // primeira abertura: o avião se desenha
+    /* no celular o desenho começa fechado: mede os traços quando abrir */
+    var pd0 = document.querySelector('.pranc-det');
+    if(pd0 && !pd0.open) pd0.addEventListener('toggle', function(){ if(pd0.open) medirTracos(); }, {once:true});
   }
 
   var recarrega = async function(){
