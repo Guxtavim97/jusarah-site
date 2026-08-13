@@ -178,13 +178,20 @@
 
   /* ---------- MODAL / FICHA DA OS ---------- */
   .ov{position:fixed;inset:0;background:rgba(10,20,32,.55);z-index:60;display:grid;place-items:center;padding:18px}
-  .sheet{background:var(--bg);border-radius:18px;width:min(1080px,100%);max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+  /* A OS NUNCA rola para o lado: só de cima para baixo. Quem precisar de
+     largura (tabelas) rola dentro da própria caixa, não a tela toda. */
+  .sheet{background:var(--bg);border-radius:18px;width:min(1080px,100%);max-height:92vh;
+    overflow-y:auto;overflow-x:hidden;box-shadow:0 30px 80px rgba(0,0,0,.3)}
   .sheet__h{background:#fff;padding:18px 22px;border-bottom:1px solid var(--line);
-    display:flex;align-items:flex-start;gap:14px;position:sticky;top:0;z-index:2}
+    display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:2}
   .sheet__h h2{margin:0;font-size:1.3rem}
   .sheet__h .sub{color:var(--muted);font-size:.9rem}
-  .sheet__b{padding:18px 22px 30px;display:grid;gap:16px}
-  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .sheet__b{padding:18px 22px 30px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-width:0}
+  /* tabelas largas rolam dentro da caixa */
+  .box table.t{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+  .box .dl,.box dl{min-width:0}
+  .box img,.box svg{max-width:100%}
   .box h3{margin:0 0 12px;font-size:1rem;display:flex;align-items:center;gap:8px}
   .box h3 .c{margin-left:auto;font-size:.76rem;font-weight:800;color:var(--muted)}
   .steps{display:flex;flex-wrap:wrap;gap:6px}
@@ -1278,8 +1285,8 @@ function montaFicha(o, a, tarefas, pecas, nome){
       var cod = m?m[1]:'', txt = m?m[2]:(t.descricao||'');
       return '<tr><td class="n">'+esc(cod)+'</td>'+
         '<td>'+esc(txt)+(t.referencia_manual?' <span style="color:#5b6b78;font-size:8pt">['+esc(t.referencia_manual)+']</span>':'')+'</td>'+
-        '<td>'+(t.executado_em?esc(nome(t.executor_id))+'<br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.executado_em)+'</span>':'—')+'</td>'+
-        '<td>'+(t.conferido_em?esc(nome(t.conferente_id))+'<br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.conferido_em)+'</span>':'—')+'</td></tr>';
+        '<td>'+(t.executado_em?'<b>Assinado</b><br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.executado_em)+'</span>':'—')+'</td>'+
+        '<td>'+(t.conferido_em?'<b>Assinado</b><br><span style="font-size:7.5pt;color:#5b6b78">'+dataBR(t.conferido_em)+'</span>':'—')+'</td></tr>';
     }).join('');
     return '<h2>'+esc(s)+'</h2><table class="rp-t"><thead><tr><th style="width:26px">#</th>'+
       '<th>Natureza da Inspeção</th><th style="width:22%">Realizado</th><th style="width:22%">Inspecionado</th></tr></thead>'+
@@ -1394,8 +1401,9 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
         (t.zona?'<br><span style="font-size:8.5pt;color:#5b6b78">Zona: '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
         (t.referencia_manual?'<br><span style="font-size:8.5pt;color:#5b6b78">Ref.: '+esc(t.referencia_manual)+'</span>':'')+
       '</td>'+
-      '<td>'+(t.executado_em ? esc(nome(t.executor_id))+'<br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.executado_em)+'</span>' : '—')+'</td>'+
-      '<td>'+(t.conferido_em ? esc(nome(t.conferente_id))+'<br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.conferido_em)+'</span>' : '—')+'</td></tr>';
+      /* documento externo: "Assinado" + data/hora, sem nomes */
+      '<td>'+(t.executado_em ? '<b>Assinado</b><br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.executado_em)+'</span>' : '—')+'</td>'+
+      '<td>'+(t.conferido_em ? '<b>Assinado</b><br><span style="font-size:8.5pt;color:#5b6b78">'+dt(t.conferido_em)+'</span>' : '—')+'</td></tr>';
   }).join('');
 
   var pendFeitas = pend.filter(function(p){ return p.resolvida_em; });
@@ -1412,9 +1420,9 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
   var sigFim  = aEtapa.filter(function(x){ return x.para_etapa===10; })[0];
   var sigInternas =
     (sigGate ? '<div><div class="q">Liberação do planejamento (Gate)</div><div class="n">'+
-        esc(nome(sigGate.quem))+'</div><div class="d">'+dt(sigGate.quando)+'</div></div>' : '')+
+        'Assinado</div><div class="d">'+dt(sigGate.quando)+'</div></div>' : '')+
     (sigFim ? '<div><div class="q">Aprovação para retorno ao serviço</div><div class="n">'+
-        esc(nome(sigFim.quem))+'</div><div class="d">'+dt(sigFim.quando)+'</div></div>' : '');
+        'Assinado</div><div class="d">'+dt(sigFim.quando)+'</div></div>' : '');
 
   /* certificado da assinatura externa (piloto/proprietário) — com toda a prova */
   function certBloco(tipo, rot){
@@ -1523,8 +1531,10 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
       (sigInternas ? '<div class="rp-sig">'+sigInternas+'</div>' : '')+
       sigExternas : '')+
 
-    '<div class="rp-nota"><b>Cross check:</b> todo serviço registrado neste relatório foi executado por um profissional '+
-      'e conferido por uma <b>segunda pessoa</b>, conforme o procedimento da oficina.<br>'+
+    '<div class="rp-nota"><b>Inspeção final (cross check):</b> todo serviço registrado neste relatório foi executado '+
+      'por profissional habilitado e submetido a <b>inspeção final de conformidade por um segundo profissional</b> '+
+      'antes da aprovação para retorno ao serviço. A identificação nominal dos responsáveis consta do registro '+
+      'técnico interno da oficina, disponível às autoridades de aviação civil quando requerido.<br>'+
       '<b>Validade das assinaturas:</b> as assinaturas de entrega e retirada foram firmadas pelo próprio signatário por '+
       '<b>biometria do aparelho</b> (Face ID / impressão digital), verificada no servidor da PJ AERO CENTRO, e ficam vinculadas ao '+
       '<b>selo único</b>, à data e hora com segundos, ao IP de origem e ao aparelho utilizado. Cada selo corresponde a uma '+
@@ -1560,7 +1570,104 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
    vibração, ruído de vazamento). `forcar` trava o momento quando
    o sistema está exigindo a mídia pra avançar de etapa.
    ============================================================ */
-var MAX_VIDEO_MB = 120;   // dá ~1 min 30 de vídeo de celular
+var MAX_VIDEO_MB = 300;        // tamanho BRUTO aceito do celular (~1min30 em 1080p)
+var ALVO_VIDEO_MB = 30;        // tamanho depois de comprimir — o que vai pra nuvem
+
+/* ============================================================
+   COMPRIME O VÍDEO NO PRÓPRIO APARELHO, antes de subir.
+   Um vídeo de 1min30 do celular passa de ~120 MB para ~15 MB, sem
+   perder o que importa: dá pra OUVIR o motor e VER o vazamento.
+   O áudio é roteado pelo Web Audio para o gravador — assim ele é
+   preservado sem sair tocando alto no hangar.
+   Se o navegador não suportar, devolve o arquivo original.
+   ============================================================ */
+function suportaCompressao(){
+  return !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream &&
+            (window.AudioContext || window.webkitAudioContext));
+}
+function tipoGravacao(){
+  var op = ['video/mp4;codecs=avc1,mp4a', 'video/mp4',
+            'video/webm;codecs=vp8,opus', 'video/webm'];
+  for(var i=0;i<op.length;i++){
+    try{ if(MediaRecorder.isTypeSupported(op[i])) return op[i]; }catch(e){}
+  }
+  return '';
+}
+function comprimeVideo(arq, aoAndar){
+  return new Promise(function(resolve){
+    var pronto = false;
+    function devolveOriginal(motivo){
+      if(pronto) return; pronto = true;
+      resolve({ blob:arq, ctype: arq.type||'video/mp4',
+                ext:(arq.name.split('.').pop()||'mp4').toLowerCase(), original:true, motivo:motivo });
+    }
+    if(!suportaCompressao()) return devolveOriginal('aparelho não suporta');
+    var mime = tipoGravacao();
+    if(!mime) return devolveOriginal('formato não suportado');
+
+    var v = document.createElement('video');
+    v.playsInline = true; v.preload = 'auto';
+    v.src = URL.createObjectURL(arq);
+
+    var travaTempo = setTimeout(function(){ devolveOriginal('demorou demais'); }, 5*60*1000);
+
+    v.onerror = function(){ clearTimeout(travaTempo); devolveOriginal('não deu para ler o vídeo'); };
+    v.onloadedmetadata = function(){
+      try{
+        var lado = 640;                       // maior lado do vídeo comprimido
+        var esc2 = Math.min(1, lado / Math.max(v.videoWidth, v.videoHeight));
+        var W = Math.round(v.videoWidth  * esc2 / 2) * 2;   // par, exigido por alguns codecs
+        var H = Math.round(v.videoHeight * esc2 / 2) * 2;
+        if(!W || !H) return devolveOriginal('dimensão inválida');
+
+        var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        var ctx = cv.getContext('2d');
+        var vStream = cv.captureStream(24);
+
+        /* áudio: passa pelo Web Audio e vai só para o gravador (não toca alto) */
+        var AC = window.AudioContext || window.webkitAudioContext;
+        var ac = new AC();
+        var fonte = ac.createMediaElementSource(v);
+        var destino = ac.createMediaStreamDestination();
+        fonte.connect(destino);
+
+        var faixas = vStream.getVideoTracks().concat(destino.stream.getAudioTracks());
+        var rec = new MediaRecorder(new MediaStream(faixas), {
+          mimeType: mime, videoBitsPerSecond: 900000, audioBitsPerSecond: 64000
+        });
+        var pedacos = [];
+        rec.ondataavailable = function(e){ if(e.data && e.data.size) pedacos.push(e.data); };
+        rec.onerror = function(){ clearTimeout(travaTempo); try{ac.close();}catch(e){} devolveOriginal('falha ao comprimir'); };
+        rec.onstop = function(){
+          clearTimeout(travaTempo);
+          try{ ac.close(); }catch(e){}
+          if(pronto) return;
+          var saida = new Blob(pedacos, { type: mime.split(';')[0] });
+          /* se por algum motivo não encolheu, manda o original mesmo */
+          if(!saida.size || saida.size >= arq.size) return devolveOriginal('não reduziu');
+          pronto = true;
+          resolve({ blob: saida, ctype: mime.split(';')[0],
+                    ext: mime.indexOf('mp4')>=0 ? 'mp4' : 'webm',
+                    original:false, de:arq.size, para:saida.size });
+        };
+
+        function desenha(){
+          if(v.ended || v.paused) return;
+          ctx.drawImage(v, 0, 0, W, H);
+          if(aoAndar && v.duration) aoAndar(Math.min(99, Math.round(v.currentTime / v.duration * 100)));
+          requestAnimationFrame(desenha);
+        }
+        v.onended = function(){ try{ rec.stop(); }catch(e){} };
+
+        rec.start(1000);
+        v.play().then(function(){ desenha(); }).catch(function(){
+          clearTimeout(travaTempo); try{ac.close();}catch(e){} devolveOriginal('não deu para reproduzir');
+        });
+      }catch(e){ clearTimeout(travaTempo); devolveOriginal(e.message||'erro'); }
+    };
+  });
+}
+
 function novaMidia(osId, o, recarrega, forcar, depois){
   var trava = !!forcar;
   var opTipo = trava
@@ -1590,9 +1697,10 @@ function novaMidia(osId, o, recarrega, forcar, depois){
     '<input class="in" id="f-arq" type="file" accept="image/*,video/*" style="margin-top:8px">'+
     '<div id="f-nome" class="no" style="margin-top:6px"></div>'+
     '<div class="no" style="margin-top:8px">📷 Foto é reduzida no aparelho antes de subir.<br>'+
-    '🎥 Vídeo (com som) até <b>'+MAX_VIDEO_MB+' MB</b> — cerca de <b>1 min 30</b> de celular. '+
-    'Grave o sintoma com calma; com sinal ruim, vídeo grande pode demorar a subir.<br>'+
-    'Tudo fica em área privada, visível só para a oficina.</div>',
+    '🎥 Vídeo <b>com som</b> de até <b>1 min 30</b>. O aparelho <b>reduz o vídeo sozinho</b> antes de enviar — '+
+    'o som do motor e a imagem continuam nítidos, e sobe rápido mesmo com sinal fraco.<br>'+
+    'Tudo fica em área privada, visível só para a oficina.</div>'+
+    '<div id="f-prog" style="margin-top:10px;font-size:.86rem"></div>',
     'Enviar', async function(){
       var arq = window.__arqMidia || ($("f-arq").files && $("f-arq").files[0]);
       if(!arq){ toast('Escolha uma foto ou vídeo.','err'); return false; }
@@ -1602,14 +1710,33 @@ function novaMidia(osId, o, recarrega, forcar, depois){
       var ehVideo = (arq.type||'').indexOf('video') === 0;
 
       var blob, ext, ctype;
+      var av = document.getElementById('f-prog');
       if(ehVideo){
         if(arq.size > MAX_VIDEO_MB*1024*1024){
           toast('Vídeo tem '+Math.round(arq.size/1048576)+' MB. O limite é '+MAX_VIDEO_MB+' MB — grave um trecho menor.','err');
           return false;
         }
-        blob = arq; ctype = arq.type || 'video/mp4';
-        ext = (arq.name.split('.').pop() || 'mp4').toLowerCase();
-        toast('Enviando vídeo… pode demorar um pouco.');
+        /* comprime aqui no aparelho: economiza espaço e sobe muito mais rápido */
+        if(av) av.innerHTML = '<b>Preparando o vídeo…</b> <span id="f-pc">0%</span>'+
+          '<div style="height:6px;background:#e3e9f0;border-radius:99px;margin-top:5px;overflow:hidden">'+
+          '<div id="f-bar" style="height:100%;width:0;background:#12294d;transition:width .2s"></div></div>'+
+          '<div class="no" style="margin-top:4px">Leva mais ou menos o tempo do vídeo. Não feche esta tela.</div>';
+        var r = await comprimeVideo(arq, function(p){
+          var pc = document.getElementById('f-pc'), bar = document.getElementById('f-bar');
+          if(pc) pc.textContent = p+'%'; if(bar) bar.style.width = p+'%';
+        });
+        blob = r.blob; ctype = r.ctype; ext = r.ext;
+        if(r.original){
+          if(av) av.innerHTML = '<span class="no">Enviando o vídeo original ('+Math.round(arq.size/1048576)+' MB)…</span>';
+          toast('Enviando o vídeo original — este aparelho não comprime ('+(r.motivo||'')+').');
+        } else {
+          if(av) av.innerHTML = '<span class="no">✅ Vídeo reduzido de '+Math.round(r.de/1048576)+' MB para <b>'+
+            (r.para/1048576).toFixed(1)+' MB</b> — enviando…</span>';
+          toast('Vídeo reduzido para '+(r.para/1048576).toFixed(1)+' MB. Enviando…','ok');
+        }
+        if(blob.size > ALVO_VIDEO_MB*1024*1024){
+          toast('O vídeo ainda ficou com '+Math.round(blob.size/1048576)+' MB. Vai subir, mas prefira trechos mais curtos.','err');
+        }
       } else {
         blob = await comprimeImagem(arq); ctype = 'image/jpeg'; ext = 'jpg';
         toast('Enviando foto…');
@@ -3414,7 +3541,7 @@ async function abreOS(id, scrollRestaurar){
       '<div style="display:flex;gap:10px;align-items:center">'+
         '<span style="flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
           'border:1.5px solid '+cor+';color:'+cor+';font-weight:800;font-size:.75rem;font-family:var(--mono)">'+(ti+1)+'</span>'+
-        '<div style="flex:1;min-width:0"><b style="font-size:.9rem">'+esc(t.descricao)+'</b>'+
+        '<div style="flex:1;min-width:0;overflow-wrap:anywhere"><b style="font-size:.9rem">'+esc(t.descricao)+'</b>'+
           (t.zona?'<span class="no" style="margin-left:7px">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
           (t.referencia_manual?'<span class="no" style="margin-left:7px">'+esc(t.referencia_manual)+'</span>':'')+'</div>'+
         '<div style="flex:0 0 auto">'+acao+'</div>'+

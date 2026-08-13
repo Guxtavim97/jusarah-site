@@ -604,12 +604,13 @@ function desenha(d){
         (t.referencia?'<span>📘 '+esc(t.referencia)+'</span>':'')+'</div>';
     }
     if(feito){
+      /* sem nomes para o cliente: só o registro de que foi feito e conferido */
       det += '<div class="assin2">'+
-        '<div><small>Executado por</small><b>'+esc(t.executor||'—')+'</b>'+
+        '<div><small>Executado</small><b>Assinado</b>'+
           '<span>'+dataBR(t.executado_em)+'</span></div>'+
-        '<div class="'+(ok?'ok':'')+'"><small>Conferido por</small><b>'+
-          (ok?esc(t.conferente||'—'):'aguardando')+'</b>'+
-          '<span>'+(ok?dataBR(t.conferido_em):'2ª pessoa')+'</span></div></div>';
+        '<div class="'+(ok?'ok':'')+'"><small>Inspeção final</small><b>'+
+          (ok?'Assinado':'aguardando')+'</b>'+
+          '<span>'+(ok?dataBR(t.conferido_em):'2º profissional')+'</span></div></div>';
     }
     return '<div class="sv"><div class="sv__ic'+(ok?' ok':'')+'">'+(ok?'✓':'·')+'</div>'+
       '<div style="flex:1"><div class="sv__t">'+esc(t.descricao)+'</div>'+
@@ -643,10 +644,13 @@ function desenha(d){
       return '<div class="sv"><div class="sv__ic'+(alerta?' esp':' ok')+'">'+(alerta?'!':'✓')+'</div>'+
         '<div><div class="sv__t">'+(alerta?'Retirada autorizada antes da conclusão'
           :esc(AS_TX[s.para_etapa]||'Assinatura'))+'</div>'+
-        '<div class="sv__s">'+esc(s.nome||'—')+' · '+dtBR(s.quando)+'</div></div></div>';
+        /* Para o cliente: só ASSINADO + data e hora. O nome de quem assinou
+           é dado interno da oficina e fica no registro, não neste link. */
+        '<div class="sv__s"><b style="color:#2e9c5a">Assinado</b> · '+dtBR(s.quando)+'</div></div></div>';
     }).join('')+
-    '<div class="nota">Assinaturas eletrônicas, registradas com identificação de quem assinou, '+
-    'data e hora. <b>Não podem ser alteradas depois.</b></div></div>' : '';
+    '<div class="nota">Assinaturas eletrônicas registradas com data e hora, vinculadas ao profissional '+
+    'habilitado responsável. <b>Não podem ser alteradas depois.</b> A identificação nominal consta do '+
+    'registro técnico interno da oficina, disponível às autoridades de aviação civil quando requerido.</div></div>' : '';
 
   function grupo(t,cls,lbl,sub){
     var g=md.filter(function(m){return m.tipo===t;});
