@@ -1560,7 +1560,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
    vibração, ruído de vazamento). `forcar` trava o momento quando
    o sistema está exigindo a mídia pra avançar de etapa.
    ============================================================ */
-var MAX_VIDEO_MB = 40;
+var MAX_VIDEO_MB = 120;   // dá ~1 min 30 de vídeo de celular
 function novaMidia(osId, o, recarrega, forcar, depois){
   var trava = !!forcar;
   var opTipo = trava
@@ -1590,8 +1590,8 @@ function novaMidia(osId, o, recarrega, forcar, depois){
     '<input class="in" id="f-arq" type="file" accept="image/*,video/*" style="margin-top:8px">'+
     '<div id="f-nome" class="no" style="margin-top:6px"></div>'+
     '<div class="no" style="margin-top:8px">📷 Foto é reduzida no aparelho antes de subir.<br>'+
-    '🎥 Vídeo (com som) até <b>'+MAX_VIDEO_MB+' MB</b> — uns 30 segundos de celular. '+
-    'Grave só o sintoma; vídeo longo não sobe com sinal ruim.<br>'+
+    '🎥 Vídeo (com som) até <b>'+MAX_VIDEO_MB+' MB</b> — cerca de <b>1 min 30</b> de celular. '+
+    'Grave o sintoma com calma; com sinal ruim, vídeo grande pode demorar a subir.<br>'+
     'Tudo fica em área privada, visível só para a oficina.</div>',
     'Enviar', async function(){
       var arq = window.__arqMidia || ($("f-arq").files && $("f-arq").files[0]);
@@ -3295,6 +3295,9 @@ async function abreOS(id, scrollRestaurar){
   var pecas   = (await sb.from('manut_os_pecas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var maoObra = (await sb.from('manut_os_mao_obra').select('*').eq('os_id',id).order('criado_em')).data||[];
   var anexos  = (await sb.from('manut_os_anexos').select('*').eq('os_id',id).order('criado_em')).data||[];
+  var avisos  = o.aeronave_id
+    ? ((await sb.from('manut_aeronave_avisos').select('*').eq('aeronave_id',o.aeronave_id).order('criado_em')).data||[])
+    : [];
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   /* URL assinada de cada foto — serve pra galeria E pro relatório */
   for(var fi=0; fi<fotos.length; fi++){
@@ -3383,43 +3386,50 @@ async function abreOS(id, scrollRestaurar){
       sistemas.map(function(s,i){ return '<button class="jump-sis" data-jump="sis-'+i+'" style="white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--blue);cursor:pointer">'+esc(s)+'</button>'; }).join('')+
       '</div>'
     : '';
-  var tHtml=tResumo+chips+'<table class="t"><thead><tr><th>#</th><th>Serviço</th><th>Executor</th><th>Cross check</th><th></th></tr></thead><tbody>';
-  if(!tarefas.length) tHtml+='<tr><td colspan="5" class="no">Nenhuma tarefa registrada.</td></tr>';
+  /* Lista em CARTÕES, não em tabela (pedido da Bianca): o botão de
+     executar fica sempre à vista, sem rolar a barra para o lado. */
+  var tHtml=tResumo+chips+'<div>';
+  if(!tarefas.length) tHtml+='<div class="no">Nenhuma tarefa registrada.</div>';
   var prevSist=null;
   tarefas.forEach(function(t, ti){
     if(t.sistema && t.sistema!==prevSist){
       prevSist=t.sistema;
-      tHtml+='<tr id="sis-'+sistemas.indexOf(t.sistema)+'"><td colspan="5" style="background:#eef2f6;font-weight:800;font-size:.76rem;letter-spacing:.06em;color:#12294d;padding:6px 9px">'+esc(t.sistema)+'</td></tr>';
+      tHtml+='<div id="sis-'+sistemas.indexOf(t.sistema)+'" style="background:#eef2f6;font-weight:800;font-size:.76rem;letter-spacing:.06em;color:#12294d;padding:6px 10px;border-radius:8px;margin:10px 0 6px">'+esc(t.sistema)+'</div>';
     }
     var meuExec = t.executor_id===usuario.id;
     var cor = t.conferido_em ? '#2f9e44' : (t.executado_em ? '#b8860b' : '#8fa3b5');
-    tHtml+='<tr><td><span style="display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
-      'border:1.5px solid '+cor+';color:'+cor+';font-weight:800;font-size:.78rem;font-family:var(--mono)">'+(ti+1)+'</span></td>'+
-      '<td><b>'+esc(t.descricao)+'</b>'+
-      (t.zona?'<br><span class="no">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
-      (t.referencia_manual?'<br><span class="no">'+esc(t.referencia_manual)+'</span>':'')+'</td>'+
-      '<td class="sig">'+(t.executado_em?'<b>'+esc(nome(t.executor_id))+'</b><span>'+dt(t.executado_em)+'</span>':'<span class="no">—</span>')+'</td>'+
-      '<td class="sig">'+(t.conferido_em?'<b>'+esc(nome(t.conferente_id))+'</b><span>'+dt(t.conferido_em)+'</span>':'<span class="no">—</span>')+'</td>'+
-      '<td style="text-align:right">'+
-        (encerrada ? '' :
-          /* Executar/conferir só valem a partir da EXECUÇÃO (pedido do Aislan):
-             antes disso o avião nem entrou no hangar. */
-          (o.etapa < ETAPA_EXEC
-            ? (t.executado_em ? '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>'
-                              : '<span class="no" title="Disponível quando a OS entrar em Execução">🔒 na Execução</span>')
-            : (!t.executado_em
-              ? '<button class="btn btn--blue btn--sm" data-exec="'+t.id+'">Executei</button>'
-              : (!t.conferido_em
-                  ? (meuExec
-                      ? '<span class="aguarda">⏳ aguarda 2ª pessoa'+
-                        '<small>você executou — o cross check exige outra pessoa</small></span>'
-                      : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'">Conferir</button>')
-                  : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>'))))+
-      '</td></tr>';
+    var acao = encerrada ? '' :
+      (o.etapa < ETAPA_EXEC
+        ? (t.executado_em ? '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>'
+                          : '<span class="no" style="white-space:nowrap" title="Disponível quando a OS entrar em Execução">🔒 na Execução</span>')
+        : (!t.executado_em
+          ? '<button class="btn btn--blue btn--sm" data-exec="'+t.id+'" style="white-space:nowrap">✔ Executei</button>'
+          : (!t.conferido_em
+              ? (meuExec
+                  ? '<span class="aguarda">⏳ aguarda 2ª pessoa'+
+                    '<small>você executou — o cross check exige outra pessoa</small></span>'
+                  : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'" style="white-space:nowrap">✔ Conferir</button>')
+              : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')));
+    tHtml+='<div style="border:1px solid #e3e9f0;border-left:3.5px solid '+cor+';border-radius:10px;padding:9px 11px;margin-bottom:7px;background:#fff">'+
+      '<div style="display:flex;gap:10px;align-items:center">'+
+        '<span style="flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
+          'border:1.5px solid '+cor+';color:'+cor+';font-weight:800;font-size:.75rem;font-family:var(--mono)">'+(ti+1)+'</span>'+
+        '<div style="flex:1;min-width:0"><b style="font-size:.9rem">'+esc(t.descricao)+'</b>'+
+          (t.zona?'<span class="no" style="margin-left:7px">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
+          (t.referencia_manual?'<span class="no" style="margin-left:7px">'+esc(t.referencia_manual)+'</span>':'')+'</div>'+
+        '<div style="flex:0 0 auto">'+acao+'</div>'+
+      '</div>'+
+      ((t.executado_em || t.conferido_em)
+        ? '<div style="display:flex;flex-wrap:wrap;gap:3px 16px;margin-top:6px;padding-left:34px;font-size:.75rem;color:#5b6b78">'+
+          (t.executado_em?'<span>🔧 Executado: <b>'+esc(nome(t.executor_id))+'</b> · '+dt(t.executado_em)+'</span>':'')+
+          (t.conferido_em?'<span>✅ Cross check: <b>'+esc(nome(t.conferente_id))+'</b> · '+dt(t.conferido_em)+'</span>':'')+
+          '</div>'
+        : '')+
+    '</div>';
   });
   var tInsp = tarefas.filter(function(t){ return t.sistema; });          // vieram de uma inspeção
   var tInspLivres = tInsp.filter(function(t){ return !t.executado_em && !t.conferido_em; });
-  tHtml+='</tbody></table>'+(encerrada?'':
+  tHtml+='</div>'+(encerrada?'':
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
       '<button class="btn btn--ghost btn--sm" id="add-tarefa">+ Tarefa</button>'+
       '<button class="btn btn--blue btn--sm" id="carregar-insp">📋 Carregar inspeção</button>'+
@@ -3599,6 +3609,40 @@ async function abreOS(id, scrollRestaurar){
     '</div>';
   })();
 
+  /* ============ ANOTAÇÕES PARA A PRÓXIMA MANUTENÇÃO (Aislan) ============
+     O que o mecânico viu hoje e precisa ser olhado na PRÓXIMA revisão
+     desta aeronave. Fica preso à aeronave e aparece em destaque quando
+     a próxima OS abrir, até alguém marcar como tratado. */
+  var avAbertos = avisos.filter(function(v){ return !v.resolvido_em; });
+  var avAnteriores = avAbertos.filter(function(v){ return v.os_id !== id; });
+
+  var avBanner = avAnteriores.length
+    ? '<div class="box" style="border:1.5px solid #b8860b;background:#fffbeb">'+
+        '<h3 style="color:#8a6508;margin-top:0">📌 Da manutenção anterior — atenção nesta OS</h3>'+
+        avAnteriores.map(function(v){
+          return '<div style="display:flex;gap:9px;align-items:flex-start;padding:5px 0;font-size:.92rem">'+
+            '<span>⚠️</span><span style="flex:1"><b>'+esc(v.texto)+'</b>'+
+            '<br><span class="no">anotado por '+esc(nome(v.criado_por))+' em '+dataBR(v.criado_em)+'</span></span>'+
+            (encerrada?'':'<button class="btn btn--green btn--sm av-ok" data-id="'+v.id+'" style="white-space:nowrap">✓ Tratado</button>')+
+          '</div>';
+        }).join('')+
+      '</div>'
+    : '';
+
+  var avHtml = (avisos.length
+    ? avisos.map(function(v){
+        var ok = !!v.resolvido_em;
+        return '<div style="display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-top:1px solid #eef2f6;font-size:.9rem;'+(ok?'opacity:.55':'')+'">'+
+          '<span>'+(ok?'✅':'📌')+'</span>'+
+          '<span style="flex:1"><b'+(ok?' style="text-decoration:line-through"':'')+'>'+esc(v.texto)+'</b>'+
+            '<br><span class="no">'+esc(nome(v.criado_por))+' · '+dataBR(v.criado_em)+
+            (ok?' · tratado por '+esc(nome(v.resolvido_por))+' em '+dataBR(v.resolvido_em):'')+'</span></span>'+
+          (!ok && !encerrada ? '<button class="btn btn--ghost btn--sm av-ok" data-id="'+v.id+'">✓ Tratado</button>' : '')+
+        '</div>';
+      }).join('')
+    : '<div class="no">Nenhuma anotação. O que você viu hoje que a próxima manutenção precisa checar? Ex.: <i>checar a bateria — apresenta vazamento</i>.</div>')+
+    (encerrada?'':'<button class="btn btn--blue btn--sm" id="av-add" style="margin-top:9px">+ Anotar para a próxima manutenção</button>');
+
   /* --- recebimento: relatos do piloto + motivo (a "consulta") + motivo da espera --- */
   var recebHtml =
     '<dl class="dl">'+
@@ -3756,6 +3800,7 @@ async function abreOS(id, scrollRestaurar){
         abertas.map(function(p){ return '<div style="padding:3px 0;font-size:.92rem">• <b>'+esc(p.descricao)+'</b>'+(p.motivo?' — '+esc(p.motivo):'')+'</div>'; }).join('')+
         '<div class="no" style="margin-top:6px">Precisa ser resolvida para concluir a OS.</div></div>' : '')+
      guiaHtml +
+     avBanner +
      '<details class="pranc-det" open><summary style="cursor:pointer;font-weight:700;font-size:.82rem;color:var(--blue);padding:7px 0">✈️ Desenho técnico — tocar para recolher</summary>'+prancheta(a, tarefas, o)+'</details>'+
      '<div class="box"><h3>📋 Recebimento</h3>'+recebHtml+'</div>'+
      '<div class="box"><h3>Etapa do fluxo <span class="c">'+(encerrada?'arquivada':'etapa '+o.etapa+' de 10')+'</span></h3>'+
@@ -3764,6 +3809,9 @@ async function abreOS(id, scrollRestaurar){
        (o.descricao?'<div style="margin-top:10px">'+esc(o.descricao)+'</div>':'')+'</div>'+
      '<div class="box"><h3>🔒 Gate — Planejamento e Preparação (Etapa 6)</h3>'+gateHtml+'</div>'+
      '<div class="box"><h3>🔧 Serviços e Cross Check</h3>'+tHtml+'</div>'+
+     '<div class="box"><h3>📌 Para a próxima manutenção <span class="c">'+avAbertos.length+' aberta(s)</span></h3>'+
+       '<div class="no" style="margin-bottom:6px">Pontos que a <b>próxima revisão desta aeronave</b> precisa olhar. '+
+       'Aparecem em destaque quando a próxima OS for aberta.</div>'+avHtml+'</div>'+
      '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
      '<div class="box"'+(o.etapa===3?' style="border:1.5px solid #12294d33;background:#f7f9fc"':'')+'>'+
        '<h3>🧰 Peças e Materiais'+(o.etapa===3?' <span class="c" style="background:#12294d;color:#fff">etapa atual</span>':'')+'</h3>'+
@@ -4519,6 +4567,36 @@ async function abreOS(id, scrollRestaurar){
       }, 350);
     };
   };
+  /* ---- ANOTAÇÕES PARA A PRÓXIMA MANUTENÇÃO ---- */
+  if($("av-add")) $("av-add").onclick = function(){
+    if(!o.aeronave_id){ toast('Esta OS não tem aeronave vinculada.','err'); return; }
+    abreModal('Anotar para a próxima manutenção',
+      '<div class="no" style="margin-bottom:10px">O que você viu hoje que precisa ser checado na <b>próxima revisão</b> desta aeronave?</div>'+
+      '<label class="blk">Anotação *'+(window.Voz?Voz.botao('av-tx','anotação para a próxima manutenção'):'')+'</label>'+
+      '<textarea class="in" id="av-tx" rows="3" placeholder="ex.: checar a bateria — apresenta vazamento"></textarea>',
+      'Salvar anotação', async function(){
+        var tx = $("av-tx").value.trim();
+        if(!tx){ toast('Escreva a anotação.','err'); return false; }
+        var r = await sb.from('manut_aeronave_avisos').insert({ aeronave_id:o.aeronave_id, os_id:id, texto:tx });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Anotado ✓ Vai aparecer na próxima OS desta aeronave.','ok');
+        recarrega(); return true;
+      });
+    if(window.Voz) Voz.ativarTodos(sb, SB_URL);
+  };
+  document.querySelectorAll('.av-ok').forEach(function(b){
+    b.onclick = async function(){
+      if(!confirm('Marcar esta anotação como tratada nesta OS?')) return;
+      var r = await sb.from('manut_aeronave_avisos').update({
+        resolvido_em: new Date().toISOString(),
+        resolvido_por: usuario ? usuario.id : null,
+        resolvido_os: id
+      }).eq('id', b.dataset.id);
+      if(r.error){ toast(r.error.message,'err'); return; }
+      toast('Tratado ✓','ok'); recarrega();
+    };
+  });
+
   /* ---- FORA DE BASE + calculadora de KM ---- */
   if($("fb-edit")) $("fb-edit").onclick = function(){
     abreModal('Serviço fora de base',
