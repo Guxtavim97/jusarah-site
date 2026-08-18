@@ -3522,13 +3522,30 @@ async function abreOS(id, scrollRestaurar){
   var totT=tarefas.length,
       execT=tarefas.filter(function(t){return t.executado_em;}).length,
       confT=tarefas.filter(function(t){return t.conferido_em;}).length;
+  var faltaExecT = totT - execT;
+  var faltaConfT = tarefas.filter(function(t){ return t.executado_em && !t.conferido_em; }).length;
+
+  /* FILTRO — em Execução, o que FALTA vem primeiro e sozinho na tela.
+     Antes o pendente ficava perdido no meio dos já feitos e a equipe
+     tinha que caçar item por item. */
+  function bt(f, txt, n, cor, fundo, ativo){
+    if(!n && f!=='todos') return '';
+    return '<button class="f-tk" data-f="'+f+'" style="white-space:nowrap;border:1.5px solid '+(ativo?cor:'var(--line)')+';'+
+      'background:'+(ativo?cor:'#fff')+';color:'+(ativo?'#fff':cor)+';border-radius:999px;padding:6px 13px;'+
+      'font-size:.78rem;font-weight:800;cursor:pointer">'+txt+' '+n+'</button>';
+  }
+  var filtroIni = (o.etapa === ETAPA_EXEC && faltaExecT > 0) ? 'falta'
+                : (o.etapa === 9 && faltaConfT > 0) ? 'conferir' : 'todos';
   var tResumo = totT
-    ? '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;font-size:.8rem;font-weight:700">'+
-        '<span style="background:#eef2f6;padding:4px 11px;border-radius:999px">'+totT+' serviço(s) na OS</span>'+
-        '<span style="background:#fff4e0;color:#b8860b;padding:4px 11px;border-radius:999px">'+execT+' executado(s)</span>'+
-        '<span style="background:#e9f7ee;color:#2f9e44;padding:4px 11px;border-radius:999px">'+confT+' conferido(s)</span>'+
-        ((totT-execT)>0?'<span style="background:#fdecec;color:#c0392b;padding:4px 11px;border-radius:999px">'+(totT-execT)+' a executar</span>':'')+
-      '</div>'
+    ? '<div id="tk-filtros" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px">'+
+        bt('falta',   '⚡ Falta executar',    faltaExecT, '#c0392b', '#fdecec', filtroIni==='falta')+
+        bt('conferir','👁️ Falta cross check', faltaConfT, '#b8860b', '#fff4e0', filtroIni==='conferir')+
+        bt('todos',   'Todos os serviços',    totT,       '#12294d', '#eef2f6', filtroIni==='todos')+
+      '</div>'+
+      (faltaExecT===0 && totT
+        ? '<div style="background:#e9f7ee;color:#1B6E3B;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:.86rem;font-weight:700">'+
+          '✅ Todos os '+totT+' serviços foram executados.'+(faltaConfT?' Faltam '+faltaConfT+' no cross check.':' Cross check completo.')+'</div>'
+        : '')
     : '';
   var sistemas=[]; tarefas.forEach(function(t){ if(t.sistema && sistemas.indexOf(t.sistema)<0) sistemas.push(t.sistema); });
   var chips = sistemas.length>1
@@ -3544,8 +3561,9 @@ async function abreOS(id, scrollRestaurar){
   tarefas.forEach(function(t, ti){
     if(t.sistema && t.sistema!==prevSist){
       prevSist=t.sistema;
-      tHtml+='<div id="sis-'+sistemas.indexOf(t.sistema)+'" style="background:#eef2f6;font-weight:800;font-size:.76rem;letter-spacing:.06em;color:#12294d;padding:6px 10px;border-radius:8px;margin:10px 0 6px">'+esc(t.sistema)+'</div>';
+      tHtml+='<div class="tk-sis" data-sis="'+esc(t.sistema)+'" id="sis-'+sistemas.indexOf(t.sistema)+'" style="background:#eef2f6;font-weight:800;font-size:.76rem;letter-spacing:.06em;color:#12294d;padding:6px 10px;border-radius:8px;margin:10px 0 6px">'+esc(t.sistema)+'</div>';
     }
+    var st = !t.executado_em ? 'falta' : (!t.conferido_em ? 'conferir' : 'ok');
     var meuExec = t.executor_id===usuario.id;
     var cor = t.conferido_em ? '#2f9e44' : (t.executado_em ? '#b8860b' : '#8fa3b5');
     var acao = encerrada ? '' :
@@ -3560,7 +3578,8 @@ async function abreOS(id, scrollRestaurar){
                     '<small>você executou — o cross check exige outra pessoa</small></span>'
                   : '<button class="btn btn--green btn--sm" data-conf="'+t.id+'" style="white-space:nowrap">✔ Conferir</button>')
               : '<span style="color:var(--green);font-weight:800;font-size:1.1rem">✓</span>')));
-    tHtml+='<div style="border:1px solid #e3e9f0;border-left:3.5px solid '+cor+';border-radius:10px;padding:9px 11px;margin-bottom:7px;background:#fff">'+
+    tHtml+='<div class="tk-item" data-st="'+st+'" data-sis="'+esc(t.sistema||'')+'" '+
+      'style="border:1px solid #e3e9f0;border-left:3.5px solid '+cor+';border-radius:10px;padding:9px 11px;margin-bottom:7px;background:#fff">'+
       '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+
         '<span style="flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;'+
           'border:1.5px solid '+cor+';color:'+cor+';font-weight:800;font-size:.75rem;font-family:var(--mono)">'+(ti+1)+'</span>'+
@@ -4189,6 +4208,37 @@ async function abreOS(id, scrollRestaurar){
       montaOrcamento(o, a, pecas, cots, forn, nome, maoObra);
     }, 200);
   };
+  /* FILTRO dos serviços: mostra só o que falta, sem precisar procurar.
+     Esconde também o título do sistema que ficou sem nenhum item. */
+  (function(){
+    var barra = document.getElementById('tk-filtros');
+    if(!barra) return;
+    function aplica(f){
+      document.querySelectorAll('.tk-item').forEach(function(el){
+        el.style.display = (f==='todos' || el.getAttribute('data-st')===f) ? '' : 'none';
+      });
+      document.querySelectorAll('.tk-sis').forEach(function(h){
+        var s = h.getAttribute('data-sis'), tem = false;
+        document.querySelectorAll('.tk-item').forEach(function(el){
+          if(el.getAttribute('data-sis')===s && el.style.display !== 'none') tem = true;
+        });
+        h.style.display = tem ? '' : 'none';
+      });
+      barra.querySelectorAll('.f-tk').forEach(function(b){
+        var meu = b.getAttribute('data-f') === f;
+        var cor = b.getAttribute('data-f')==='falta' ? '#c0392b'
+                : b.getAttribute('data-f')==='conferir' ? '#b8860b' : '#12294d';
+        b.style.background = meu ? cor : '#fff';
+        b.style.color = meu ? '#fff' : cor;
+        b.style.borderColor = meu ? cor : 'var(--line)';
+      });
+    }
+    barra.querySelectorAll('.f-tk').forEach(function(b){
+      b.onclick = function(){ aplica(b.getAttribute('data-f')); };
+    });
+    aplica(filtroIni);   // em Execução já abre mostrando só o que falta
+  })();
+
   /* jump rápido por sistema + botão "topo" (checklist extenso) */
   document.querySelectorAll('.jump-sis').forEach(function(b){
     b.onclick = function(){ var el = document.getElementById(b.dataset.jump); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); };
