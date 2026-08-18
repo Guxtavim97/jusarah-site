@@ -3587,6 +3587,13 @@ async function abreOS(id, scrollRestaurar){
           (t.zona?'<span class="no" style="margin-left:7px">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
           (t.referencia_manual?'<span class="no" style="margin-left:7px">'+esc(t.referencia_manual)+'</span>':'')+'</div>'+
         '<div class="tk-acao" style="flex:0 1 auto">'+acao+'</div>'+
+        /* Excluir: só serviço AINDA NÃO EXECUTADO — o que já foi feito é
+           registro do serviço na aeronave e não se apaga. Fica discreto,
+           longe do "Executei", e ainda pede confirmação. */
+        ((!encerrada && !t.executado_em)
+          ? '<button class="tk-del" data-del="'+t.id+'" data-desc="'+esc(t.descricao)+'" title="Excluir este serviço" '+
+            'style="flex:0 0 auto;border:0;background:none;color:#b9c4cf;font-size:1rem;cursor:pointer;padding:4px 6px;line-height:1">🗑️</button>'
+          : '')+
       '</div>'+
       ((t.executado_em || t.conferido_em)
         ? '<div style="display:flex;flex-wrap:wrap;gap:3px 16px;margin-top:6px;padding-left:34px;font-size:.75rem;color:#5b6b78">'+
@@ -5139,6 +5146,32 @@ async function abreOS(id, scrollRestaurar){
 
   /* Carregou a inspeção errada? Desfaz — mas NUNCA apaga serviço já
      executado ou conferido: isso é registro do que foi feito na aeronave. */
+  /* Excluir um serviço lançado por engano — sempre com confirmação,
+     porque o toque pode ter sido sem querer. */
+  document.querySelectorAll('.tk-del').forEach(function(b){
+    b.onclick = function(){
+      var desc = b.getAttribute('data-desc') || 'este serviço';
+      if(!temPapel('diretor_tecnico')){
+        abreModal('Excluir serviço',
+          '<div class="no">Só o <b>Diretor Técnico</b> pode excluir itens de uma OS — é a trava que protege o registro do serviço.</div>'+
+          '<div style="margin-top:12px;font-size:.92rem">Peça a ele para remover:<br><b>'+esc(desc)+'</b></div>');
+        return;
+      }
+      abreModal('Excluir este serviço?',
+        '<div style="background:#fdf3f3;border:1.5px solid #e6b8b8;border-radius:10px;padding:12px">'+
+          '<div class="no" style="margin-bottom:5px">Vai ser removido da OS:</div>'+
+          '<b style="font-size:.95rem">'+esc(desc)+'</b>'+
+        '</div>'+
+        '<div class="no" style="margin-top:10px">Serviço ainda <b>não executado</b>, então nenhum registro de trabalho se perde. '+
+          'Se foi toque sem querer, é só cancelar.</div>',
+        '🗑️ Sim, excluir', async function(){
+          var r = await sb.from('manut_os_tarefas').delete().eq('id', b.getAttribute('data-del'));
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Serviço excluído ✓','ok'); recarrega(); return true;
+        });
+    };
+  });
+
   if($("tirar-insp")) $("tirar-insp").onclick = function(){
     var feitas = tInsp.length - tInspLivres.length;
     if(!tInspLivres.length){
