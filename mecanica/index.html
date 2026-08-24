@@ -5157,16 +5157,37 @@ async function abreOS(id, scrollRestaurar){
   if($("carregar-insp")) $("carregar-insp").onclick = async function(){
     var insps = (await sb.from('manut_inspecoes').select('*').eq('vigente',true).order('modelo')).data||[];
     if(!insps.length){ toast('Nenhum modelo de inspeção cadastrado ainda (rode o SQL da inspeção).','err'); return; }
-    // quais modelos usam INTERVALO (Air Tractor: 100/200/300/Anual) e quais usam 50/100h (Ipanema)
-    var comInt = (await sb.from('manut_inspecao_itens').select('inspecao_id').not('intervalo','is',null)).data||[];
-    var setInt = {}; comInt.forEach(function(x){ setInt[x.inspecao_id]=true; });
-    function ehIntervalo(ins){ return !!setInt[ins.id]; }
+    /* Cada ficha tem seus próprios intervalos: o Ipanema é 50/100h; o Air
+       Tractor é 100/200/300/Anual; o PT6A é MINOR/ROUTINE/por horas. Em vez
+       de fixar no código, lemos os intervalos que a ficha escolhida realmente
+       tem — assim qualquer ficha nova funciona sem mexer aqui. */
+    var comInt = (await sb.from('manut_inspecao_itens').select('inspecao_id,intervalo').not('intervalo','is',null)).data||[];
+    var intervPorInsp = {};
+    comInt.forEach(function(x){
+      if(!intervPorInsp[x.inspecao_id]) intervPorInsp[x.inspecao_id] = {};
+      intervPorInsp[x.inspecao_id][x.intervalo] = (intervPorInsp[x.inspecao_id][x.intervalo]||0) + 1;
+    });
+    function ehIntervalo(ins){ return !!intervPorInsp[ins.id]; }
+    /* ordena por horas quando o intervalo é numérico; o resto vem depois */
+    function horasDe(s){
+      var m = String(s).match(/(\d[\d.]*)\s*h/i) || String(s).match(/^(\d+)$/);
+      return m ? parseFloat(m[1].replace('.','')) : 1e9;
+    }
     function opcoesTipo(ins){
-      return ehIntervalo(ins)
-        ? '<option value="100">100 horas</option><option value="200">200 horas (inclui 100)</option>'+
-          '<option value="300">300 horas (inclui 100 e 200)</option><option value="anual">Anual (100/200/300 + anuais)</option>'+
-          '<option value="tudo">Tudo (inclui 1000/2000h e maiores)</option>'
-        : '<option value="100">100 horas</option><option value="50">50 horas</option>';
+      if(!ehIntervalo(ins))
+        return '<option value="100">100 horas</option><option value="50">50 horas</option>';
+      var mapa = intervPorInsp[ins.id] || {};
+      var lista = Object.keys(mapa).filter(function(k){ return k && k!=='—'; })
+                        .sort(function(a,b){ return horasDe(a)-horasDe(b) || a.localeCompare(b,'pt-BR'); });
+      /* o Air Tractor é cumulativo por horas — mantém as opções que a equipe já conhece */
+      var soHoras = lista.every(function(k){ return /^\d+$/.test(k) || /^(Anual|2 Anos|—)$/i.test(k); });
+      if(soHoras)
+        return '<option value="100">100 horas</option><option value="200">200 horas (inclui 100)</option>'+
+               '<option value="300">300 horas (inclui 100 e 200)</option><option value="anual">Anual (100/200/300 + anuais)</option>'+
+               '<option value="tudo">Tudo (inclui 1000/2000h e maiores)</option>';
+      return '<option value="tudo">Ficha completa ('+Object.keys(mapa).reduce(function(s,k){return s+mapa[k];},0)+' itens)</option>'+
+             lista.map(function(k){
+               return '<option value="i:'+esc(k)+'">Só '+esc(k)+' ('+mapa[k]+' itens)</option>'; }).join('');
     }
     // escolhe automaticamente a ficha certa pela aeronave desta OS
     var aerMod = ((o.manut_aeronaves||{}).modelo||'').toLowerCase();
@@ -5198,12 +5219,18 @@ async function abreOS(id, scrollRestaurar){
             .order('sistema').order('ordem')).data||[];
           var ref = function(it){ return !it.intervalo || it.intervalo==='—'; }; // itens de referência (--- ) sempre entram
           var permite;
-          if(tipo==='100') permite={'100':1};
+          if(tipo.indexOf('i:')===0){          // ficha com intervalos próprios (ex.: PT6A MINOR/ROUTINE)
+            var alvo = tipo.slice(2);
+            itens = todos.filter(function(it){ return it.intervalo === alvo; });
+            permite = 'pronto';
+          }
+          else if(tipo==='100') permite={'100':1};
           else if(tipo==='200') permite={'100':1,'200':1};
           else if(tipo==='300') permite={'100':1,'200':1,'300':1};
           else if(tipo==='anual') permite={'100':1,'200':1,'300':1,'Anual':1};
           else permite=null; // tudo
-          itens = todos.filter(function(it){ return ref(it) || !permite || permite[it.intervalo]; });
+          if(permite !== 'pronto')
+            itens = todos.filter(function(it){ return ref(it) || !permite || permite[it.intervalo]; });
         } else {
           var col = tipo==='50' ? 'ap_50' : 'ap_100';
           itens = (await sb.from('manut_inspecao_itens').select('*').eq('inspecao_id',insp.id).eq(col,true)
@@ -5215,7 +5242,9 @@ async function abreOS(id, scrollRestaurar){
           referencia_manual: it.nota?('Nota '+it.nota):null }; });
         var r = await sb.from('manut_os_tarefas').insert(rows);
         if(r.error){ toast(r.error.message,'err'); return false; }
-        var rotulo = ehIntervalo(insp) ? (tipo==='tudo'?'Completa':tipo==='anual'?'Anual':tipo+'h') : tipo+'h';
+        var rotulo = tipo.indexOf('i:')===0 ? tipo.slice(2)
+                   : ehIntervalo(insp) ? (tipo==='tudo'?'Completa':tipo==='anual'?'Anual':tipo+'h')
+                   : tipo+'h';
         await sb.from('manut_os').update({ tipo:'Inspeção '+rotulo+' · '+insp.modelo }).eq('id', id);
         toast(itens.length+' itens carregados.','ok'); recarrega(); return true;
       });
