@@ -1243,7 +1243,8 @@ function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
     '<table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px">'+
       '<tr><td style="padding:2px 0"><b>Proprietário:</b> '+esc((nomeProp(a.proprietario_id)||'—').toUpperCase())+'</td>'+
           '<td style="padding:2px 0"><b>Marca:</b> '+esc(a.prefixo||'—')+'</td></tr>'+
-      '<tr><td style="padding:2px 0"><b>Aeronave modelo:</b> '+esc(a.modelo||'—')+'</td>'+
+      '<tr><td style="padding:2px 0"><b>Aeronave modelo:</b> '+esc(a.modelo||'—')+
+          (a.fabricante?' <span style="color:#5b6b78">('+esc(a.fabricante)+')</span>':'')+'</td>'+
           '<td style="padding:2px 0"><b>N° de série:</b> '+esc(a.numero_serie||'—')+'</td></tr>'+
       '<tr><td style="padding:2px 0"><b>N° da OS:</b> '+esc(String(o.numero||''))+'</td>'+
           '<td style="padding:2px 0"><b>Data:</b> '+dataBR(dataOrc)+'</td></tr>'+
@@ -2840,6 +2841,7 @@ async function abreAeronave(id){
      prancheta(a, [], null)+
      '<div class="box"><h3>Dados da aeronave</h3><dl class="dl">'+
        '<dt>Matrícula</dt><dd>'+esc(a.prefixo)+'</dd>'+
+       '<dt>Fabricante</dt><dd>'+esc(a.fabricante||'—')+'</dd>'+
        '<dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd>'+
        '<dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd>'+
        '<dt>Categoria</dt><dd>'+esc(c.nome)+' <span class="no">('+esc(c.ex)+')</span></dd>'+
@@ -2848,7 +2850,15 @@ async function abreAeronave(id){
        '<dt>Piloto</dt><dd>'+(a.piloto?esc(a.piloto):'<span class="no">—</span>')+'</dd>'+
        '<dt>Operador</dt><dd>'+(oper?esc(oper):'<span class="no">mesmo que o proprietário</span>')+'</dd>'+
        '<dt>Horas de célula</dt><dd>'+(a.horas_celula!=null?a.horas_celula:'—')+'</dd>'+
-     '</dl>'+(a.proprietario_id?'<button class="btn btn--ghost btn--sm" id="aer-piloto" style="margin-top:8px">✏️ Definir piloto</button>':'')+'</div>'+
+     '</dl>'+
+     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+       '<button class="btn btn--blue btn--sm" id="aer-edit">✏️ Editar aeronave</button>'+
+       (a.proprietario_id?'<button class="btn btn--ghost btn--sm" id="aer-piloto">👨‍✈️ Definir piloto</button>':'')+
+     '</div>'+
+     (!a.proprietario_id
+       ? '<div class="aviso-suave" style="margin-top:10px">⚠️ Esta aeronave está <b>sem proprietário vinculado</b>. '+
+         'Use <b>Editar aeronave</b> — as OS já existentes passam a mostrar o dono automaticamente, sem precisar refazer nada.</div>'
+       : '')+'</div>'+
      '<div class="box"><h3>📄 Documentos da aeronave <span class="c">'+docs.length+'</span></h3>'+
        docsHtml+
        '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">'+
@@ -2873,6 +2883,58 @@ async function abreAeronave(id){
       $("modal").innerHTML=''; carregaAeronaves();
     });
   };
+  /* EDITAR AERONAVE — vincular ou trocar o proprietário sem mexer nas OS.
+     Como as OS puxam o dono pela aeronave, as que já existem passam a
+     mostrar o proprietário certo na hora (pedido da Bianca: PT-EHY e PR-VNT). */
+  if($("aer-edit")) $("aer-edit").onclick = function(){
+    function ops(sel, vazio){
+      return '<option value="">'+vazio+'</option>'+
+        PROPS.map(function(p){ return '<option value="'+p.id+'"'+(sel===p.id?' selected':'')+'>'+esc(p.nome)+'</option>'; }).join('');
+    }
+    var cats = [['agricola','Monomotor agrícola'],['asa-alta','Monomotor pistão, asa alta'],
+                ['asa-baixa','Monomotor pistão, asa baixa'],['bimotor','Bimotor pistão'],['turbo','Turboélice']];
+    abreModal('Editar aeronave — '+esc(a.prefixo),
+      '<div class="row"><div><label class="blk">Prefixo *</label><input class="in" id="e-pref" value="'+esc(a.prefixo||'')+'"></div>'+
+      '<div><label class="blk">Modelo</label><input class="in" id="e-mod" value="'+esc(a.modelo||'')+'"></div></div>'+
+      '<div class="row" style="margin-top:8px"><div><label class="blk">Fabricante</label><input class="in" id="e-fab" value="'+esc(a.fabricante||'')+'" placeholder="ex.: Embraer, Air Tractor"></div>'+
+      '<div><label class="blk">Nº de série</label><input class="in" id="e-sn" value="'+esc(a.numero_serie||'')+'"></div></div>'+
+      '<label class="blk" style="margin-top:10px">Categoria <span style="font-weight:600;text-transform:none;letter-spacing:0">(define o desenho da prancheta)</span></label>'+
+      '<select class="in" id="e-cat">'+cats.map(function(c){
+        return '<option value="'+c[0]+'"'+(a.categoria===c[0]?' selected':'')+'>'+c[1]+'</option>'; }).join('')+'</select>'+
+      '<label class="blk" style="margin-top:10px">Origem</label>'+
+      '<select class="in" id="e-orig">'+
+        '<option value="false"'+(!a.propria?' selected':'')+'>Aeronave de terceiro</option>'+
+        '<option value="true"'+(a.propria?' selected':'')+'>Frota própria</option></select>'+
+      '<label class="blk" style="margin-top:10px">Proprietário</label>'+
+      '<select class="in" id="e-dono">'+ops(a.proprietario_id,'— não vinculado —')+'</select>'+
+      '<label class="blk" style="margin-top:10px">Operador <span style="font-weight:600;text-transform:none;letter-spacing:0">(só se for diferente do dono)</span></label>'+
+      '<select class="in" id="e-oper">'+ops(a.operador_id,'— mesmo que o proprietário —')+'</select>'+
+      '<label class="blk" style="margin-top:10px">Horas de célula</label>'+
+      '<input class="in" id="e-hs" type="number" step="0.1" value="'+esc(a.horas_celula!=null?a.horas_celula:'')+'">'+
+      '<div class="no" style="margin-top:10px">Trocar o proprietário vale também para as <b>OS já abertas</b> desta aeronave — '+
+        'elas mostram o dono atual, sem precisar refazer nada.</div>',
+      'Salvar', async function(){
+        var pref = $("e-pref").value.trim();
+        if(!pref){ toast('Informe o prefixo.','err'); return false; }
+        var r = await sb.from('manut_aeronaves').update({
+          prefixo: pref.toUpperCase(),
+          modelo: $("e-mod").value.trim()||null,
+          fabricante: $("e-fab").value.trim()||null,
+          numero_serie: $("e-sn").value.trim()||null,
+          categoria: $("e-cat").value,
+          propria: $("e-orig").value==='true',
+          proprietario_id: $("e-dono").value || null,
+          operador_id: $("e-oper").value || null,
+          horas_celula: parseFloat($("e-hs").value)||null
+        }).eq('id', a.id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        await carregaAeronaves();
+        toast('Aeronave atualizada ✓','ok');
+        abreAeronave(a.id);          // reabre a ficha já com os dados novos
+        return true;
+      });
+  };
+
   if($("aer-piloto")) $("aer-piloto").onclick = async function(){
     var cts = (await sb.from('manut_prop_contatos').select('nome,funcao').eq('proprietario_id',a.proprietario_id).order('nome')).data||[];
     abreModal('Piloto da aeronave',
@@ -3323,9 +3385,22 @@ $("btn-nova-os").onclick = function(){
     'Abrir OS', async function(){
       var aer = AERONAVES.filter(function(a){ return a.id===$("o-aer").value; })[0];
       if(!aer){ toast('Escolha a aeronave.','err'); return false; }
+
+      /* A OS nova já nasce com os dados dos componentes (pedido da Bianca):
+         pega da ficha da aeronave; se ela ainda não tiver, herda da última
+         OS desta mesma aeronave. Os TSN/TSO vêm junto como ponto de partida
+         e a equipe só atualiza as horas. */
+      var comp = aer.componentes || null;
+      if(!comp){
+        var ult = await sb.from('manut_os').select('componentes')
+          .eq('aeronave_id', aer.id).not('componentes','is',null)
+          .order('aberta_em',{ascending:false}).limit(1).maybeSingle();
+        if(ult.data && ult.data.componentes) comp = ult.data.componentes;
+      }
       var r = await sb.from('manut_os').insert({
         aeronave_id: aer.id, cliente_id: aer.cliente_id || null,
         terceiro: !aer.propria,
+        componentes: comp,
         prioridade: parseInt($("o-prio").value)||3,
         prioridade_motivo:$("o-prio-m").value.trim()||null
       }).select().single();
@@ -4560,6 +4635,11 @@ async function abreOS(id, scrollRestaurar){
         var r = await sb.from('manut_os').update({ componentes:novo,
           horimetro: hor?Number(hor):null, manutencao_num:$("cp-num").value.trim()||null }).eq('id', id);
         if(r.error){ toast(r.error.message,'err'); return false; }
+        /* guarda também na ficha da AERONAVE, para a próxima OS já vir
+           preenchida — sem redigitar fabricante, modelo e nº de série */
+        if(o.aeronave_id){
+          try{ await sb.from('manut_aeronaves').update({ componentes:novo }).eq('id', o.aeronave_id); }catch(e){}
+        }
         recarrega(); return true;
       });
   };
