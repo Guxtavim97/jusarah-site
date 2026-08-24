@@ -5200,8 +5200,23 @@ async function abreOS(id, scrollRestaurar){
     }
     var idxPref = 0, melhorP = -1;
     insps.forEach(function(x,i){ var p=pontua(x); if(p>melhorP){ melhorP=p; idxPref=i; } });
-    var optModelos = insps.map(function(x,i){ return '<option value="'+i+'"'+(i===idxPref?' selected':'')+'>'+esc(x.modelo)+' — '+esc(x.revisao)+'</option>'; }).join('');
-    var dicaMod = melhorP>0 ? '<div class="no" style="margin:4px 0 0;font-size:.78rem">Já selecionei a ficha da aeronave <b>'+esc((o.manut_aeronaves||{}).modelo||'')+'</b>. Confira antes de carregar.</div>' : '';
+    /* a revisão de algumas fichas já começa com o modelo — não repete o nome */
+    function rotuloFicha(x){
+      var m = x.modelo||'', r = x.revisao||'';
+      if(r.toLowerCase().indexOf(m.toLowerCase()) === 0) return r;
+      return m + (r ? ' — ' + r : '');
+    }
+    var optModelos = insps.map(function(x,i){ return '<option value="'+i+'"'+(i===idxPref?' selected':'')+'>'+esc(rotuloFicha(x))+'</option>'; }).join('');
+    /* Quando nenhuma ficha corresponde à aeronave, o certo é AVISAR, não deixar
+       uma ficha qualquer pré-selecionada — carregar a ficha de outro modelo é
+       justamente o erro que não pode acontecer. */
+    var modAer = (o.manut_aeronaves||{}).modelo||'';
+    var dicaMod = melhorP>0
+      ? '<div class="no" style="margin:4px 0 0;font-size:.78rem">Já selecionei a ficha da aeronave <b>'+esc(modAer)+'</b>. Confira antes de carregar.</div>'
+      : '<div class="no" style="margin:4px 0 0;font-size:.78rem;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+        '⚠️ <b>Não existe ficha cadastrada para '+esc(modAer||'esta aeronave')+'.</b> '+
+        'A lista acima está mostrando as fichas de <b>outros modelos</b> — confira bem antes de carregar, '+
+        'ou feche e peça o cadastro da ficha deste modelo.</div>';
     abreModal('Carregar inspeção',
       '<label class="blk">Modelo de inspeção</label>'+
       '<select class="in" id="ins-modelo">'+optModelos+'</select>'+dicaMod+
