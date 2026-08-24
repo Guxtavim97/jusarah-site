@@ -5148,12 +5148,35 @@ async function abreOS(id, scrollRestaurar){
       var m = String(s).match(/(\d[\d.]*)\s*h/i) || String(s).match(/^(\d+)$/);
       return m ? parseFloat(m[1].replace('.','')) : 1e9;
     }
+    /* Devolve as colunas de horas quando a ficha é do tipo "tabela do manual"
+       (cada item já traz em quais colunas está marcado). Senão, null. */
+    function colunasDaFicha(lista){
+      var soNum = lista.length && lista.every(function(k){ return /^\d+(\/\d+)*$/.test(k); });
+      if(!soNum || !lista.some(function(k){ return k.indexOf('/')>=0; })) return null;
+      var todas = {};
+      lista.forEach(function(k){ k.split('/').forEach(function(h){ todas[h]=1; }); });
+      return Object.keys(todas).sort(function(a,b){ return parseInt(a,10)-parseInt(b,10); });
+    }
+    function contaColuna(ins, h){
+      var mapa = intervPorInsp[ins.id] || {}, n = 0;
+      Object.keys(mapa).forEach(function(k){
+        if(k && k!=='—' && k.split('/').indexOf(h)>=0) n += mapa[k]; });
+      return n;
+    }
     function opcoesTipo(ins){
       if(!ehIntervalo(ins))
         return '<option value="100">100 horas</option><option value="50">50 horas</option>';
       var mapa = intervPorInsp[ins.id] || {};
       var lista = Object.keys(mapa).filter(function(k){ return k && k!=='—'; })
                         .sort(function(a,b){ return horasDe(a)-horasDe(b) || a.localeCompare(b,'pt-BR'); });
+      /* Ficha em colunas (o Seneca II): o próprio manual diz em quais colunas
+         cada item está marcado — ex. '100/500/1000'. Então a escolha é a coluna,
+         e não uma soma de intervalos menores. */
+      var colunas = colunasDaFicha(lista);
+      if(colunas)
+        return colunas.map(function(h){
+          return '<option value="c:'+h+'">'+h+' horas ('+contaColuna(ins,h)+' itens)</option>'; }).join('')+
+          '<option value="tudo">Ficha completa</option>';
       /* o Air Tractor é cumulativo por horas — mantém as opções que a equipe já conhece */
       var soHoras = lista.every(function(k){ return /^\d+$/.test(k) || /^(Anual|2 Anos|—)$/i.test(k); });
       if(soHoras)
@@ -5170,7 +5193,8 @@ async function abreOS(id, scrollRestaurar){
       var m = (ins.modelo||'').toLowerCase(); var p = 0;
       if(aerMod.indexOf('air tractor')>=0 && m.indexOf('air tractor')>=0) p+=5;
       if(aerMod.indexOf('ipanema')>=0 && m.indexOf('ipanema')>=0) p+=5;
-      ['at-502','at502','at-504','at504','502','504','203'].forEach(function(k){
+      if(aerMod.indexOf('seneca')>=0 && m.indexOf('seneca')>=0) p+=5;
+      ['at-502','at502','at-504','at504','502','504','203','810c','emb-810'].forEach(function(k){
         if(aerMod.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0 && m.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0) p+=2; });
       return p;
     }
@@ -5199,6 +5223,12 @@ async function abreOS(id, scrollRestaurar){
             itens = todos.filter(function(it){ return it.intervalo === alvo; });
             permite = 'pronto';
           }
+          else if(tipo.indexOf('c:')===0){     // coluna da tabela do manual (ex.: Seneca 50/100/500/1000)
+            var h = tipo.slice(2);
+            itens = todos.filter(function(it){
+              return ref(it) || String(it.intervalo).split('/').indexOf(h) >= 0; });
+            permite = 'pronto';
+          }
           else if(tipo==='100') permite={'100':1};
           else if(tipo==='200') permite={'100':1,'200':1};
           else if(tipo==='300') permite={'100':1,'200':1,'300':1};
@@ -5213,7 +5243,7 @@ async function abreOS(id, scrollRestaurar){
         }
         if(!itens.length){ toast('Sem itens para esse tipo.','err'); return false; }
         var rows = itens.map(function(it){ return { os_id:id, sistema:it.sistema,
-          descricao:(it.codigo?it.codigo+' · ':'')+it.descricao+(it.intervalo && it.intervalo!=='—'?' ('+it.intervalo+(/^\d+$/.test(it.intervalo)?'h':'')+')':''),
+          descricao:(it.codigo?it.codigo+' · ':'')+it.descricao+(it.intervalo && it.intervalo!=='—'?' ('+it.intervalo+(/^\d+(\/\d+)*$/.test(it.intervalo)?'h':'')+')':''),
           referencia_manual: it.nota?('Nota '+it.nota):null }; });
         var r = await sb.from('manut_os_tarefas').insert(rows);
         if(r.error){ toast(r.error.message,'err'); return false; }
