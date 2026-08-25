@@ -3511,6 +3511,8 @@ async function abreOS(id, scrollRestaurar){
   var pecas   = (await sb.from('manut_os_pecas').select('*').eq('os_id',id).order('criado_em')).data||[];
   var maoObra = (await sb.from('manut_os_mao_obra').select('*').eq('os_id',id).order('criado_em')).data||[];
   var anexos  = (await sb.from('manut_os_anexos').select('*').eq('os_id',id).order('criado_em')).data||[];
+  /* quem mexeu em valor, quando e de quanto para quanto */
+  var vlog    = ((await sb.rpc('manut_valor_historico', { p_os: id })).data) || [];
   var avisos  = o.aeronave_id
     ? ((await sb.from('manut_aeronave_avisos').select('*').eq('aeronave_id',o.aeronave_id).order('criado_em')).data||[])
     : [];
@@ -3944,6 +3946,41 @@ async function abreOS(id, scrollRestaurar){
         'continua editável — lance o que faltar e envie ao cliente.</div>'
       : '';
 
+  /* ============================================================
+     REGISTRO DAS ALTERAÇÕES DE VALOR
+     Quem alterou, quando (data e hora) e de quanto para quanto. O que foi
+     mexido DEPOIS da OS concluída fica marcado — é o que precisa ficar
+     claro para quem for conferir a cobrança depois.
+     ============================================================ */
+  var vlogHtml = '';
+  if(vlog.length){
+    var fmtRv = function(v){ return v==null ? '—' : 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); };
+    var posConc = vlog.filter(function(x){ return x.pos_encerramento; }).length;
+    vlogHtml =
+      '<details class="box" style="margin-top:10px"'+(posConc?' open':'')+'>'+
+        '<summary style="cursor:pointer;font-weight:700;font-size:.92rem">'+
+          '🧾 Alterações de valor <span class="c">'+vlog.length+'</span>'+
+          (posConc?' <span class="c" style="background:#b06a2a;color:#fff">'+posConc+' após a conclusão</span>':'')+
+        '</summary>'+
+        '<div style="overflow-x:auto;margin-top:10px">'+
+        '<table class="t" style="font-size:.82rem"><thead><tr>'+
+          '<th>Quando</th><th>Quem</th><th>Item</th>'+
+          '<th style="text-align:right">De</th><th style="text-align:right">Para</th></tr></thead><tbody>'+
+        vlog.map(function(x){
+          return '<tr'+(x.pos_encerramento?' style="background:#fffbf2"':'')+'>'+
+            '<td style="white-space:nowrap">'+dtSeg(new Date(x.quando))+
+              (x.pos_encerramento?'<div class="no" style="color:#b06a2a;font-size:.74rem;margin:0">após a conclusão</div>':'')+'</td>'+
+            '<td>'+esc(x.quem_nome||'—')+'</td>'+
+            '<td>'+esc(x.descricao||'—')+
+              (x.revisao>1?'<div class="no" style="font-size:.74rem;margin:0">revisão '+x.revisao+'</div>':'')+'</td>'+
+            '<td style="text-align:right">'+fmtRv(x.valor_antes)+'</td>'+
+            '<td style="text-align:right"><b>'+fmtRv(x.valor_depois)+'</b></td></tr>';
+        }).join('')+
+        '</tbody></table></div>'+
+        '<div class="no" style="margin-top:8px;font-size:.78rem">Este registro é automático e não pode ser apagado.</div>'+
+      '</details>';
+  }
+
   /* --- peças e materiais (também alimenta o orçamento) --- */
   var totalPecas = pecas.reduce(function(s,p){ return s + (Number(p.quantidade||1)*Number(p.valor||0)); }, 0);
   var fmtR = function(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); };
@@ -4133,6 +4170,7 @@ async function abreOS(id, scrollRestaurar){
              '<b>TOTAL GERAL</b><b style="color:#12294d">'+fmtR(totalPecas+totalMO)+'</b></div>'+
          '</div>'
        : '')+
+     vlogHtml+
      '<div class="box"><h3>📎 Anexos da OS <span class="c">'+anexos.length+'</span></h3>'+
        '<div class="no" style="margin-bottom:10px">Suba aqui o orçamento em PDF que vocês já fazem, laudos ou notas. '+
        'O que for <b>liberado ao cliente</b> aparece no link de acompanhamento dele.</div>'+anxHtml+'</div>'+
