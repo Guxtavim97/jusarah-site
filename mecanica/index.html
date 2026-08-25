@@ -1237,7 +1237,13 @@ function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
       '</div>'+
     '</div>'+
 
-    '<h1 style="margin:14px 0 10px">Orçamento de Serviços</h1>'+
+    /* A revisão só aparece a partir da 2ª: o cliente precisa distinguir a
+       versão nova da que já recebeu, mas a 1ª não precisa carimbo. */
+    '<h1 style="margin:14px 0 '+((o.orcamento_revisao||1)>1?'4px':'10px')+'">Orçamento de Serviços</h1>'+
+    ((o.orcamento_revisao||1) > 1
+      ? '<div style="margin:0 0 10px;font-size:9.5pt"><b>Revisão '+(o.orcamento_revisao)+'</b>'+
+        ' — esta versão <b>substitui</b> o orçamento enviado anteriormente.</div>'
+      : '')+
 
     /* ---- identificação, como no modelo da oficina ---- */
     '<table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:12px">'+
@@ -3375,8 +3381,37 @@ var DECLARACAO = {
       'está em condições de <b>retornar ao serviço</b>. Esta assinatura constitui a aprovação para retorno ao serviço.' }
 };
 
+/* ============================================================
+   CONFERÊNCIA DO ORÇAMENTO ANTES DE ENCERRAR
+   Foi assim que o valor do óleo ficou de fora: encerraram sem ver que
+   um item estava sem preço. Aqui a lista aparece na cara de quem encerra.
+   Não impede o encerramento — a aeronave pode estar pronta para voar com
+   a cobrança ainda em aberto —, mas ninguém encerra sem saber.
+   ============================================================ */
+async function confereValores(osId){
+  var r = await sb.rpc('manut_pendencias_valor', { p_os: osId });
+  var faltam = (r && r.data) || [];
+  if(r && r.error) return true;             // função ainda não instalada: não atrapalha
+  if(!faltam.length) return true;
+  return await new Promise(function(ok){
+    abreModal('Antes de encerrar — confira o orçamento',
+      '<div class="no" style="color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+        'Estes <b>'+faltam.length+' item(ns)</b> estão <b>sem valor</b>. Se forem cobrados, precisam de preço '+
+        'antes do orçamento ir ao cliente.</div>'+
+      '<ul style="margin:10px 0 0;padding-left:20px;font-size:.9rem;line-height:1.6">'+
+        faltam.map(function(x){
+          return '<li><b>'+esc(x.descricao||'—')+'</b> <span class="no">· '+esc(x.tipo)+'</span></li>'; }).join('')+
+      '</ul>'+
+      '<p class="sub" style="margin-top:12px;font-size:.82rem">Você pode encerrar assim mesmo: a parte técnica fecha '+
+      'e o orçamento continua editável até a cobrança ser enviada.</p>',
+      'Encerrar assim mesmo', function(){ ok(true); return true; },
+      { aoCancelar: function(){ ok(false); } });
+  });
+}
+
 async function moverEtapa(osId, o, alvo, recarrega, senha, obs){
   if(alvo === o.etapa) return;
+  if(alvo > N_ETAPAS && !(await confereValores(osId))) return;   // encerramento
   var r = await sb.rpc('manut_mover_etapa', {p_os:osId, p_etapa:alvo, p_obs:obs||null, p_senha:senha||null});
   if(r.error){
     var msg = r.error.message || '';
@@ -3494,6 +3529,19 @@ async function abreOS(id, scrollRestaurar){
   var nome=function(i){ return i? (nomes[i]||'—') : '—'; };
   var a=o.manut_aeronaves||{};
   var encerrada = !!o.encerrada_em;
+  /* ============================================================
+     FINANCEIRO ≠ TÉCNICO.
+     Encerrar a OS libera a aeronave — é ato técnico e trava serviços,
+     checklist e assinaturas. O orçamento costuma sair DEPOIS disso, então
+     peças, serviços e valores continuam abertos até a cobrança andar:
+       • orçamento ainda não enviado -> qualquer um da oficina corrige
+       • já enviado ao cliente       -> só diretor/admin (e gera revisão)
+       • cobrança fechada            -> só diretor/admin, reabrindo antes
+     ============================================================ */
+  var orcEnviado   = !!o.orcamento_enviado_em;
+  var cobrFechada  = !!o.cobranca_fechada_em;
+  var revisaoOrc   = o.orcamento_revisao || 1;
+  var travadoFin   = (orcEnviado || cobrFechada) && !ehAdmin();
 
   /* --- etapas: indicador de progresso (NÃO é botão) --- */
   var steps = ETAPAS.map(function(e){
@@ -3868,20 +3916,42 @@ async function abreOS(id, scrollRestaurar){
       (o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>'+
     (encerrada?'':'<button class="btn btn--ghost btn--sm" id="comp-edit" style="margin-top:8px">✏️ Editar componentes</button>');
 
+  /* Situação da cobrança, dita em português no alto do bloco financeiro.
+     A OS pode estar encerrada e o orçamento seguir aberto — é o caso comum. */
+  var avisoFin =
+    cobrFechada
+      ? '<div class="no" style="margin-bottom:10px;color:#12294d;border-color:#c9d6e6;background:#f2f6fb">'+
+        '🔒 <b>Cobrança fechada</b> em '+dt(o.cobranca_fechada_em)+
+        (ehAdmin() ? ' — você pode reabrir para corrigir algum valor.'+
+                     '<button class="btn btn--ghost btn--sm" id="cob-reabrir" style="margin:8px 0 0">🔓 Reabrir cobrança</button>'
+                   : ' — para alterar um valor, peça ao Diretor Técnico.')+'</div>'
+    : orcEnviado
+      ? '<div class="no" style="margin-bottom:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+        '📤 <b>Orçamento já enviado ao cliente</b> em '+dt(o.orcamento_enviado_em)+
+        ' · revisão <b>'+revisaoOrc+'</b>'+
+        (ehAdmin() ? ' — se mudar algum valor agora, o orçamento passa para a revisão '+(revisaoOrc+1)+
+                     ' e o cliente precisa receber a versão nova.'
+                   : ' — alterar valor agora gera uma revisão nova, então só o Diretor Técnico faz isso.')+'</div>'
+    : encerrada
+      ? '<div class="no" style="margin-bottom:10px;color:var(--green-d)">'+
+        '✅ <b>Serviço encerrado, cobrança em aberto.</b> A parte técnica está fechada, mas o orçamento '+
+        'continua editável — lance o que faltar e envie ao cliente.</div>'
+      : '';
+
   /* --- peças e materiais (também alimenta o orçamento) --- */
   var totalPecas = pecas.reduce(function(s,p){ return s + (Number(p.quantidade||1)*Number(p.valor||0)); }, 0);
   var fmtR = function(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2}); };
   var pecasHtml = (pecas.length
-    ? '<table class="t" style="font-size:.85rem"><thead><tr><th>Qtd</th><th>Descrição</th><th>P/N</th><th>S/N</th><th>Valor un.</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
+    ? '<table class="t" style="font-size:.85rem"><thead><tr><th>Qtd</th><th>Descrição</th><th>P/N</th><th>S/N</th><th>Valor un.</th>'+(travadoFin?'':'<th></th>')+'</tr></thead><tbody>'+
       pecas.map(function(p){
         return '<tr><td>'+esc(p.quantidade!=null?p.quantidade:'—')+'</td><td>'+esc(p.descricao)+'</td>'+
           '<td>'+esc(p.pn||'—')+'</td><td>'+esc(p.sn||'—')+'</td>'+
           '<td>'+(p.valor!=null?fmtR(p.valor):'—')+'</td>'+
-          (encerrada?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm peca-del" data-id="'+p.id+'">🗑️</button></td>')+'</tr>';
+          (travadoFin?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm peca-del" data-id="'+p.id+'">🗑️</button></td>')+'</tr>';
       }).join('')+'</tbody></table>'
     : '<div class="no">Nenhuma peça registrada.</div>')+
     (totalPecas>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em peças: '+fmtR(totalPecas)+'</div>':'')+
-    (encerrada?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+    (travadoFin?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
       '<button class="btn btn--ghost btn--sm" id="peca-add">+ Peça / Material</button>'+
       '<button class="btn btn--blue btn--sm" id="orc-abrir">💰 Orçamento e cotações</button>'+
     '</div>');
@@ -3901,13 +3971,13 @@ async function abreOS(id, scrollRestaurar){
 
   var moHtml = (maoObra.length
     ? '<table class="t" style="font-size:.85rem"><thead><tr><th style="width:34px">#</th><th>Descrição do serviço</th>'+
-      '<th style="text-align:right">Valor tabela</th><th style="text-align:right">Valor cobrado</th>'+(encerrada?'':'<th></th>')+'</tr></thead><tbody>'+
+      '<th style="text-align:right">Valor tabela</th><th style="text-align:right">Valor cobrado</th>'+(travadoFin?'':'<th></th>')+'</tr></thead><tbody>'+
       moOrdenada.map(function(m,i){
         var cort = m.cortesia || valorMO(m)===0;
         return '<tr><td>'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
           '<td style="text-align:right">'+(tabelaMO(m)>0?fmtR(tabelaMO(m)):'—')+'</td>'+
           '<td style="text-align:right"><b>'+(cort?'<span style="color:var(--green-d)">Cortesia</span>':fmtR(valorMO(m)))+'</b></td>'+
-          (encerrada?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'">🗑️</button></td>')+'</tr>';
+          (travadoFin?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'">🗑️</button></td>')+'</tr>';
       }).join('')+'</tbody></table>'
     : '<div class="no">Nenhum serviço lançado. É esta lista que vira o orçamento do cliente.</div>')+
     (totalTab>0
@@ -3915,7 +3985,7 @@ async function abreOS(id, scrollRestaurar){
         (descMO>0?'<div style="color:var(--green-d)">Desconto e cortesias: <b>− '+fmtR(descMO)+'</b></div>':'')+
         '<div style="font-weight:800;font-size:1rem">Total em serviços: '+fmtR(totalMO)+'</div></div>'
       : '')+
-    (encerrada?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+    (travadoFin?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
       '<button class="btn btn--blue btn--sm" id="mo-add">+ Serviço</button>'+
       '<button class="btn btn--ghost btn--sm" id="orc-cfg">⚙️ Desconto e observações</button>'+
     '</div>');
@@ -3929,12 +3999,12 @@ async function abreOS(id, scrollRestaurar){
               (x.publico?' · <b style="color:var(--green-d)">visível ao cliente</b>':' · <span class="no">só interno</span>')+
             '</div></div>'+
           '<button class="btn btn--ghost btn--sm anx-ver" data-c="'+esc(x.caminho)+'">Abrir</button>'+
-          (encerrada?'':'<button class="btn btn--ghost btn--sm anx-pub" data-id="'+x.id+'" data-p="'+(x.publico?1:0)+'">'+(x.publico?'Ocultar':'Liberar ao cliente')+'</button>'+
+          (travadoFin?'':'<button class="btn btn--ghost btn--sm anx-pub" data-id="'+x.id+'" data-p="'+(x.publico?1:0)+'">'+(x.publico?'Ocultar':'Liberar ao cliente')+'</button>'+
                         '<button class="btn btn--ghost btn--sm anx-del" data-id="'+x.id+'" style="color:#ff9a8a">🗑️</button>')+
         '</div>';
       }).join('')
     : '<div class="no">Nenhum arquivo anexado. Use o botão abaixo para subir o orçamento em PDF que vocês já fazem.</div>')+
-    (encerrada?'':'<div style="margin-top:8px"><label class="btn btn--blue btn--sm" style="cursor:pointer">'+
+    (travadoFin?'':'<div style="margin-top:8px"><label class="btn btn--blue btn--sm" style="cursor:pointer">'+
       '📎 Anexar PDF<input type="file" id="anx-file" accept="application/pdf,image/*" style="display:none"></label>'+
       '<span class="no" style="margin-left:8px">até 10 MB</span></div>');
 
@@ -4041,6 +4111,7 @@ async function abreOS(id, scrollRestaurar){
          ? '<div class="no" style="margin-bottom:10px">Esta é a etapa do <b>orçamento</b>: monte a lista de peças (a busca preenche o P/N certo), '+
            'peça preço aos fornecedores e envie a comparação ao cliente.</div>'
          : '')+
+       avisoFin+
        pecasHtml+'</div>'+
      '<div class="box"><h3>🔧 Mão de obra'+(totalMO>0?' <span class="c">'+fmtR(totalMO)+'</span>':'')+'</h3>'+moHtml+'</div>'+
      (totalPecas>0 || totalMO>0
@@ -4560,6 +4631,18 @@ async function abreOS(id, scrollRestaurar){
   if($("os-aer-edit")) $("os-aer-edit").onclick = function(){
     editarAeronave(a, function(){ abreOS(id); });
   };
+  if($("cob-reabrir")) $("cob-reabrir").onclick = function(){
+    abreModal('Reabrir a cobrança',
+      '<div class="no">A cobrança desta OS foi fechada em <b>'+dt(o.cobranca_fechada_em)+'</b>. '+
+      'Reabrindo, os valores voltam a ser editáveis.</div>'+
+      '<p class="sub" style="margin-top:10px;font-size:.82rem">Como o orçamento já foi ao cliente, qualquer valor '+
+      'que mudar leva o documento para a <b>revisão '+(revisaoOrc+1)+'</b> — e a versão nova precisa ser reenviada.</p>',
+      '🔓 Reabrir', async function(){
+        var r = await sb.rpc('manut_cobranca_fechar', { p_os:id, p_fechar:false });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Cobrança reaberta ✓','ok'); recarrega(); return true;
+      });
+  };
   if($("receb-edit")) $("receb-edit").onclick = function(){
     var ags = ['Aguardando peça','Aguardando cliente enviar as peças','Aguardando aprovação do orçamento','Aguardando ferramenta','Outro'];
     var mv = function(campo, ctx){ return window.Voz?Voz.botao(campo, ctx):''; };
@@ -4760,8 +4843,10 @@ async function abreOS(id, scrollRestaurar){
           var d = soDig($("oc-fone").value||'');
           if(d.length<10){ toast('Informe o telefone com DDD.','err'); return false; }
           if(d.length<=11) d='55'+d;
-          await sb.from('manut_os').update({ cobranca_em:new Date().toISOString(),
-            cobranca_por: usuario?usuario.id:null, cobranca_obs:'Orçamento enviado' }).eq('id', id);
+          /* pela função do banco: a OS encerrada não aceita update direto, e é
+             aqui que o orçamento passa a contar revisão */
+          var rr = await sb.rpc('manut_orcamento_enviado', { p_os: id });
+          if(rr.error){ toast(rr.error.message,'err'); return false; }
           window.open('https://wa.me/'+d+'?text='+encodeURIComponent($("oc-msg").value), '_blank');
           toast('Orçamento enviado ao cliente ✓','ok'); recarrega(); return true;
         });
@@ -5348,7 +5433,9 @@ async function abreOS(id, scrollRestaurar){
 }
 
 /* ---------------- MODAL GENÉRICO ---------------- */
-function abreModal(titulo, corpo, btn, onOk){
+/* opcoes.aoCancelar: chamado quando fecha sem confirmar (quem espera
+   resposta do usuário precisa saber que ele desistiu) */
+function abreModal(titulo, corpo, btn, onOk, opcoes){
   var prev = $("modal").innerHTML;
   var d=document.createElement('div');
   d.className='ov';
@@ -5357,13 +5444,18 @@ function abreModal(titulo, corpo, btn, onOk){
     '<div class="sheet__b"><div class="box">'+corpo+
     '<button class="btn btn--blue btn--block" data-ok style="margin-top:16px">'+esc(btn)+'</button></div></div></div>';
   document.body.appendChild(d);
-  d.querySelector('[data-x]').onclick=function(){ d.remove(); };
-  d.onclick=function(e){ if(e.target===d) d.remove(); };
+  var cancelou = true;
+  var fecha = function(){
+    d.remove();
+    if(cancelou && opcoes && opcoes.aoCancelar) opcoes.aoCancelar();
+  };
+  d.querySelector('[data-x]').onclick=fecha;
+  d.onclick=function(e){ if(e.target===d) fecha(); };
   d.querySelector('[data-ok]').onclick=async function(){
     var b=this; b.disabled=true;
     var ok = await onOk();
     b.disabled=false;
-    if(ok!==false) d.remove();
+    if(ok!==false){ cancelou = false; d.remove(); }
   };
 }
 
