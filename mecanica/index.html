@@ -980,7 +980,8 @@ var ETAPAS = [
 ];
 var N_ETAPAS = 10, ETAPA_GATE = 6, ETAPA_EXEC = 7, ETAPA_FIM = 10;
 var PAPEL_LBL = {gatekeeper:'Gatekeeper', controle_tecnico:'Controle Técnico',
-  mecanico:'Mecânico', chefe_manutencao:'Chefe de Manutenção', diretor_tecnico:'Diretor Técnico'};
+  mecanico:'Mecânico', chefe_manutencao:'Chefe de Manutenção',
+  financeiro:'Financeiro', diretor_tecnico:'Diretor Técnico'};
 
 /* ============================================================
    BIBLIOTECA DE SILHUETAS (vista superior) + ZONAS NOMEADAS
@@ -1839,6 +1840,11 @@ function temPapel(p){ return !!(PERFIL && PERFIL.papeis && PERFIL.papeis.indexOf
 // Admin da OFICINA = papel diretor_tecnico (concedido pelo diretor/admin na Gestão de Equipe).
 // O nível do painel da Jusarah NÃO vale aqui — quem determina as funções na oficina é o diretor.
 function ehAdmin(){ return temPapel('diretor_tecnico'); }
+/* Alçada do ORÇAMENTO, separada da alçada técnica. Quem cuida da cobrança
+   corrige valor mesmo depois do documento ir ao cliente (gerando revisão),
+   sem por isso poder liberar aeronave, assinar retorno ao serviço ou
+   excluir OS — que continuam sendo do Diretor Técnico. */
+function podeFinanceiro(){ return temPapel('financeiro') || temPapel('diretor_tecnico'); }
 
 /* ---------------- AUTH ---------------- */
 $("btn-entrar").onclick = async function(){
@@ -3541,7 +3547,7 @@ async function abreOS(id, scrollRestaurar){
   var orcEnviado   = !!o.orcamento_enviado_em;
   var cobrFechada  = !!o.cobranca_fechada_em;
   var revisaoOrc   = o.orcamento_revisao || 1;
-  var travadoFin   = (orcEnviado || cobrFechada) && !ehAdmin();
+  var travadoFin   = (orcEnviado || cobrFechada) && !podeFinanceiro();
 
   /* --- etapas: indicador de progresso (NÃO é botão) --- */
   var steps = ETAPAS.map(function(e){
@@ -3922,16 +3928,16 @@ async function abreOS(id, scrollRestaurar){
     cobrFechada
       ? '<div class="no" style="margin-bottom:10px;color:#12294d;border-color:#c9d6e6;background:#f2f6fb">'+
         '🔒 <b>Cobrança fechada</b> em '+dt(o.cobranca_fechada_em)+
-        (ehAdmin() ? ' — você pode reabrir para corrigir algum valor.'+
+        (podeFinanceiro() ? ' — você pode reabrir para corrigir algum valor.'+
                      '<button class="btn btn--ghost btn--sm" id="cob-reabrir" style="margin:8px 0 0">🔓 Reabrir cobrança</button>'
-                   : ' — para alterar um valor, peça ao Diretor Técnico.')+'</div>'
+                   : ' — para alterar um valor, peça a quem cuida do orçamento.')+'</div>'
     : orcEnviado
       ? '<div class="no" style="margin-bottom:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
         '📤 <b>Orçamento já enviado ao cliente</b> em '+dt(o.orcamento_enviado_em)+
         ' · revisão <b>'+revisaoOrc+'</b>'+
-        (ehAdmin() ? ' — se mudar algum valor agora, o orçamento passa para a revisão '+(revisaoOrc+1)+
+        (podeFinanceiro() ? ' — se mudar algum valor agora, o orçamento passa para a revisão '+(revisaoOrc+1)+
                      ' e o cliente precisa receber a versão nova.'
-                   : ' — alterar valor agora gera uma revisão nova, então só o Diretor Técnico faz isso.')+'</div>'
+                   : ' — alterar valor agora gera uma revisão nova, então só quem cuida do orçamento faz isso.')+'</div>'
     : encerrada
       ? '<div class="no" style="margin-bottom:10px;color:var(--green-d)">'+
         '✅ <b>Serviço encerrado, cobrança em aberto.</b> A parte técnica está fechada, mas o orçamento '+

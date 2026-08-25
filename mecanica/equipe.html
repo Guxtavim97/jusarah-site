@@ -108,6 +108,9 @@
     { k:'controle_tecnico', n:'Controle técnico' },
     { k:'mecanico', n:'Mecânico' },
     { k:'chefe_manutencao', n:'Chefe' },
+    /* Cuida do orçamento e da cobrança. Pode corrigir valor mesmo depois do
+       orçamento ir ao cliente (gera revisão) — sem poder técnico nenhum. */
+    { k:'financeiro', n:'Financeiro' },
     { k:'diretor_tecnico', n:'Diretor técnico' }
   ];
   var LBL = {}; PAPEIS.forEach(function(p){ LBL[p.k]=p.n; });
