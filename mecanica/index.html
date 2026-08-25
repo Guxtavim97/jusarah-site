@@ -3953,7 +3953,9 @@ async function abreOS(id, scrollRestaurar){
         return '<tr><td>'+esc(p.quantidade!=null?p.quantidade:'—')+'</td><td>'+esc(p.descricao)+'</td>'+
           '<td>'+esc(p.pn||'—')+'</td><td>'+esc(p.sn||'—')+'</td>'+
           '<td>'+(p.valor!=null?fmtR(p.valor):'—')+'</td>'+
-          (travadoFin?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm peca-del" data-id="'+p.id+'">🗑️</button></td>')+'</tr>';
+          (travadoFin?'':'<td style="text-align:right;white-space:nowrap">'+
+            '<button class="btn btn--ghost btn--sm peca-edit" data-id="'+p.id+'" title="Editar">✏️</button> '+
+            '<button class="btn btn--ghost btn--sm peca-del" data-id="'+p.id+'" title="Excluir">🗑️</button></td>')+'</tr>';
       }).join('')+'</tbody></table>'
     : '<div class="no">Nenhuma peça registrada.</div>')+
     (totalPecas>0?'<div style="text-align:right;font-weight:800;margin-top:6px">Total em peças: '+fmtR(totalPecas)+'</div>':'')+
@@ -3983,7 +3985,9 @@ async function abreOS(id, scrollRestaurar){
         return '<tr><td>'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
           '<td style="text-align:right">'+(tabelaMO(m)>0?fmtR(tabelaMO(m)):'—')+'</td>'+
           '<td style="text-align:right"><b>'+(cort?'<span style="color:var(--green-d)">Cortesia</span>':fmtR(valorMO(m)))+'</b></td>'+
-          (travadoFin?'':'<td style="text-align:right"><button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'">🗑️</button></td>')+'</tr>';
+          (travadoFin?'':'<td style="text-align:right;white-space:nowrap">'+
+            '<button class="btn btn--ghost btn--sm mo-edit" data-id="'+m.id+'" title="Editar">✏️</button> '+
+            '<button class="btn btn--ghost btn--sm mo-del" data-id="'+m.id+'" title="Excluir">🗑️</button></td>')+'</tr>';
       }).join('')+'</tbody></table>'
     : '<div class="no">Nenhum serviço lançado. É esta lista que vira o orçamento do cliente.</div>')+
     (totalTab>0
@@ -4924,6 +4928,82 @@ async function abreOS(id, scrollRestaurar){
       }, 350);
     };
   };
+  /* ============================================================
+     EDITAR uma peça já lançada. Antes só dava para excluir e relançar —
+     foi assim que o valor do óleo ficou sem conserto.
+     ============================================================ */
+  document.querySelectorAll('.peca-edit').forEach(function(b){
+    b.onclick = function(){
+      var p = pecas.filter(function(x){ return x.id === b.dataset.id; })[0];
+      if(!p) return;
+      var vBR = function(n){ return n==null ? '' : Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); };
+      abreModal('Editar peça / material',
+        '<div class="row"><div><label class="blk">Qtd</label>'+
+          '<input class="in" id="pe-qtd" type="text" inputmode="decimal" value="'+esc(p.quantidade!=null?p.quantidade:'')+'"></div>'+
+        '<div style="flex:2"><label class="blk">Descrição *</label>'+
+          '<input class="in" id="pe-desc" value="'+esc(p.descricao||'')+'"></div></div>'+
+        '<div class="row" style="margin-top:8px"><div><label class="blk">P/N</label>'+
+          '<input class="in" id="pe-pn" value="'+esc(p.pn||'')+'"></div>'+
+        '<div><label class="blk">S/N</label><input class="in" id="pe-sn" value="'+esc(p.sn||'')+'"></div>'+
+        '<div><label class="blk">Valor un.</label>'+
+          '<input class="in" id="pe-valor" type="text" inputmode="decimal" placeholder="0,00" value="'+esc(vBR(p.valor))+'"></div></div>'+
+        (orcEnviado ? '<div class="no" style="margin-top:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+          'O orçamento já foi ao cliente: mudar o valor leva o documento para a <b>revisão '+(revisaoOrc+1)+'</b>.</div>' : ''),
+        'Salvar', async function(){
+          var d = $("pe-desc").value.trim();
+          if(!d){ toast('Descreva a peça.','err'); return false; }
+          var q = ($("pe-qtd").value||'').trim().replace(',','.');
+          var v = ($("pe-valor").value||'').trim().replace(/\./g,'').replace(',','.');
+          var r = await sb.from('manut_os_pecas').update({ quantidade:q?Number(q):null, descricao:d,
+            pn:$("pe-pn").value.trim()||null, sn:$("pe-sn").value.trim()||null,
+            valor:v?Number(v):null }).eq('id', p.id);
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Peça atualizada ✓','ok'); recarrega(); return true;
+        });
+    };
+  });
+
+  /* ---- EDITAR um serviço já lançado ---- */
+  document.querySelectorAll('.mo-edit').forEach(function(b){
+    b.onclick = function(){
+      var m = maoObra.filter(function(x){ return x.id === b.dataset.id; })[0];
+      if(!m) return;
+      var vBR = function(n){ return n==null ? '' : Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); };
+      abreModal('Editar serviço',
+        '<label class="blk">Descrição do serviço *</label>'+
+        '<input class="in" id="me-desc" value="'+esc(m.descricao||'')+'">'+
+        '<div class="row" style="margin-top:10px">'+
+          '<div><label class="blk">Valor de tabela</label>'+
+            '<input class="in" id="me-vt" type="text" inputmode="decimal" placeholder="0,00" value="'+esc(vBR(m.valor_tabela))+'"></div>'+
+          '<div><label class="blk">Valor cobrado</label>'+
+            '<input class="in" id="me-v" type="text" inputmode="decimal" placeholder="0,00" value="'+esc(vBR(m.valor))+'"></div>'+
+        '</div>'+
+        '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.92rem;cursor:pointer">'+
+          '<input type="checkbox" id="me-cort"'+(m.cortesia?' checked':'')+'> Conceder como <b>cortesia</b></label>'+
+        '<div class="row" style="margin-top:10px">'+
+          '<div><label class="blk">Horas</label><input class="in" id="me-h" type="text" inputmode="decimal" value="'+esc(m.horas!=null?m.horas:'')+'"></div>'+
+          '<div><label class="blk">Valor por hora</label><input class="in" id="me-vh" type="text" inputmode="decimal" value="'+esc(vBR(m.valor_hora))+'"></div>'+
+        '</div>'+
+        (orcEnviado ? '<div class="no" style="margin-top:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+          'O orçamento já foi ao cliente: mudar o valor leva o documento para a <b>revisão '+(revisaoOrc+1)+'</b>.</div>' : ''),
+        'Salvar', async function(){
+          var d = $("me-desc").value.trim();
+          if(!d){ toast('Descreva o serviço.','err'); return false; }
+          var num = function(el){ var s=(el.value||'').trim().replace(/\./g,'').replace(',','.'); return s?Number(s):null; };
+          var vt = num($("me-vt")), v = num($("me-v")), h = num($("me-h")), vh = num($("me-vh"));
+          var cort = $("me-cort").checked;
+          if(h!=null && vh!=null && v==null) v = h*vh;
+          if(v==null && !cort) v = vt;
+          if(vt==null && v!=null) vt = v;
+          if(vt==null && !cort){ toast('Informe ao menos um valor, ou marque cortesia.','err'); return false; }
+          var r = await sb.from('manut_os_mao_obra').update({ descricao:d, horas:h, valor_hora:vh,
+            valor: cort?0:v, valor_tabela:vt, cortesia:cort }).eq('id', m.id);
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Serviço atualizado ✓','ok'); recarrega(); return true;
+        });
+    };
+  });
+
   /* ---- ANOTAÇÕES PARA A PRÓXIMA MANUTENÇÃO ---- */
   if($("av-add")) $("av-add").onclick = function(){
     if(!o.aeronave_id){ toast('Esta OS não tem aeronave vinculada.','err'); return; }
