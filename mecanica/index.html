@@ -979,6 +979,32 @@ var ETAPAS = [
   {n:10, t:'Encerramento',              f:3}
 ];
 var N_ETAPAS = 10, ETAPA_GATE = 6, ETAPA_EXEC = 7, ETAPA_FIM = 10;
+/* ============================================================
+   COMPONENTES DA AERONAVE — MONOMOTOR E BIMOTOR
+   Um Seneca tem DOIS motores e DUAS hélices. Registrar tudo como se
+   fosse um motor só está errado: cada motor tem seu nº de série, seu TSN
+   e seu TSO, e é isso que vai para a ficha de inspeção e para o log.
+   Na aviação eles são identificados por lado — LH (esquerdo) e RH
+   (direito) —, que é como a equipe fala na oficina.
+   As chaves 'motor' e 'helice' continuam sendo o nº 1, para que tudo o
+   que já foi digitado siga valendo sem conversão.
+   ============================================================ */
+function qtdMotores(comp){
+  comp = comp || {};
+  if(comp.motores) return Number(comp.motores) || 1;
+  /* sem a marcação, deduz pelo que já foi preenchido */
+  var m2 = comp.motor2 || {}, h2 = comp.helice2 || {};
+  return (m2.serie || m2.mod || m2.fab || h2.serie || h2.mod || h2.fab) ? 2 : 1;
+}
+/* lista de {chave, rótulo} na ordem que sai nos documentos */
+function listaComponentes(comp){
+  var n = qtdMotores(comp);
+  if(n < 2) return [ {k:'celula', lbl:'Célula'}, {k:'motor', lbl:'Motor'}, {k:'helice', lbl:'Hélice'} ];
+  return [ {k:'celula',  lbl:'Célula'},
+           {k:'motor',   lbl:'Motor 1 (LH)'},   {k:'helice',  lbl:'Hélice 1 (LH)'},
+           {k:'motor2',  lbl:'Motor 2 (RH)'},   {k:'helice2', lbl:'Hélice 2 (RH)'} ];
+}
+
 var PAPEL_LBL = {gatekeeper:'Gatekeeper', controle_tecnico:'Controle Técnico',
   mecanico:'Mecânico', chefe_manutencao:'Chefe de Manutenção',
   financeiro:'Financeiro', diretor_tecnico:'Diretor Técnico'};
@@ -1327,7 +1353,7 @@ function montaFicha(o, a, tarefas, pecas, nome){
   var comp = o.componentes || {};
   function cl(k,lbl){ var c=comp[k]||{}; return '<tr><td><b>'+lbl+'</b></td><td>'+esc(c.fab||'')+'</td><td>'+esc(c.mod||'')+'</td><td>'+esc(c.serie||'')+'</td><td>'+esc(c.tsn||'')+'</td><td>'+esc(c.tso||'')+'</td></tr>'; }
   var compTab = '<h2>Dados dos Componentes</h2><table class="rp-t"><thead><tr><th></th><th>Fabricante</th><th>Modelo</th><th>Nº Série</th><th>TSN</th><th>TSO</th></tr></thead><tbody>'+
-    cl('celula','Célula')+cl('motor','Motor')+cl('helice','Hélice')+'</tbody></table>'+
+    listaComponentes(comp).map(function(x){ return cl(x.k, x.lbl); }).join('')+'</tbody></table>'+
     (o.horimetro!=null?'<div style="font-size:8.5pt;color:#5b6b78;margin-top:4px">Horímetro: <b>'+esc(o.horimetro)+'</b>'+(o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>':'');
   var totalP = (pecas||[]).reduce(function(s,p){ return s+(Number(p.quantidade||1)*Number(p.valor||0)); },0);
   var pecasTab = (pecas&&pecas.length)
@@ -3802,7 +3828,10 @@ async function abreOS(id, scrollRestaurar){
     var fAntes   = fotos.filter(function(f){ return f.tipo==='antes'; }).length;
     var fDepois  = fotos.filter(function(f){ return f.tipo==='depois'; }).length;
     var cp       = o.componentes || {};
-    var temComp  = !!(cp.celula || cp.motor || cp.helice);
+    /* num bimotor não basta o motor 1: o 2º motor e a 2ª hélice têm o
+       próprio nº de série e tempos, e saem na ficha de inspeção */
+    var preenchido = function(x){ x = x||{}; return !!(x.serie || x.mod || x.fab); };
+    var temComp  = listaComponentes(cp).every(function(x){ return preenchido(cp[x.k]); });
     /* gate: conta os obrigatórios visíveis e quantos faltam conferir */
     var gateVis = 0, gateOkN = 0, gateFalta = 0;
     if(o.gate_checklist_id){
@@ -3824,7 +3853,8 @@ async function abreOS(id, scrollRestaurar){
       it(!(o.prioridade<=1) || o.prioridade_motivo, 'Se é URGENTE, o motivo está escrito', 'Urgente sem motivo confunde a fila');
     } else if(e===3){
       it(tarefas.length,      'Lista de serviços montada ('+tarefas.length+')', 'Use “Carregar inspeção” ou “+ Tarefa”');
-      it(temComp,             'Tempos dos componentes (célula / motor / hélice)', 'Precisam sair na ficha de inspeção');
+      it(temComp, 'Tempos dos componentes ('+listaComponentes(cp).map(function(x){ return x.lbl; }).join(' / ')+')',
+         'Cada um sai na ficha de inspeção com o seu nº de série e tempos');
     } else if(e===4){
       it(true, 'Registre o que a OS está esperando (peça, aprovação do cliente)', 'Use “+ Pendência” — ex.: aguardando peça solicitada ao cliente');
       it(o.cobranca_em, 'Cliente avisado do que falta', 'Use “Cobrar proprietário” se depende dele');
@@ -3918,7 +3948,7 @@ async function abreOS(id, scrollRestaurar){
   }
   var componentesHtml =
     '<table class="t" style="font-size:.85rem"><thead><tr><th></th><th>Fabricante</th><th>Modelo</th><th>Nº série</th><th>TSN</th><th>TSO</th></tr></thead><tbody>'+
-      compLinha('celula','Célula')+compLinha('motor','Motor')+compLinha('helice','Hélice')+
+      listaComponentes(comp).map(function(x){ return compLinha(x.k, x.lbl); }).join('')+
     '</tbody></table>'+
     '<div class="no" style="margin-top:6px">Horímetro: <b>'+(o.horimetro!=null?esc(o.horimetro):'—')+'</b>'+
       (o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>'+
@@ -4729,14 +4759,26 @@ async function abreOS(id, scrollRestaurar){
         '<div><label class="blk">TSN</label><input class="in" id="cp-'+k+'-tsn" value="'+esc(x.tsn||'')+'"></div>'+
         '<div><label class="blk">TSO</label><input class="in" id="cp-'+k+'-tso" value="'+esc(x.tso||'')+'"></div></div>';
     }
+    var nMot = qtdMotores(c);
     abreModal('Tempos dos componentes',
-      campos('celula','Célula')+campos('motor','Motor')+campos('helice','Hélice')+
+      '<label class="blk" style="margin-top:0">Motores da aeronave</label>'+
+      '<select class="in" id="cp-motores">'+
+        '<option value="1"'+(nMot===1?' selected':'')+'>Monomotor — 1 motor e 1 hélice</option>'+
+        '<option value="2"'+(nMot===2?' selected':'')+'>Bimotor — 2 motores e 2 hélices (LH e RH)</option>'+
+      '</select>'+
+      '<div class="no" style="margin-top:6px;font-size:.8rem">Cada motor tem o seu nº de série, TSN e TSO. '+
+      'No bimotor, LH é o esquerdo e RH o direito.</div>'+
+      '<div id="cp-blocos"></div>'+
       '<div class="row" style="margin-top:10px"><div><label class="blk">Horímetro</label><input class="in" id="cp-hor" type="text" inputmode="decimal" value="'+esc(o.horimetro!=null?o.horimetro:'')+'"></div>'+
       '<div><label class="blk">Manutenção Nº</label><input class="in" id="cp-num" value="'+esc(o.manutencao_num||'')+'"></div></div>',
       'Salvar', async function(){
-        function get(k){ return { fab:$("cp-"+k+"-fab").value.trim()||null, mod:$("cp-"+k+"-mod").value.trim()||null,
-          serie:$("cp-"+k+"-serie").value.trim()||null, tsn:$("cp-"+k+"-tsn").value.trim()||null, tso:$("cp-"+k+"-tso").value.trim()||null }; }
-        var novo = { celula:get('celula'), motor:get('motor'), helice:get('helice') };
+        function get(k){
+          var e = function(s){ var el=$("cp-"+k+"-"+s); return el ? (el.value.trim()||null) : ((c[k]||{})[s]||null); };
+          return { fab:e('fab'), mod:e('mod'), serie:e('serie'), tsn:e('tsn'), tso:e('tso') };
+        }
+        var qtd = parseInt($("cp-motores").value,10) || 1;
+        var novo = { motores:qtd, celula:get('celula'), motor:get('motor'), helice:get('helice') };
+        if(qtd >= 2){ novo.motor2 = get('motor2'); novo.helice2 = get('helice2'); }
         var hor = ($("cp-hor").value||'').trim().replace(',','.');
         var r = await sb.from('manut_os').update({ componentes:novo,
           horimetro: hor?Number(hor):null, manutencao_num:$("cp-num").value.trim()||null }).eq('id', id);
@@ -4748,6 +4790,24 @@ async function abreOS(id, scrollRestaurar){
         }
         recarrega(); return true;
       });
+
+    /* desenha os blocos conforme mono ou bimotor, preservando o que já foi
+       digitado quando a pessoa troca a opção no meio do preenchimento */
+    function desenhaBlocos(){
+      var atual = {};
+      ['celula','motor','helice','motor2','helice2'].forEach(function(k){
+        if($("cp-"+k+"-fab")) atual[k] = { fab:$("cp-"+k+"-fab").value, mod:$("cp-"+k+"-mod").value,
+          serie:$("cp-"+k+"-serie").value, tsn:$("cp-"+k+"-tsn").value, tso:$("cp-"+k+"-tso").value };
+      });
+      var visao = {}; Object.keys(c).forEach(function(k){ visao[k] = c[k]; });
+      Object.keys(atual).forEach(function(k){ visao[k] = atual[k]; });
+      visao.motores = parseInt($("cp-motores").value,10) || 1;
+      var guarda = c; c = visao;                       // 'campos' lê de c
+      $("cp-blocos").innerHTML = listaComponentes(visao)
+        .map(function(x){ return campos(x.k, x.lbl); }).join('');
+      c = guarda;
+    }
+    if($("cp-motores")){ $("cp-motores").onchange = desenhaBlocos; desenhaBlocos(); }
   };
   /* ============================================================
      ORÇAMENTO E COTAÇÕES
