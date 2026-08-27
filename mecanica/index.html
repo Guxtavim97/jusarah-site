@@ -5463,7 +5463,10 @@ async function abreOS(id, scrollRestaurar){
       if(aerMod.indexOf('air tractor')>=0 && m.indexOf('air tractor')>=0) p+=5;
       if(aerMod.indexOf('ipanema')>=0 && m.indexOf('ipanema')>=0) p+=5;
       if(aerMod.indexOf('seneca')>=0 && m.indexOf('seneca')>=0) p+=5;
-      ['at-502','at502','at-504','at504','502','504','203','810c','emb-810'].forEach(function(k){
+      if(aerMod.indexOf('sertanejo')>=0 && m.indexOf('sertanejo')>=0) p+=5;
+      if(aerMod.indexOf('minuano')>=0 && m.indexOf('minuano')>=0) p+=5;
+      ['at-502','at502','at-504','at504','502','504','203','810c','emb-810',
+       '721c','721d','720c','720d','emb-721','emb-720'].forEach(function(k){
         if(aerMod.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0 && m.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0) p+=2; });
       return p;
     }
