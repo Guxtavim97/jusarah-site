@@ -1277,7 +1277,8 @@ function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
       '<tr><td style="padding:2px 0"><b>Proprietário:</b> '+esc((nomeProp(a.proprietario_id)||'—').toUpperCase())+'</td>'+
           '<td style="padding:2px 0"><b>Marca:</b> '+esc(a.prefixo||'—')+'</td></tr>'+
       '<tr><td style="padding:2px 0"><b>Aeronave modelo:</b> '+esc(a.modelo||'—')+
-          (a.fabricante?' <span style="color:#5b6b78">('+esc(a.fabricante)+')</span>':'')+'</td>'+
+          (a.fabricante?' <span style="color:#5b6b78">('+esc(a.fabricante)+')</span>':'')+
+          (a.ano_fabricacao?' · <b>'+esc(a.ano_fabricacao)+'</b>':'')+'</td>'+
           '<td style="padding:2px 0"><b>N° de série:</b> '+esc(a.numero_serie||'—')+'</td></tr>'+
       '<tr><td style="padding:2px 0"><b>N° da OS:</b> '+esc(String(o.numero||''))+'</td>'+
           '<td style="padding:2px 0"><b>Data:</b> '+dataBR(dataOrc)+'</td></tr>'+
@@ -1563,6 +1564,7 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
       '<div><dt>Matrícula</dt><dd>'+esc(a.prefixo||'—')+'</dd></div>'+
       '<div><dt>Modelo</dt><dd>'+esc(a.modelo||c.nome)+'</dd></div>'+
       '<div><dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd></div>'+
+      '<div><dt>Ano de fabricação</dt><dd>'+esc(a.ano_fabricacao||'—')+'</dd></div>'+
       '<div><dt>Categoria</dt><dd>'+esc(c.nome)+'</dd></div>'+
       '<div><dt>Proprietário</dt><dd>'+esc(dono||'—')+
         (pDono && pDono.doc ? '<br><span style="font-size:8.5pt;font-weight:normal;color:#5b6b78">'+esc(pDono.doc)+'</span>' : '')+'</dd></div>'+
@@ -2882,6 +2884,7 @@ async function abreAeronave(id){
        '<dt>Fabricante</dt><dd>'+esc(a.fabricante||'—')+'</dd>'+
        '<dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd>'+
        '<dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd>'+
+       '<dt>Ano de fabricação</dt><dd>'+esc(a.ano_fabricacao||'—')+'</dd>'+
        '<dt>Categoria</dt><dd>'+esc(c.nome)+' <span class="no">('+esc(c.ex)+')</span></dd>'+
        '<dt>Origem</dt><dd>'+(a.propria?'Frota própria':'Aeronave de terceiro')+'</dd>'+
        '<dt>Proprietário</dt><dd>'+(dono?esc(dono):'<span class="no">não vinculado</span>')+'</dd>'+
@@ -2996,6 +2999,12 @@ $("btn-nova-aer").onclick = function(){
     '<div class="row" style="margin-top:10px"><div><label class="blk">Origem</label>'+
     '<select class="in" id="a-prop"><option value="false">Aeronave de terceiro</option><option value="true">Frota própria</option></select></div>'+
     '<div><label class="blk">Nº de série</label><input class="in" id="a-sn"></div></div>'+
+    '<div class="row" style="margin-top:10px"><div><label class="blk">Fabricante</label>'+
+      '<input class="in" id="a-fab" placeholder="ex.: Piper, Embraer, Air Tractor"></div>'+
+    /* Ano de fabricação: fichas de inspeção têm itens que valem só para
+       certos anos/séries — sem o ano não dá para saber o que se aplica. */
+    '<div><label class="blk">Ano de fabricação</label><input class="in" id="a-ano" type="number" '+
+      'inputmode="numeric" min="1930" max="'+(new Date().getFullYear()+1)+'" placeholder="ex.: 1982"></div></div>'+
     '<label class="blk" style="margin-top:10px">Proprietário</label>'+
     '<select class="in" id="a-dono">'+opsProp('— não vinculado —')+'</select>'+
     '<label class="blk" style="margin-top:10px">Piloto <span style="font-weight:600;text-transform:none;letter-spacing:0">(pilotos do proprietário)</span></label>'+
@@ -3011,6 +3020,9 @@ $("btn-nova-aer").onclick = function(){
       var pil = $("a-piloto-sel").value;
       var r = await sb.from('manut_aeronaves').insert({
         prefixo:pref.toUpperCase(), modelo:$("a-mod").value.trim()||null,
+        fabricante: $("a-fab").value.trim()||null,
+        ano_fabricacao: (function(){ var v=parseInt($("a-ano").value,10);
+          return (v>=1930 && v<=new Date().getFullYear()+1) ? v : null; })(),
         categoria: $("a-cat").value, propria: $("a-prop").value==='true',
         proprietario_id: $("a-dono").value || null,
         operador_id:     $("a-oper").value || null,
@@ -4160,6 +4172,7 @@ async function abreOS(id, scrollRestaurar){
          '<dt>Fabricante</dt><dd>'+esc(a.fabricante||'—')+'</dd>'+
          '<dt>Modelo</dt><dd>'+esc(a.modelo||'—')+'</dd>'+
          '<dt>Nº de série</dt><dd>'+esc(a.numero_serie||'—')+'</dd>'+
+         '<dt>Ano de fabricação</dt><dd>'+esc(a.ano_fabricacao||'—')+'</dd>'+
          '<dt>Proprietário</dt><dd>'+(nomeProp(a.proprietario_id)
             ? '<b>'+esc(nomeProp(a.proprietario_id))+'</b>'
             : '<b style="color:#b06a2a">não vinculado</b>')+'</dd>'+
@@ -5465,8 +5478,11 @@ async function abreOS(id, scrollRestaurar){
       if(aerMod.indexOf('seneca')>=0 && m.indexOf('seneca')>=0) p+=5;
       if(aerMod.indexOf('sertanejo')>=0 && m.indexOf('sertanejo')>=0) p+=5;
       if(aerMod.indexOf('minuano')>=0 && m.indexOf('minuano')>=0) p+=5;
+      if(aerMod.indexOf('piper')>=0 && m.indexOf('piper')>=0) p+=5;
+      if(aerMod.indexOf('saratoga')>=0 && m.indexOf('pa-32r')>=0) p+=5;
       ['at-502','at502','at-504','at504','502','504','203','810c','emb-810',
-       '721c','721d','720c','720d','emb-721','emb-720'].forEach(function(k){
+       '721c','721d','720c','720d','emb-721','emb-720',
+       'pa-32r','pa32r','32r-301'].forEach(function(k){
         if(aerMod.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0 && m.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0) p+=2; });
       return p;
     }
@@ -5668,7 +5684,11 @@ function editarAeronave(a, aoSalvar){
       '<div class="row"><div><label class="blk">Prefixo *</label><input class="in" id="e-pref" value="'+esc(a.prefixo||'')+'"></div>'+
       '<div><label class="blk">Modelo</label><input class="in" id="e-mod" value="'+esc(a.modelo||'')+'"></div></div>'+
       '<div class="row" style="margin-top:8px"><div><label class="blk">Fabricante</label><input class="in" id="e-fab" value="'+esc(a.fabricante||'')+'" placeholder="ex.: Embraer, Air Tractor"></div>'+
-      '<div><label class="blk">Nº de série</label><input class="in" id="e-sn" value="'+esc(a.numero_serie||'')+'"></div></div>'+
+      '<div><label class="blk">Nº de série</label><input class="in" id="e-sn" value="'+esc(a.numero_serie||'')+'"></div>'+
+      /* Ano de fabricação: várias fichas de inspeção têm itens que valem só
+         para certos anos/séries (a tabela de efetividade do Piper é assim). */
+      '<div><label class="blk">Ano de fabricação</label><input class="in" id="e-ano" type="number" inputmode="numeric" '+
+        'min="1930" max="'+(new Date().getFullYear()+1)+'" placeholder="ex.: 1982" value="'+esc(a.ano_fabricacao!=null?a.ano_fabricacao:'')+'"></div></div>'+
       '<label class="blk" style="margin-top:10px">Categoria <span style="font-weight:600;text-transform:none;letter-spacing:0">(define o desenho da prancheta)</span></label>'+
       '<select class="in" id="e-cat">'+cats.map(function(c){
         return '<option value="'+c[0]+'"'+(a.categoria===c[0]?' selected':'')+'>'+c[1]+'</option>'; }).join('')+'</select>'+
@@ -5691,6 +5711,8 @@ function editarAeronave(a, aoSalvar){
           prefixo: pref.toUpperCase(),
           modelo: $("e-mod").value.trim()||null,
           fabricante: $("e-fab").value.trim()||null,
+          ano_fabricacao: (function(){ var v=parseInt($("e-ano").value,10);
+            return (v>=1930 && v<=new Date().getFullYear()+1) ? v : null; })(),
           numero_serie: $("e-sn").value.trim()||null,
           categoria: $("e-cat").value,
           propria: $("e-orig").value==='true',
