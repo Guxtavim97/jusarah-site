@@ -634,6 +634,46 @@
     .rp-id div:nth-child(2n){border-right:0}
     .rp-id dt{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
     .rp-id dd{margin:1px 0 0;font-weight:bold;font-size:11pt}
+    /* ---------- Resumo de Serviços e Cobrança ---------- */
+    .cb-cab{align-items:center}
+    .cb-cab img{height:56px}
+    .cb-cab .num small{white-space:nowrap}
+    .cb-cab .num b{font-size:17pt;white-space:nowrap;letter-spacing:-.01em}
+    .cb-rod{margin-top:16px;padding-top:8px;border-top:1px solid #c9d3da;text-align:center;
+      font-size:7.5pt;color:#5b6b78;line-height:1.6;letter-spacing:.02em}
+    .cb-sub{text-align:center;font-size:8.5pt;font-style:italic;color:#5b6b78;margin:0 0 14px}
+    table.cb-id{width:100%;border-collapse:collapse;margin-bottom:4px}
+    table.cb-id td{border:1px solid #c9d3da;padding:5px 9px;vertical-align:top}
+    table.cb-id dt{font-size:7pt;letter-spacing:.13em;text-transform:uppercase;color:#5b6b78}
+    table.cb-id dd{margin:1px 0 0;font-weight:bold;font-size:10.5pt}
+    .cb-doc{display:block;font-weight:normal;font-size:8.5pt;color:#5b6b78}
+    table.cb-t td{padding:4px 7px;border-bottom:1px solid #e3e9ee}
+    table.cb-t th{padding:5px 7px;background:#12294d;color:#fff;border:0}
+    table.cb-t .n{text-align:right;font-variant-numeric:tabular-nums}
+    table.cb-t .c{text-align:center;color:#5b6b78}
+    table.cb-t .b{font-weight:bold}
+    table.cb-t tr.vz td{height:15px}
+    table.cb-t tr.tot td{background:#eef2f6;font-weight:bold;border-top:1.5px solid #12294d;
+      border-bottom:0;font-size:9.5pt}
+    .cb-fecho{display:flex;justify-content:flex-end;align-items:flex-end;gap:14px;margin-top:14px}
+    table.cb-res{border-collapse:collapse;min-width:290px}
+    table.cb-res td{padding:5px 12px;border-bottom:1px solid #e3e9ee;font-size:10pt}
+    table.cb-res td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    table.cb-res tr.sub td{font-weight:bold;border-top:1px solid #9aa6ae}
+    table.cb-res tr.pag td{background:#12294d;color:#fff;font-size:12.5pt;font-weight:bold;
+      border:0;padding:8px 12px}
+    .cb-eco{font-size:8.5pt;color:#0f3d24;font-style:italic;padding-bottom:6px}
+    .cb-obs{border:1px solid #9aa6ae;border-left:3px solid #12294d;padding:8px 11px;
+      font-size:9.5pt;line-height:1.5;background:#fbfcfd}
+    .cb-pix{border:1.5px solid #12294d;margin-top:16px}
+    .cb-pix__t{background:#12294d;color:#fff;font-size:8pt;letter-spacing:.14em;
+      text-transform:uppercase;padding:5px 10px;font-weight:bold}
+    table.cb-pix__d{width:100%;border-collapse:collapse;font-size:9.5pt}
+    table.cb-pix__d td{padding:4px 10px;border-bottom:1px solid #e3e9ee}
+    table.cb-pix__d td:nth-child(odd){font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;
+      color:#5b6b78;width:110px}
+    .cb-pix__av{padding:7px 10px;background:#f2f6fb;font-weight:bold;text-align:center;font-size:10pt}
+    .cb-fim{margin-top:18px;font-size:10.5pt;text-align:right;color:#12294d}
     table.rp-t{width:100%;border-collapse:collapse;font-size:9.5pt}
     table.rp-t th{text-align:left;font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;
       color:#5b6b78;border-bottom:1.5px solid #9aa6ae;padding:5px 6px}
@@ -1199,6 +1239,167 @@ var ORC_OBS_PADRAO =
   'serão cobrados à parte, conforme necessidade e verificação após o início da revisão geral da aeronave, sendo '+
   'emitido um orçamento complementar específico para esses serviços.'+
   '<br><br>O polimento total da aeronave será negociado e cobrado separadamente.';
+
+/* ============================================================
+   RESUMO DE SERVIÇOS E COBRANÇA  (pedido da Bianca / Thaila)
+   O documento que a oficina entrega para receber. Sai JÁ PREENCHIDO com
+   o que está lançado na OS — era esse o ponto do pedido: hoje a Bianca
+   redigita tudo num outro sistema só para conseguir cobrar.
+   O que o sistema não tem (observações à mão, data de emissão) fica em
+   branco com pauta, para preencher na hora se quiser.
+   ============================================================ */
+/* "3 de setembro de 2026" — o documento vai por link, então a data sai
+   pronta em vez de ficar uma linha para preencher à mão */
+/* quebras de linha do texto digitado viram <br> no documento */
+function quebras(s){ return String(s||'').split(String.fromCharCode(10)).join('<br>'); }
+function hojeExtenso(){
+  var M = ['janeiro','fevereiro','março','abril','maio','junho','julho',
+           'agosto','setembro','outubro','novembro','dezembro'];
+  var d = new Date();
+  return d.getDate()+' de '+M[d.getMonth()]+' de '+d.getFullYear();
+}
+var BANCO = {
+  banco: 'Sicoob (756)', agencia: '3271', conta: '204.097-2',
+  chave: '61.078.588/0001-90', favorecido: 'PJ Aero Centro'
+};
+
+function montaCobranca(o, a, pecas, maoObra, dono, obs){
+  pecas = pecas || []; maoObra = maoObra || [];
+  function moeda(v){ return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function cobrado(m){
+    if(m.cortesia) return 0;
+    if(m.valor != null) return Number(m.valor);
+    return Number(m.horas||0) * Number(m.valor_hora||0);
+  }
+  function tabela(m){ return m.valor_tabela != null ? Number(m.valor_tabela) : cobrado(m); }
+
+  /* ---------- serviços ---------- */
+  var sTab = 0, sCob = 0;
+  var linhasServ = maoObra.map(function(m, i){
+    var qt = (m.horas != null && m.valor_hora != null) ? Number(m.horas) : 1;
+    var un = (m.horas != null && m.valor_hora != null) ? Number(m.valor_hora) : tabela(m);
+    var tot = tabela(m), desc = tot - cobrado(m);
+    sTab += tot; sCob += cobrado(m);
+    return '<tr>'+
+      '<td class="c">'+(i+1)+'</td>'+
+      '<td>'+esc(m.descricao)+(m.cortesia?' <i style="color:#0f3d24">(cortesia)</i>':'')+'</td>'+
+      '<td class="n">'+moeda(qt)+'</td>'+
+      '<td class="n">'+moeda(un)+'</td>'+
+      '<td class="n">'+moeda(tot)+'</td>'+
+      '<td class="n">'+(desc>0?'−'+moeda(desc):'—')+'</td>'+
+      '<td class="n b">'+moeda(cobrado(m))+'</td></tr>';
+  }).join('');
+
+  /* ---------- produtos ---------- */
+  var pTot = 0;
+  var linhasProd = pecas.map(function(p, i){
+    var qt = Number(p.quantidade != null ? p.quantidade : 1);
+    var un = Number(p.valor || 0), tot = qt * un;
+    pTot += tot;
+    return '<tr>'+
+      '<td class="c">'+(i+1)+'</td>'+
+      '<td>'+esc(p.descricao)+(p.pn?' <span style="color:#5b6b78">· P/N '+esc(p.pn)+'</span>':'')+'</td>'+
+      '<td class="n">'+moeda(qt)+'</td>'+
+      '<td class="n">'+moeda(un)+'</td>'+
+      '<td class="n">'+moeda(tot)+'</td>'+
+      '<td class="n">—</td>'+
+      '<td class="n b">'+moeda(tot)+'</td></tr>';
+  }).join('');
+
+  var descServ = sTab - sCob;
+  var subtotal = sCob + pTot;
+  var pct = Number(o.orcamento_desconto_pct || 0);
+  var descGeral = pct > 0 ? subtotal * pct / 100 : 0;
+  var aPagar = subtotal - descGeral;
+
+  var dt = function(x){ return x ? new Date(x).toLocaleDateString('pt-BR') : '__/__/____'; };
+  var rev = (o.orcamento_revisao || 1) > 1 ? ' · Revisão ' + o.orcamento_revisao : '';
+
+  $("doc").innerHTML =
+   '<div class="rp cb">'+
+    /* ---------- timbre ---------- */
+    '<div class="rp-cab cb-cab"><img src="../assets/img/pj-logo.png" alt="">'+
+      '<div class="emp"></div>'+
+      '<div class="num"><small>OS Nº</small><b>'+esc(codOS(o))+'</b></div></div>'+
+    '<div class="rp-fina"></div>'+
+
+    '<h1 style="margin-bottom:4px">Resumo de Serviços e Cobrança</h1>'+
+    '<p class="cb-sub">Documento gerado pelo sistema com os serviços e materiais lançados nesta Ordem de Serviço'+rev+'.</p>'+
+
+    /* ---------- identificação ---------- */
+    '<table class="cb-id"><tbody>'+
+      '<tr><td><dt>Nº da OS</dt><dd>'+esc(codOS(o))+'</dd></td>'+
+          '<td><dt>Aeronave</dt><dd>'+esc(a.prefixo||'—')+'</dd></td>'+
+          '<td><dt>Horímetro</dt><dd>'+esc(o.horimetro!=null?o.horimetro:'—')+'</dd></td></tr>'+
+      '<tr><td colspan="2"><dt>Cliente</dt><dd>'+esc((dono&&dono.nome)||'—')+
+            ((dono&&dono.doc)?'<span class="cb-doc">'+esc(dono.doc)+'</span>':'')+'</dd></td>'+
+          '<td><dt>Modelo</dt><dd>'+esc(a.modelo||'—')+
+            (a.ano_fabricacao?' · '+esc(a.ano_fabricacao):'')+'</dd></td></tr>'+
+      '<tr><td><dt>Entrada</dt><dd>'+dt(o.aberta_em)+'</dd></td>'+
+          '<td><dt>Conclusão</dt><dd>'+dt(o.encerrada_em)+'</dd></td>'+
+          '<td><dt>Tipo de serviço</dt><dd>'+esc(o.tipo||'—')+'</dd></td></tr>'+
+    '</tbody></table>'+
+
+    /* ---------- serviços ---------- */
+    '<h2>Serviços</h2>'+
+    '<table class="rp-t cb-t"><thead><tr>'+
+      '<th style="width:26px">#</th><th>Descrição</th>'+
+      '<th class="n" style="width:52px">Qtde.</th><th class="n" style="width:76px">Valor unit.</th>'+
+      '<th class="n" style="width:80px">Total</th><th class="n" style="width:74px">Desconto</th>'+
+      '<th class="n" style="width:86px">Total c/ desc.</th></tr></thead><tbody>'+
+      (linhasServ || '<tr><td colspan="7" style="padding:9px;color:#5b6b78">Nenhum serviço lançado nesta OS.</td></tr>')+
+      '<tr class="tot"><td colspan="4">Subtotal de serviços</td>'+
+        '<td class="n">'+moeda(sTab)+'</td><td class="n">'+(descServ>0?'−'+moeda(descServ):'—')+'</td>'+
+        '<td class="n b">'+moeda(sCob)+'</td></tr>'+
+    '</tbody></table>'+
+
+    /* ---------- produtos ---------- */
+    '<h2>Produtos e materiais</h2>'+
+    '<table class="rp-t cb-t"><thead><tr>'+
+      '<th style="width:26px">#</th><th>Descrição</th>'+
+      '<th class="n" style="width:52px">Qtde.</th><th class="n" style="width:76px">Valor unit.</th>'+
+      '<th class="n" style="width:80px">Total</th><th class="n" style="width:74px">Desconto</th>'+
+      '<th class="n" style="width:86px">Total c/ desc.</th></tr></thead><tbody>'+
+      (linhasProd || '<tr><td colspan="7" style="padding:9px;color:#5b6b78">Nenhum material lançado nesta OS.</td></tr>')+
+      '<tr class="tot"><td colspan="4">Subtotal de produtos</td>'+
+        '<td class="n">'+moeda(pTot)+'</td><td class="n">—</td>'+
+        '<td class="n b">'+moeda(pTot)+'</td></tr>'+
+    '</tbody></table>'+
+
+    /* ---------- resumo ---------- */
+    '<div class="cb-fecho">'+
+      '<table class="cb-res"><tbody>'+
+        '<tr><td>Subtotal de serviços</td><td class="n">'+moeda(sCob)+'</td></tr>'+
+        '<tr><td>Subtotal de produtos</td><td class="n">'+moeda(pTot)+'</td></tr>'+
+        '<tr class="sub"><td>Subtotal geral</td><td class="n">'+moeda(subtotal)+'</td></tr>'+
+        '<tr><td>Desconto sobre o total'+(pct>0?' ('+moeda(pct)+'%)':'')+'</td>'+
+          '<td class="n">'+(descGeral>0?'−'+moeda(descGeral):'—')+'</td></tr>'+
+        '<tr class="pag"><td>Total a pagar</td><td class="n">R$ '+moeda(aPagar)+'</td></tr>'+
+      '</tbody></table>'+
+      (descServ+descGeral > 0
+        ? '<div class="cb-eco">Economia concedida nesta OS: <b>R$ '+moeda(descServ+descGeral)+'</b></div>'
+        : '')+
+    '</div>'+
+
+    /* ---------- observações (pauta em branco) ---------- */
+    (obs ? '<h2>Observações</h2><div class="cb-obs">'+quebras(esc(obs))+'</div>' : '')+
+
+    /* ---------- pagamento ---------- */
+    '<div class="cb-pix">'+
+      '<div class="cb-pix__t">Dados para pagamento — PIX</div>'+
+      '<table class="cb-pix__d"><tbody>'+
+        '<tr><td>Banco</td><td>'+BANCO.banco+'</td><td>Agência</td><td>'+BANCO.agencia+'</td></tr>'+
+        '<tr><td>Conta corrente</td><td>'+BANCO.conta+'</td><td>Favorecido</td><td>'+BANCO.favorecido+'</td></tr>'+
+        '<tr><td>CNPJ / Chave PIX</td><td colspan="3"><b>'+BANCO.chave+'</b></td></tr>'+
+      '</tbody></table>'+
+      '<div class="cb-pix__av">Após o pagamento, por gentileza nos envie o comprovante.</div>'+
+    '</div>'+
+
+    '<div class="cb-fim">Cerejeiras / RO, '+hojeExtenso()+'.</div>'+
+    '<div class="cb-rod">'+EMPRESA.nome+' · CNPJ '+EMPRESA.cnpj+'<br>'+
+      EMPRESA.endereco+' · '+EMPRESA.fone+' · '+EMPRESA.email+'</div>'+
+   '</div>';
+}
 
 function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
   maoObra = maoObra || []; pecas = pecas || [];
@@ -4077,6 +4278,7 @@ async function abreOS(id, scrollRestaurar){
     (travadoFin?'':'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
       '<button class="btn btn--blue btn--sm" id="mo-add">+ Serviço</button>'+
       '<button class="btn btn--ghost btn--sm" id="orc-cfg">⚙️ Desconto e observações</button>'+
+      '<button class="btn btn--ghost btn--sm" id="cob-obs">📝 Observações da cobrança</button>'+
     '</div>');
 
   /* --- ANEXOS: o PDF que a oficina já faz, visível ao cliente --- */
@@ -4153,6 +4355,7 @@ async function abreOS(id, scrollRestaurar){
     '<button class="btn btn--ghost btn--sm" id="bt-rel">📄 Relatório</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-ficha">📋 Ficha de Inspeção</button>'+
     '<button class="btn btn--ghost btn--sm" id="bt-orc">💰 Orçamento</button>'+
+    '<button class="btn btn--ghost btn--sm" id="bt-cob">🧾 Cobrança</button>'+
     ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="os-del" style="color:#ff9a8a">🗑️ Excluir OS</button>' : '')+
     '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
@@ -4410,6 +4613,37 @@ async function abreOS(id, scrollRestaurar){
     }, 200);
   };
   /* Documento do orçamento — é o que o cliente recebe para decidir */
+  /* Resumo de Serviços e Cobrança: sai pronto com o que está lançado na
+     OS. É o documento que a Bianca leva para receber — antes ela tinha
+     que redigitar tudo num outro sistema só para chegar nele. */
+  if($("bt-cob")) $("bt-cob").onclick = function(){
+    if(!maoObra.length && !pecas.length){
+      toast('Lance ao menos um serviço ou material antes de emitir a cobrança.','err');
+      var b = document.getElementById('mo-add'); if(b) b.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    var dono = a.proprietario_id ? PROPMAP[a.proprietario_id] : null;
+    emiteDoc('Resumo de Serviços e Cobrança', function(){
+      montaCobranca(o, a, pecas, maoObra, dono, o.cobranca_observacoes);
+    }, 160);
+  };
+  /* As observações da cobrança ficam guardadas na OS: o documento é enviado
+     por link, então tem que sair pronto — ninguém escreve à mão em cima. */
+  if($("cob-obs")) $("cob-obs").onclick = function(){
+    abreModal('Observações da cobrança',
+      '<div class="no" style="margin-bottom:10px">O que escrever aqui sai <b>impresso no documento</b> '+
+      'que vai para o cliente. Use para condições de pagamento, o que ficou combinado ou o que precisa '+
+      'ser feito na próxima revisão.</div>'+
+      '<label class="blk">Observações</label>'+
+      '<textarea class="in" id="cb-obs-tx" rows="5" placeholder="ex.: Serviço garantido por 90 dias. '+
+        'Próxima revisão de 100 h prevista para 5.450 h.">'+esc(o.cobranca_observacoes||'')+'</textarea>',
+      'Salvar', async function(){
+        var r = await sb.from('manut_os').update({
+          cobranca_observacoes: $("cb-obs-tx").value.trim() || null }).eq('id', id);
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Observações salvas ✓','ok'); recarrega(); return true;
+      });
+  };
   if($("bt-orc")) $("bt-orc").onclick = async function(){
     if(!pecas.length){
       toast('Esta OS ainda não tem peças. Adicione em “Peças e Materiais” para gerar o orçamento.','err');
