@@ -5806,10 +5806,14 @@ async function abreOS(id, scrollRestaurar){
   document.querySelectorAll('.tk-del').forEach(function(b){
     b.onclick = function(){
       var desc = b.getAttribute('data-desc') || 'este serviço';
-      if(!temPapel('diretor_tecnico')){
+      /* Tirar serviço da OS é correção do dia a dia, e quem responde por
+         ela na oficina é o chefe — por isso ele entra junto do diretor.
+         Excluir OS, aeronave ou assinatura continua só com o diretor. */
+      if(!(temPapel('diretor_tecnico') || temPapel('chefe_manutencao'))){
         abreModal('Excluir serviço',
-          '<div class="no">Só o <b>Diretor Técnico</b> pode excluir itens de uma OS — é a trava que protege o registro do serviço.</div>'+
-          '<div style="margin-top:12px;font-size:.92rem">Peça a ele para remover:<br><b>'+esc(desc)+'</b></div>');
+          '<div class="no">Quem remove serviço de uma OS é o <b>Chefe de Manutenção</b> ou o '+
+            '<b>Diretor Técnico</b> — é a trava que protege o registro do serviço.</div>'+
+          '<div style="margin-top:12px;font-size:.92rem">Peça a um deles para remover:<br><b>'+esc(desc)+'</b></div>');
         return;
       }
       var quemExec = b.getAttribute('data-exec');
