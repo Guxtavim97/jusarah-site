@@ -3907,13 +3907,17 @@ async function abreOS(id, scrollRestaurar){
           (t.zona?'<span class="no" style="margin-left:7px">📍 '+esc(ZONA_LBL[t.zona]||t.zona)+'</span>':'')+
           (t.referencia_manual?'<span class="no" style="margin-left:7px">'+esc(t.referencia_manual)+'</span>':'')+'</div>'+
         '<div class="tk-acao" style="flex:0 1 auto">'+acao+'</div>'+
-        /* Excluir: só serviço AINDA NÃO EXECUTADO — o que já foi feito é
-           registro do serviço na aeronave e não se apaga. Fica discreto,
-           longe do "Executei", e ainda pede confirmação. */
-        ((!encerrada && !t.executado_em)
-          ? '<button class="tk-del" data-del="'+t.id+'" data-desc="'+esc(t.descricao)+'" title="Excluir este serviço" '+
-            'style="flex:0 0 auto;border:0;background:none;color:#b9c4cf;font-size:1rem;cursor:pointer;padding:4px 6px;line-height:1">🗑️</button>'
-          : '')+
+        /* Excluir: vale também para serviço JÁ EXECUTADO — acontece de
+           lançar ou executar o item errado, e quem está na oficina precisa
+           poder corrigir. O que não pode é sumir sem rastro: quando já há
+           execução ou cross check, o aviso é mais forte e a exclusão fica
+           registrada no histórico da OS com quem tinha feito. */
+        (encerrada ? ''
+          : '<button class="tk-del" data-del="'+t.id+'" data-desc="'+esc(t.descricao)+'"'+
+            (t.executado_em ? ' data-exec="'+esc(nome(t.executor_id))+' · '+dt(t.executado_em)+'"' : '')+
+            (t.conferido_em ? ' data-conf="'+esc(nome(t.conferente_id))+' · '+dt(t.conferido_em)+'"' : '')+
+            ' title="Excluir este serviço"'+
+            ' style="flex:0 0 auto;border:0;background:none;color:#b9c4cf;font-size:1rem;cursor:pointer;padding:4px 6px;line-height:1">🗑️</button>')+
       '</div>'+
       ((t.executado_em || t.conferido_em)
         ? '<div style="display:flex;flex-wrap:wrap;gap:3px 16px;margin-top:6px;padding-left:34px;font-size:.75rem;color:#5b6b78">'+
@@ -5808,16 +5812,34 @@ async function abreOS(id, scrollRestaurar){
           '<div style="margin-top:12px;font-size:.92rem">Peça a ele para remover:<br><b>'+esc(desc)+'</b></div>');
         return;
       }
+      var quemExec = b.getAttribute('data-exec');
+      var quemConf = b.getAttribute('data-conf');
+      var feito = !!(quemExec || quemConf);
       abreModal('Excluir este serviço?',
         '<div style="background:#fdf3f3;border:1.5px solid #e6b8b8;border-radius:10px;padding:12px">'+
           '<div class="no" style="margin-bottom:5px">Vai ser removido da OS:</div>'+
           '<b style="font-size:.95rem">'+esc(desc)+'</b>'+
+          (quemExec?'<div class="no" style="margin-top:8px">🔧 Executado: <b>'+esc(quemExec)+'</b></div>':'')+
+          (quemConf?'<div class="no" style="margin-top:3px">✅ Cross check: <b>'+esc(quemConf)+'</b></div>':'')+
         '</div>'+
-        '<div class="no" style="margin-top:10px">Serviço ainda <b>não executado</b>, então nenhum registro de trabalho se perde. '+
-          'Se foi toque sem querer, é só cancelar.</div>',
+        (feito
+          ? '<div class="no" style="margin-top:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
+            '⚠️ Este serviço <b>já foi executado</b>. Apagar aqui remove também a execução e o cross check '+
+            'registrados acima. Faça isso só se o item foi lançado ou marcado por engano — se o trabalho foi '+
+            'mesmo feito na aeronave, ele deve continuar na OS.<br><br>'+
+            'A exclusão fica <b>registrada no histórico</b> desta OS, com o seu nome e o de quem havia executado.</div>'
+          : '<div class="no" style="margin-top:10px">Serviço ainda <b>não executado</b>, então nenhum registro de '+
+            'trabalho se perde. Se foi toque sem querer, é só cancelar.</div>'),
         '🗑️ Sim, excluir', async function(){
           var r = await sb.from('manut_os_tarefas').delete().eq('id', b.getAttribute('data-del'));
           if(r.error){ toast(r.error.message,'err'); return false; }
+          /* deixa rastro do que foi apagado — sem isso o serviço some sem
+             ninguém saber que existiu */
+          try{
+            await sb.from('manut_os_historico').insert({ os_id:id, acao:'Serviço excluído',
+              detalhe: desc + (quemExec ? ' · estava executado por ' + quemExec : '')
+                            + (quemConf ? ' · cross check por ' + quemConf : '') });
+          }catch(e){}
           toast('Serviço excluído ✓','ok'); recarrega(); return true;
         });
     };
