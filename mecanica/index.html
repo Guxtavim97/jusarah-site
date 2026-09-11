@@ -634,6 +634,19 @@
     .rp-id div:nth-child(2n){border-right:0}
     .rp-id dt{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
     .rp-id dd{margin:1px 0 0;font-weight:bold;font-size:11pt}
+    /* ---------- Financeiro ---------- */
+    .fin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+    .fin-card{border:1.5px solid #dbe3ec;border-radius:12px;padding:10px 13px;background:#f6f8fb}
+    .fin-card__t{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
+    .fin-card__v{font-size:1.25rem;font-weight:800;color:#12294d;margin:3px 0 2px;font-variant-numeric:tabular-nums}
+    .fin-card--tot{border-color:#12294d;background:#12294d}
+    .fin-card--tot .fin-card__t,.fin-card--tot .fin-card__v,.fin-card--tot .no{color:#fff!important}
+    table.fin-t{font-size:.84rem;min-width:820px}
+    table.fin-t td,table.fin-t th{padding:7px 8px;vertical-align:top}
+    table.fin-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    table.fin-t tr[data-os]:hover td{background:#f2f6fb}
+    .fin-sit{display:inline-block;border:1px solid;border-radius:999px;padding:2px 9px;font-size:.74rem;font-weight:800;white-space:nowrap}
+    @media print{ table.fin-t{min-width:0;font-size:8.5pt} .fin-card__v{font-size:12pt} }
     /* ---------- Resumo de Serviços e Cobrança ---------- */
     .cb-cab{align-items:center}
     .cb-cab img{height:56px}
@@ -836,6 +849,7 @@
     <button class="nav" data-view="proprietarios">Proprietários</button>
     <button class="nav" data-view="manuais">📚 Manuais e Peças</button>
     <button class="nav" data-view="arquivo">Arquivo</button>
+    <button class="nav hidden" data-view="financeiro" id="nav-fin">💰 Financeiro</button>
   </div>
 
   <main>
@@ -923,6 +937,34 @@
         <h3>📚 Manuais e portais
           <button class="btn btn--ghost btn--sm" id="man-add" style="margin-left:auto">+ Adicionar link</button></h3>
         <div id="man-lista"></div>
+      </div>
+    </section>
+
+    <!-- FINANCEIRO: uma linha por OS, com o que a cobrança precisa -->
+    <section id="view-financeiro" class="hidden">
+      <div class="box">
+        <h3>💰 Controle financeiro
+          <button class="btn btn--ghost btn--sm" id="fin-print" style="margin-left:auto">🖨️ Imprimir / PDF</button>
+        </h3>
+        <div class="row" style="align-items:flex-end;gap:10px;flex-wrap:wrap">
+          <div><label class="blk">De</label><input class="in" type="date" id="fin-de"></div>
+          <div><label class="blk">Até</label><input class="in" type="date" id="fin-ate"></div>
+          <div><label class="blk">Situação</label>
+            <select class="in" id="fin-sit">
+              <option value="">Todas</option>
+              <option value="a_cobrar">A cobrar — encerrada, orçamento não enviado</option>
+              <option value="enviada">Enviada — aguardando pagamento</option>
+              <option value="recebida">Recebida — cobrança fechada</option>
+              <option value="aberta">Em andamento</option>
+            </select></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn--ghost btn--sm" data-fin="mes">Este mês</button>
+            <button class="btn btn--ghost btn--sm" data-fin="ant">Mês passado</button>
+            <button class="btn btn--ghost btn--sm" data-fin="ano">Este ano</button>
+          </div>
+        </div>
+        <div id="fin-resumo" style="margin-top:14px"></div>
+        <div id="fin-lista" style="margin-top:12px;overflow-x:auto"></div>
       </div>
     </section>
 
@@ -2417,6 +2459,9 @@ async function entrar(){
   }
 
   // botão de Gestão de Equipe — só para o diretor técnico
+  /* aba Financeiro: só quem tem alçada sobre valor */
+  var nf = document.getElementById('nav-fin');
+  if(nf) nf.classList.toggle('hidden', !podeFinanceiro());
   if((temPapel('diretor_tecnico') || ehAdmin()) && !document.getElementById('fab-equipe')){
     var ge = document.createElement('a');
     ge.id = 'fab-equipe'; ge.href = '/mecanica/equipe.html'; ge.textContent = '👥 Gestão de Equipe';
@@ -2642,7 +2687,7 @@ if($("btn-notif")) $("btn-notif").onclick = function(e){
 };
 
 /* ---------------- NAVEGAÇÃO ---------------- */
-var VIEWS = ['oficina','quadro','aeronaves','proprietarios','manuais','arquivo'];
+var VIEWS = ['oficina','quadro','aeronaves','proprietarios','manuais','arquivo','financeiro'];
 document.querySelectorAll('.nav').forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll('.nav').forEach(function(x){ x.classList.remove('is-active'); });
@@ -2652,8 +2697,130 @@ document.querySelectorAll('.nav').forEach(function(b){
     if(b.dataset.view==='proprietarios') renderProprietarios();
     if(b.dataset.view==='oficina')       carregaOficina();
     if(b.dataset.view==='manuais')       renderManuais();
+    if(b.dataset.view==='financeiro')    renderFinanceiro();
   };
 });
+
+
+/* ============================================================
+   CONTROLE FINANCEIRO  (pedido da Bianca)
+   Uma linha por OS com o que a cobrança precisa: cliente, aeronave,
+   conclusão, serviços, materiais, total e em que ponto está a cobrança.
+   Filtra por período e situação, soma o que aparece, e imprime.
+   Só quem tem alçada sobre valor enxerga a aba (financeiro ou diretor).
+   ============================================================ */
+var FIN_SIT = {
+  a_cobrar: { t:'A cobrar',      cor:'#b06a2a', fundo:'#fffbf2' },
+  enviada:  { t:'Enviada',       cor:'#12294d', fundo:'#f2f6fb' },
+  recebida: { t:'Recebida',      cor:'#1B6E3B', fundo:'#f0f8f2' },
+  aberta:   { t:'Em andamento',  cor:'#5b6b78', fundo:'#f6f8fb' }
+};
+var FIN_DADOS = [];
+
+function finPeriodo(qual){
+  var h = new Date(), de, ate;
+  if(qual==='mes'){ de = new Date(h.getFullYear(), h.getMonth(), 1); ate = new Date(h.getFullYear(), h.getMonth()+1, 0); }
+  if(qual==='ant'){ de = new Date(h.getFullYear(), h.getMonth()-1, 1); ate = new Date(h.getFullYear(), h.getMonth(), 0); }
+  if(qual==='ano'){ de = new Date(h.getFullYear(), 0, 1); ate = new Date(h.getFullYear(), 11, 31); }
+  var iso = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  $("fin-de").value = iso(de); $("fin-ate").value = iso(ate);
+}
+
+async function renderFinanceiro(){
+  if(!$("fin-de").value) finPeriodo('mes');
+  var r = await sb.rpc('manut_financeiro', { p_de: $("fin-de").value || null, p_ate: $("fin-ate").value || null });
+  if(r.error){
+    $("fin-lista").innerHTML = '<div class="no" style="color:#b23b2e">'+esc(r.error.message)+
+      '<br>Se a mensagem falar em função inexistente, falta rodar o SQL FINANCEIRO-relatorio.sql.</div>';
+    return;
+  }
+  FIN_DADOS = r.data || [];
+  var sit = $("fin-sit").value;
+  var lista = sit ? FIN_DADOS.filter(function(x){ return x.situacao===sit; }) : FIN_DADOS;
+  var moeda = function(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); };
+  var d = function(x){ return x ? new Date(x).toLocaleDateString('pt-BR') : '—'; };
+
+  /* ---- resumo por situação: o que está na rua, o que já entrou ---- */
+  var soma = {};
+  ['a_cobrar','enviada','recebida','aberta'].forEach(function(k){ soma[k] = {n:0, v:0}; });
+  lista.forEach(function(x){ soma[x.situacao].n++; soma[x.situacao].v += Number(x.total||0); });
+  var totalGeral = lista.reduce(function(s,x){ return s+Number(x.total||0); }, 0);
+  var totalServ  = lista.reduce(function(s,x){ return s+Number(x.servicos||0); }, 0);
+  var totalMat   = lista.reduce(function(s,x){ return s+Number(x.materiais||0); }, 0);
+  var totalDesc  = lista.reduce(function(s,x){ return s+Number(x.desconto_itens||0)+Number(x.servicos||0)*0; }, 0);
+
+  $("fin-resumo").innerHTML =
+    '<div class="fin-cards">'+
+      ['a_cobrar','enviada','recebida'].map(function(k){
+        var c = FIN_SIT[k];
+        return '<div class="fin-card" style="border-color:'+c.cor+'55;background:'+c.fundo+'">'+
+          '<div class="fin-card__t" style="color:'+c.cor+'">'+c.t+'</div>'+
+          '<div class="fin-card__v">'+moeda(soma[k].v)+'</div>'+
+          '<div class="no" style="margin:0">'+soma[k].n+' OS</div></div>';
+      }).join('')+
+      '<div class="fin-card fin-card--tot"><div class="fin-card__t">Total do período</div>'+
+        '<div class="fin-card__v">'+moeda(totalGeral)+'</div>'+
+        '<div class="no" style="margin:0">'+lista.length+' OS · serviços '+moeda(totalServ)+' · materiais '+moeda(totalMat)+'</div></div>'+
+    '</div>';
+
+  /* ---- a tabela ---- */
+  $("fin-lista").innerHTML = lista.length
+    ? '<table class="t fin-t"><thead><tr>'+
+        '<th>OS</th><th>Aeronave</th><th>Cliente</th><th>Conclusão</th>'+
+        '<th class="n">Serviços</th><th class="n">Materiais</th><th class="n">Desconto</th><th class="n">Total</th>'+
+        '<th>Situação</th></tr></thead><tbody>'+
+      lista.map(function(x){
+        var c = FIN_SIT[x.situacao] || FIN_SIT.aberta;
+        var desc = Number(x.desconto_itens||0) + (Number(x.servicos||0)+Number(x.materiais||0))*Number(x.desconto_pct||0)/100;
+        return '<tr data-os="'+x.os_id+'" style="cursor:pointer">'+
+          '<td><b>'+esc(codOS({numero:x.numero, aberta_em:x.aberta_em}))+'</b>'+(x.revisao>1?'<div class="no" style="margin:0;font-size:.72rem">rev. '+x.revisao+'</div>':'')+'</td>'+
+          '<td><b>'+esc(x.prefixo||'—')+'</b><div class="no" style="margin:0;font-size:.72rem">'+esc(x.modelo||'')+'</div></td>'+
+          '<td>'+esc(x.cliente||'—')+'</td>'+
+          '<td style="white-space:nowrap">'+d(x.encerrada_em)+'</td>'+
+          '<td class="n">'+moeda(x.servicos)+'</td>'+
+          '<td class="n">'+moeda(x.materiais)+'</td>'+
+          '<td class="n">'+(desc>0?'−'+moeda(desc):'—')+'</td>'+
+          '<td class="n"><b>'+moeda(x.total)+'</b></td>'+
+          '<td><span class="fin-sit" style="color:'+c.cor+';border-color:'+c.cor+'55;background:'+c.fundo+'">'+c.t+'</span>'+
+            (x.situacao==='enviada'&&x.orcamento_enviado_em?'<div class="no" style="margin:0;font-size:.72rem">enviado '+d(x.orcamento_enviado_em)+'</div>':'')+
+            (x.situacao==='recebida'&&x.cobranca_fechada_em?'<div class="no" style="margin:0;font-size:.72rem">'+d(x.cobranca_fechada_em)+'</div>':'')+
+          '</td></tr>';
+      }).join('')+
+      '</tbody></table>'
+    : '<div class="no">Nenhuma OS no período com essa situação.</div>';
+
+  document.querySelectorAll('#fin-lista tr[data-os]').forEach(function(tr){
+    tr.onclick = function(){ abreOS(tr.dataset.os); };
+  });
+}
+
+(function(){
+  ['fin-de','fin-ate','fin-sit'].forEach(function(id){
+    var el = $(id); if(el) el.onchange = renderFinanceiro;
+  });
+  document.querySelectorAll('[data-fin]').forEach(function(b){
+    b.onclick = function(){ finPeriodo(b.dataset.fin); renderFinanceiro(); };
+  });
+  var pr = $("fin-print");
+  if(pr) pr.onclick = function(){
+    var de = $("fin-de").value, ate = $("fin-ate").value;
+    var titulo = 'Controle financeiro — '+(de?new Date(de+'T12:00').toLocaleDateString('pt-BR'):'início')+
+                 ' a '+(ate?new Date(ate+'T12:00').toLocaleDateString('pt-BR'):'hoje');
+    emiteDoc(titulo, function(){
+      $("doc").innerHTML =
+        '<div class="rp cb"><div class="rp-cab cb-cab"><img src="../assets/img/pj-logo.png" alt="">'+
+          '<div class="emp"></div><div class="num"><small>Relatório</small><b style="font-size:13pt">Financeiro</b></div></div>'+
+        '<div class="rp-fina"></div>'+
+        '<h1 style="margin-bottom:4px">Controle financeiro</h1>'+
+        '<p class="cb-sub">'+esc(titulo.replace('Controle financeiro — ','Período: '))+
+          ($("fin-sit").value ? ' · '+esc(FIN_SIT[$("fin-sit").value].t) : '')+'</p>'+
+        $("fin-resumo").innerHTML +
+        '<div style="margin-top:12px">'+$("fin-lista").innerHTML+'</div>'+
+        '<div class="cb-fim">Cerejeiras / RO, '+hojeExtenso()+'.</div>'+
+        '<div class="cb-rod">'+EMPRESA.nome+' · CNPJ '+EMPRESA.cnpj+'</div></div>';
+    }, 160);
+  };
+})();
 
 /* ============================================================
    MANUAIS E PEÇAS
