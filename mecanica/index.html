@@ -1331,8 +1331,15 @@ function montaCobranca(o, a, pecas, maoObra, dono, obs){
       '<tr><td><dt>Nº da OS</dt><dd>'+esc(codOS(o))+'</dd></td>'+
           '<td><dt>Aeronave</dt><dd>'+esc(a.prefixo||'—')+'</dd></td>'+
           '<td><dt>Horímetro</dt><dd>'+esc(o.horimetro!=null?o.horimetro:'—')+'</dd></td></tr>'+
+      /* cliente completo, como numa nota: documento, IE e endereço */
       '<tr><td colspan="2"><dt>Cliente</dt><dd>'+esc((dono&&dono.nome)||'—')+
-            ((dono&&dono.doc)?'<span class="cb-doc">'+esc(dono.doc)+'</span>':'')+'</dd></td>'+
+            (dono ? '<span class="cb-doc">'+
+              [ dono.doc ? (dono.tipo==='pf'?'CPF ':'CNPJ ')+esc(dono.doc) : '',
+                (dono.ie && dono.tipo!=='pf') ? 'IE '+esc(dono.ie) : '' ].filter(Boolean).join(' · ')+
+              (dono.endereco ? '<br>'+esc(dono.endereco)+(dono.bairro?', '+esc(dono.bairro):'') : '')+
+              ((dono.cidade||dono.cep) ? '<br>'+esc(dono.cidade||'')+(dono.uf?'/'+esc(dono.uf):'')+
+                (dono.cep?' · CEP '+esc(dono.cep):'') : '')+
+            '</span>' : '')+'</dd></td>'+
           '<td><dt>Modelo</dt><dd>'+esc(a.modelo||'—')+
             (a.ano_fabricacao?' · '+esc(a.ano_fabricacao):'')+'</dd></td></tr>'+
       '<tr><td><dt>Entrada</dt><dd>'+dt(o.aberta_em)+'</dd></td>'+
@@ -2885,18 +2892,35 @@ function renderProprietarios(){
 }
 $("q-prop").addEventListener('input', renderProprietarios);
 
-function formProprietario(){
+function formProprietario(p){
+  p = p || {};
+  var v = function(k){ return esc(p[k]!=null ? p[k] : ''); };
   return '<div class="row"><div><label class="blk">Tipo</label>'+
-    '<select class="in" id="p-tipo"><option value="pj">Empresa (CNPJ)</option>'+
-    '<option value="pf">Pessoa física (CPF)</option></select></div>'+
-    '<div><label class="blk">CPF / CNPJ</label><input class="in" id="p-doc" placeholder="só números ou formatado"></div></div>'+
-    '<label class="blk" style="margin-top:10px">Nome / Razão social *</label><input class="in" id="p-nome">'+
-    '<label class="blk" style="margin-top:10px">Nome fantasia</label><input class="in" id="p-fant">'+
-    '<div class="row" style="margin-top:10px"><div><label class="blk">Telefone</label><input class="in" id="p-fone"></div>'+
-    '<div><label class="blk">E-mail</label><input class="in" id="p-email" type="email"></div></div>'+
-    '<div class="row" style="margin-top:10px"><div style="flex:2"><label class="blk">Endereço</label><input class="in" id="p-end"></div>'+
-    '<div><label class="blk">Cidade</label><input class="in" id="p-cid"></div>'+
-    '<div style="flex:0 0 80px"><label class="blk">UF</label><input class="in" id="p-uf" maxlength="2"></div></div>';
+    '<select class="in" id="p-tipo"><option value="pj"'+(p.tipo!=='pf'?' selected':'')+'>Empresa (CNPJ)</option>'+
+    '<option value="pf"'+(p.tipo==='pf'?' selected':'')+'>Pessoa física (CPF)</option></select></div>'+
+    '<div><label class="blk">CPF / CNPJ</label><input class="in" id="p-doc" value="'+v('doc')+'" placeholder="só números ou formatado"></div></div>'+
+    '<label class="blk" style="margin-top:10px">Nome / Razão social *</label><input class="in" id="p-nome" value="'+v('nome')+'">'+
+    '<div class="row" style="margin-top:10px"><div style="flex:2"><label class="blk">Nome fantasia</label><input class="in" id="p-fant" value="'+v('fantasia')+'"></div>'+
+    /* IE: pedido da Bianca — vai na nota e na cobrança de empresa */
+    '<div><label class="blk">Inscrição estadual</label><input class="in" id="p-ie" value="'+v('ie')+'" placeholder="ou ISENTO"></div></div>'+
+    '<div class="row" style="margin-top:10px"><div><label class="blk">Telefone</label><input class="in" id="p-fone" value="'+v('fone')+'" inputmode="tel"></div>'+
+    '<div><label class="blk">E-mail</label><input class="in" id="p-email" type="email" value="'+v('email')+'"></div></div>'+
+    '<label class="blk" style="margin-top:10px">Endereço</label><input class="in" id="p-end" value="'+v('endereco')+'" placeholder="rua, número, complemento">'+
+    '<div class="row" style="margin-top:10px"><div><label class="blk">Bairro</label><input class="in" id="p-bairro" value="'+v('bairro')+'"></div>'+
+    '<div style="flex:0 0 120px"><label class="blk">CEP</label><input class="in" id="p-cep" value="'+v('cep')+'" inputmode="numeric" placeholder="00000-000"></div>'+
+    '<div><label class="blk">Cidade</label><input class="in" id="p-cid" value="'+v('cidade')+'"></div>'+
+    '<div style="flex:0 0 70px"><label class="blk">UF</label><input class="in" id="p-uf" maxlength="2" value="'+v('uf')+'"></div></div>';
+}
+/* lê o formulário — o mesmo para cadastrar e para editar */
+function lerFormProprietario(){
+  return {
+    tipo:$("p-tipo").value, nome:$("p-nome").value.trim(), fantasia:$("p-fant").value.trim()||null,
+    doc:$("p-doc").value.trim()||null, ie:$("p-ie").value.trim()||null,
+    fone:$("p-fone").value.trim()||null, email:$("p-email").value.trim()||null,
+    endereco:$("p-end").value.trim()||null, bairro:$("p-bairro").value.trim()||null,
+    cep:$("p-cep").value.trim()||null, cidade:$("p-cid").value.trim()||null,
+    uf:($("p-uf").value.trim()||'').toUpperCase()||null
+  };
 }
 
 $("btn-novo-prop").onclick = function(){
@@ -2909,12 +2933,7 @@ $("btn-novo-prop").onclick = function(){
       var ja = PROPS.filter(function(p){ return soDig(p.doc)===dn; })[0];
       if(ja){ toast('Esse CPF/CNPJ já está cadastrado como "'+ja.nome+'".','err'); return false; }
     }
-    var r = await sb.from('manut_proprietarios').insert({
-      tipo:$("p-tipo").value, nome:nome, fantasia:$("p-fant").value.trim()||null,
-      doc:doc||null, fone:$("p-fone").value.trim()||null, email:$("p-email").value.trim()||null,
-      endereco:$("p-end").value.trim()||null, cidade:$("p-cid").value.trim()||null,
-      uf:($("p-uf").value.trim()||'').toUpperCase()||null
-    });
+    var r = await sb.from('manut_proprietarios').insert(lerFormProprietario());
     if(r.error){
       toast(r.error.code==='23505' ? 'Esse CPF/CNPJ já existe.' : ('Erro: '+r.error.message),'err');
       return false;
@@ -2948,19 +2967,41 @@ async function abreProprietario(id){
      '<div><h2>'+esc(p.nome)+'</h2><div class="sub">'+
        (p.tipo==='pf'?'Pessoa física':'Empresa')+(p.doc?' · '+esc(p.doc):'')+'</div></div>'+
      '<div class="spacer"></div>'+
+     '<button class="btn btn--blue btn--sm" id="prop-edit">✏️ Editar</button>'+
      ((temPapel('diretor_tecnico')||ehAdmin()) ? '<button class="btn btn--ghost btn--sm" id="prop-del" style="color:#ff9a8a">🗑️ Excluir</button>' : '')+
      '<button class="btn btn--ghost btn--sm" id="fecha">Fechar</button></div>'+
    '<div class="sheet__b">'+
      '<div class="box"><h3>Dados</h3><dl class="dl">'+
+       (p.fantasia?'<dt>Nome fantasia</dt><dd>'+esc(p.fantasia)+'</dd>':'')+
+       '<dt>'+(p.tipo==='pf'?'CPF':'CNPJ')+'</dt><dd>'+esc(p.doc||'—')+'</dd>'+
+       (p.tipo!=='pf'?'<dt>Inscrição estadual</dt><dd>'+esc(p.ie||'—')+'</dd>':'')+
        '<dt>Telefone</dt><dd>'+esc(p.fone||'—')+'</dd>'+
        '<dt>E-mail</dt><dd>'+esc(p.email||'—')+'</dd>'+
-       '<dt>Endereço</dt><dd>'+esc(p.endereco||'—')+(p.cidade?', '+esc(p.cidade):'')+(p.uf?'/'+esc(p.uf):'')+'</dd>'+
+       '<dt>Endereço</dt><dd>'+esc(p.endereco||'—')+(p.bairro?' · '+esc(p.bairro):'')+
+         (p.cidade?'<br>'+esc(p.cidade):'')+(p.uf?'/'+esc(p.uf):'')+(p.cep?' · CEP '+esc(p.cep):'')+'</dd>'+
      '</dl></div>'+
      '<div class="box"><h3>👤 Contatos <button class="btn btn--ghost btn--sm" id="add-ct" style="margin-left:auto">+ Contato</button></h3>'+ctHtml+'</div>'+
      '<div class="box"><h3>✈️ Frota <span class="c">'+frota.length+'</span></h3>'+frHtml+'</div>'+
    '</div></div></div>';
   $("fecha").onclick = function(){ $("modal").innerHTML=''; };
   $("ov").onclick = function(e){ if(e.target.id==='ov') $("modal").innerHTML=''; };
+  /* Editar: qualquer um da oficina corrige dados de cadastro. Só a
+     exclusão fica com o diretor. */
+  $("prop-edit").onclick = function(){
+    abreModal('Editar proprietário', formProprietario(p), 'Salvar', async function(){
+      var d = lerFormProprietario();
+      if(!d.nome){ toast('Informe o nome ou razão social.','err'); return false; }
+      var dn = soDig(d.doc);
+      if(dn){
+        var outro = PROPS.filter(function(x){ return x.id!==id && soDig(x.doc)===dn; })[0];
+        if(outro){ toast('Esse CPF/CNPJ já é de "'+outro.nome+'".','err'); return false; }
+      }
+      var r = await sb.from('manut_proprietarios').update(d).eq('id', id);
+      if(r.error){ toast(r.error.message,'err'); return false; }
+      await carregaProprietarios(); renderProprietarios();
+      toast('Proprietário atualizado ✓','ok'); abreProprietario(id); return true;
+    });
+  };
   if($("prop-del")) $("prop-del").onclick = function(){
     excluirSeguro('proprietario', id, p.nome, function(){
       $("modal").innerHTML=''; if(typeof carregaProprietarios==='function') carregaProprietarios();
