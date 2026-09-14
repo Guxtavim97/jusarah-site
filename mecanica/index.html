@@ -4441,7 +4441,8 @@ async function abreOS(id, scrollRestaurar){
         '📤 <b>Orçamento já enviado ao cliente</b> em '+dt(o.orcamento_enviado_em)+
         ' · revisão <b>'+revisaoOrc+'</b>'+
         (podeFinanceiro() ? ' — se mudar algum valor agora, o orçamento passa para a revisão '+(revisaoOrc+1)+
-                     ' e o cliente precisa receber a versão nova.'
+                     ' e o cliente precisa receber a versão nova.'+
+                     '<button class="btn btn--green btn--sm" id="cob-fechar" style="margin:8px 0 0">✅ Pagamento recebido — fechar cobrança</button>'
                    : ' — alterar valor agora gera uma revisão nova, então só quem cuida do orçamento faz isso.')+'</div>'
     : encerrada
       ? '<div class="no" style="margin-bottom:10px;color:var(--green-d)">'+
@@ -5226,6 +5227,17 @@ async function abreOS(id, scrollRestaurar){
         var r = await sb.rpc('manut_cobranca_fechar', { p_os:id, p_fechar:false });
         if(r.error){ toast(r.error.message,'err'); return false; }
         toast('Cobrança reaberta ✓','ok'); recarrega(); return true;
+      });
+  };
+  if($("cob-fechar")) $("cob-fechar").onclick = function(){
+    abreModal('Fechar a cobrança',
+      '<div class="no">Confirma que o pagamento desta OS foi <b>recebido</b>? '+
+      'Ela passa a aparecer como <b>Recebida</b> no Financeiro e os valores ficam travados.</div>'+
+      '<p class="sub" style="margin-top:10px;font-size:.82rem">Se precisar corrigir algo depois, é só reabrir a cobrança.</p>',
+      '✅ Fechar cobrança', async function(){
+        var r = await sb.rpc('manut_cobranca_fechar', { p_os:id, p_fechar:true });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Cobrança fechada ✓','ok'); recarrega(); return true;
       });
   };
   if($("receb-edit")) $("receb-edit").onclick = function(){
