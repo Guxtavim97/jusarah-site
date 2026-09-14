@@ -604,6 +604,55 @@
   }
 
   /* ============================================================
+     FINANCEIRO — tela. (o @media print ao fim cuida da impressão)
+     ============================================================ */
+  .fin-filtros{display:grid;grid-template-columns:150px 150px minmax(200px,1.2fr) minmax(200px,1fr);gap:10px;
+    align-items:end;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+  .fin-filtros > div{min-width:0}
+  .fin-filtros .in{box-sizing:border-box}
+  .fin-filtros .blk{margin-bottom:4px}
+  .fin-atalhos{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .fin-atalhos .lb{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+  .fin-atalhos .btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .fin-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+  .fin-card{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;min-width:0}
+  .fin-card__t{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+  .fin-card__v{font-size:1.35rem;font-weight:800;color:var(--blue);margin:4px 0 2px;font-variant-numeric:tabular-nums;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fin-card__s{font-size:.78rem;color:var(--muted)}
+  .fin-card--tot{border-color:var(--blue);background:var(--blue)}
+  .fin-card--tot .fin-card__t{color:#c9d6ea} .fin-card--tot .fin-card__v{color:#fff} .fin-card--tot .fin-card__s{color:#c9d6ea}
+  .fin-titulo{display:flex;align-items:baseline;gap:10px;margin:18px 0 6px;flex-wrap:wrap}
+  .fin-titulo b{font-size:.95rem} .fin-titulo span{font-size:.8rem;color:var(--muted)}
+  .fin-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+  table.fin-t{width:100%;border-collapse:collapse;font-size:.86rem;min-width:860px}
+  table.fin-t th{position:sticky;top:0;background:var(--paper);z-index:1;padding:9px 10px;white-space:nowrap}
+  table.fin-t td{padding:10px;vertical-align:middle;border-bottom:1px solid var(--line)}
+  table.fin-t tbody tr:last-child td{border-bottom:0}
+  table.fin-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.fin-t td > b{white-space:nowrap}
+  table.fin-t .sub{display:block;font-size:.72rem;color:var(--muted);font-weight:400;margin-top:1px}
+  table.fin-t tr[data-os]{cursor:pointer}
+  table.fin-t tr[data-os]:hover td{background:#f2f6fb}
+  table.fin-t tfoot td{background:var(--paper);font-weight:800;border-top:2px solid var(--blue)}
+  .fin-sit{display:inline-block;border:1px solid;border-radius:999px;padding:2px 10px;font-size:.72rem;font-weight:800;white-space:nowrap}
+  .fin-vazio{padding:28px;text-align:center;color:var(--muted)}
+  @media (max-width:900px){
+    .fin-filtros{grid-template-columns:1fr 1fr}
+    .fin-cards{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:520px){
+    .fin-filtros{grid-template-columns:1fr 1fr}
+    .fin-filtros > div:nth-child(n+3){grid-column:1 / -1}
+    .fin-cards{grid-template-columns:1fr 1fr;gap:8px}
+    .fin-card__v{font-size:1.1rem}
+  }
+  @media print{
+    .fin-cards{grid-template-columns:repeat(4,1fr)} .fin-card{border-radius:4px;padding:6px 8px} .fin-card__v{font-size:12pt}
+    .fin-wrap{border:0;overflow:visible} table.fin-t{min-width:0;font-size:8.5pt} table.fin-t th{position:static}
+  }
+
+  /* ============================================================
      RELATÓRIO DE SERVIÇO — documento A4. Invisível na tela,
      aparece só na impressão (Ctrl+P → Salvar como PDF).
      ============================================================ */
@@ -634,19 +683,6 @@
     .rp-id div:nth-child(2n){border-right:0}
     .rp-id dt{font-size:7.5pt;letter-spacing:.12em;text-transform:uppercase;color:#5b6b78}
     .rp-id dd{margin:1px 0 0;font-weight:bold;font-size:11pt}
-    /* ---------- Financeiro ---------- */
-    .fin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-    .fin-card{border:1.5px solid #dbe3ec;border-radius:12px;padding:10px 13px;background:#f6f8fb}
-    .fin-card__t{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
-    .fin-card__v{font-size:1.25rem;font-weight:800;color:#12294d;margin:3px 0 2px;font-variant-numeric:tabular-nums}
-    .fin-card--tot{border-color:#12294d;background:#12294d}
-    .fin-card--tot .fin-card__t,.fin-card--tot .fin-card__v,.fin-card--tot .no{color:#fff!important}
-    table.fin-t{font-size:.84rem;min-width:820px}
-    table.fin-t td,table.fin-t th{padding:7px 8px;vertical-align:top}
-    table.fin-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-    table.fin-t tr[data-os]:hover td{background:#f2f6fb}
-    .fin-sit{display:inline-block;border:1px solid;border-radius:999px;padding:2px 9px;font-size:.74rem;font-weight:800;white-space:nowrap}
-    @media print{ table.fin-t{min-width:0;font-size:8.5pt} .fin-card__v{font-size:12pt} }
     /* ---------- Resumo de Serviços e Cobrança ---------- */
     .cb-cab{align-items:center}
     .cb-cab img{height:56px}
@@ -946,32 +982,33 @@
         <h3>💰 Controle financeiro
           <button class="btn btn--ghost btn--sm" id="fin-print" style="margin-left:auto">🖨️ Imprimir / PDF</button>
         </h3>
-        <div class="row" style="align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="fin-filtros">
           <div><label class="blk">De</label><input class="in" type="date" id="fin-de"></div>
           <div><label class="blk">Até</label><input class="in" type="date" id="fin-ate"></div>
           <div><label class="blk">Situação</label>
             <select class="in" id="fin-sit">
-              <option value="">Todas</option>
-              <option value="a_cobrar">A cobrar — encerrada, orçamento não enviado</option>
+              <option value="">Todas as situações</option>
+              <option value="a_cobrar">A cobrar</option>
               <option value="enviada">Enviada — aguardando pagamento</option>
-              <option value="recebida">Recebida — cobrança fechada</option>
+              <option value="recebida">Recebida</option>
               <option value="aberta">Em andamento</option>
             </select></div>
           <div><label class="blk">Ver por</label>
             <select class="in" id="fin-ver">
-              <option value="os">OS (uma por linha)</option>
-              <option value="aeronave">Aeronave — quanto cada uma fez</option>
-              <option value="cliente">Cliente — quanto cada um gastou</option>
+              <option value="os">OS — uma por linha</option>
+              <option value="aeronave">Aeronave</option>
+              <option value="cliente">Cliente</option>
             </select></div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn--ghost btn--sm" data-fin="mes">Este mês</button>
-            <button class="btn btn--ghost btn--sm" data-fin="safra">Safra</button>
-            <button class="btn btn--ghost btn--sm" data-fin="ant">Mês passado</button>
-            <button class="btn btn--ghost btn--sm" data-fin="ano">Este ano</button>
-          </div>
         </div>
-        <div id="fin-resumo" style="margin-top:14px"></div>
-        <div id="fin-lista" style="margin-top:12px;overflow-x:auto"></div>
+        <div class="fin-atalhos">
+          <span class="lb">Período</span>
+          <button class="btn btn--ghost btn--sm" data-fin="mes">Este mês</button>
+          <button class="btn btn--ghost btn--sm" data-fin="ant">Mês passado</button>
+          <button class="btn btn--ghost btn--sm" data-fin="safra">Safra</button>
+          <button class="btn btn--ghost btn--sm" data-fin="ano">Este ano</button>
+        </div>
+        <div id="fin-resumo"></div>
+        <div id="fin-lista"></div>
       </div>
     </section>
 
@@ -2734,6 +2771,7 @@ function finPeriodo(qual){
     de = new Date(y, 6, 1); ate = new Date(y+1, 5, 30); }
   var iso = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
   $("fin-de").value = iso(de); $("fin-ate").value = iso(ate);
+  document.querySelectorAll('[data-fin]').forEach(function(b){ b.classList.toggle('on', b.dataset.fin===qual); });
 }
 
 async function renderFinanceiro(){
@@ -2757,21 +2795,27 @@ async function renderFinanceiro(){
   var totalGeral = lista.reduce(function(s,x){ return s+Number(x.total||0); }, 0);
   var totalServ  = lista.reduce(function(s,x){ return s+Number(x.servicos||0); }, 0);
   var totalMat   = lista.reduce(function(s,x){ return s+Number(x.materiais||0); }, 0);
-  var totalDesc  = lista.reduce(function(s,x){ return s+Number(x.desconto_itens||0)+Number(x.servicos||0)*0; }, 0);
 
+  var nOS = function(n){ return n+' OS'; };
   $("fin-resumo").innerHTML =
     '<div class="fin-cards">'+
       ['a_cobrar','enviada','recebida'].map(function(k){
         var c = FIN_SIT[k];
         return '<div class="fin-card" style="border-color:'+c.cor+'55;background:'+c.fundo+'">'+
           '<div class="fin-card__t" style="color:'+c.cor+'">'+c.t+'</div>'+
-          '<div class="fin-card__v">'+moeda(soma[k].v)+'</div>'+
-          '<div class="no" style="margin:0">'+soma[k].n+' OS</div></div>';
+          '<div class="fin-card__v" style="color:'+c.cor+'">'+moeda(soma[k].v)+'</div>'+
+          '<div class="fin-card__s">'+nOS(soma[k].n)+'</div></div>';
       }).join('')+
       '<div class="fin-card fin-card--tot"><div class="fin-card__t">Total do período</div>'+
         '<div class="fin-card__v">'+moeda(totalGeral)+'</div>'+
-        '<div class="no" style="margin:0">'+lista.length+' OS · serviços '+moeda(totalServ)+' · materiais '+moeda(totalMat)+'</div></div>'+
+        '<div class="fin-card__s">'+nOS(lista.length)+' · serviços '+moeda(totalServ)+' · materiais '+moeda(totalMat)+'</div></div>'+
     '</div>';
+
+  var periodoTxt = (function(){
+    var de = $("fin-de").value, ate = $("fin-ate").value;
+    var f = function(v){ return v ? new Date(v+'T12:00').toLocaleDateString('pt-BR') : null; };
+    return (f(de)||'início')+' a '+(f(ate)||'hoje');
+  })();
 
   /* ---- visão agrupada: por aeronave ou por cliente ---- */
   var ver = ($("fin-ver") && $("fin-ver").value) || 'os';
@@ -2791,14 +2835,19 @@ async function renderFinanceiro(){
         rec:  g.filter(function(x){ return x.situacao==='recebida'; }).reduce(function(s,x){ return s+Number(x.total||0); }, 0),
         ab:   g.filter(function(x){ return x.situacao!=='recebida' && x.situacao!=='aberta'; }).reduce(function(s,x){ return s+Number(x.total||0); }, 0) };
     }).sort(function(a,b){ return b.tot - a.tot; });
+    var tRec = linhasG.reduce(function(s,r){ return s+r.rec; }, 0);
+    var tAb  = linhasG.reduce(function(s,r){ return s+r.ab; }, 0);
     $("fin-lista").innerHTML =
-      '<table class="t fin-t"><thead><tr>'+
+      '<div class="fin-titulo"><b>'+(ver==='cliente'?'Por cliente':'Por aeronave')+'</b>'+
+        '<span>'+linhasG.length+(ver==='cliente'?' clientes':' aeronaves')+' · '+periodoTxt+
+        ' · "Em aberto" é o que foi encerrado e ainda não recebido</span></div>'+
+      '<div class="fin-wrap"><table class="t fin-t"><thead><tr>'+
         '<th>'+(ver==='cliente'?'Cliente':'Aeronave')+'</th>'+(ver==='aeronave'?'<th>Cliente</th>':'')+
         '<th class="n">OS</th><th class="n">Serviços</th><th class="n">Materiais</th>'+
         '<th class="n">Total</th><th class="n">Recebido</th><th class="n">Em aberto</th></tr></thead><tbody>'+
       linhasG.map(function(r){
         return '<tr>'+
-          '<td><b>'+esc(r.k)+'</b>'+(ver==='aeronave'?'<div class="no" style="margin:0;font-size:.72rem">'+esc(r.g[0].modelo||'')+'</div>':'')+'</td>'+
+          '<td><b>'+esc(r.k)+'</b>'+(ver==='aeronave'?'<span class="sub">'+esc(r.g[0].modelo||'')+'</span>':'')+'</td>'+
           (ver==='aeronave'?'<td>'+esc(r.g[0].cliente||'—')+'</td>':'')+
           '<td class="n">'+r.g.length+'</td>'+
           '<td class="n">'+moeda(r.serv)+'</td><td class="n">'+moeda(r.mat)+'</td>'+
@@ -2806,36 +2855,47 @@ async function renderFinanceiro(){
           '<td class="n" style="color:#1B6E3B">'+moeda(r.rec)+'</td>'+
           '<td class="n" style="color:#b06a2a">'+moeda(r.ab)+'</td></tr>';
       }).join('')+
-      '</tbody></table>'+
-      '<div class="no" style="margin-top:8px">Em aberto = encerrada e ainda não recebida. Troque para "OS (uma por linha)" para ver o detalhe.</div>';
+      '</tbody><tfoot><tr><td'+(ver==='aeronave'?' colspan="2"':'')+'>Total</td>'+
+        '<td class="n">'+lista.length+'</td>'+
+        '<td class="n">'+moeda(totalServ)+'</td><td class="n">'+moeda(totalMat)+'</td>'+
+        '<td class="n">'+moeda(totalGeral)+'</td>'+
+        '<td class="n" style="color:#1B6E3B">'+moeda(tRec)+'</td>'+
+        '<td class="n" style="color:#b06a2a">'+moeda(tAb)+'</td></tr></tfoot></table></div>';
     return;
   }
 
-  /* ---- a tabela ---- */
+  /* ---- a tabela: uma OS por linha ---- */
+  var tDesc = 0;
   $("fin-lista").innerHTML = lista.length
-    ? '<table class="t fin-t"><thead><tr>'+
+    ? '<div class="fin-titulo"><b>Ordens de serviço</b><span>'+nOS(lista.length)+' · '+periodoTxt+
+        ($("fin-sit").value ? ' · '+FIN_SIT[$("fin-sit").value].t : '')+' · toque na linha para abrir a OS</span></div>'+
+      '<div class="fin-wrap"><table class="t fin-t"><thead><tr>'+
         '<th>OS</th><th>Aeronave</th><th>Cliente</th><th>Conclusão</th>'+
         '<th class="n">Serviços</th><th class="n">Materiais</th><th class="n">Desconto</th><th class="n">Total</th>'+
         '<th>Situação</th></tr></thead><tbody>'+
       lista.map(function(x){
         var c = FIN_SIT[x.situacao] || FIN_SIT.aberta;
         var desc = Number(x.desconto_itens||0) + (Number(x.servicos||0)+Number(x.materiais||0))*Number(x.desconto_pct||0)/100;
-        return '<tr data-os="'+x.os_id+'" style="cursor:pointer">'+
-          '<td><b>'+esc(codOS({codigo:x.codigo, numero:x.numero}))+'</b>'+(x.revisao>1?'<div class="no" style="margin:0;font-size:.72rem">rev. '+x.revisao+'</div>':'')+'</td>'+
-          '<td><b>'+esc(x.prefixo||'—')+'</b><div class="no" style="margin:0;font-size:.72rem">'+esc(x.modelo||'')+'</div></td>'+
+        tDesc += desc;
+        var quando = x.situacao==='enviada' ? x.orcamento_enviado_em : x.situacao==='recebida' ? x.cobranca_fechada_em : null;
+        return '<tr data-os="'+x.os_id+'">'+
+          '<td><b>'+esc(codOS({codigo:x.codigo, numero:x.numero}))+'</b>'+(x.revisao>1?'<span class="sub">revisão '+x.revisao+'</span>':'')+'</td>'+
+          '<td><b>'+esc(x.prefixo||'—')+'</b><span class="sub">'+esc(x.modelo||'')+'</span></td>'+
           '<td>'+esc(x.cliente||'—')+'</td>'+
           '<td style="white-space:nowrap">'+d(x.encerrada_em)+'</td>'+
           '<td class="n">'+moeda(x.servicos)+'</td>'+
           '<td class="n">'+moeda(x.materiais)+'</td>'+
-          '<td class="n">'+(desc>0?'−'+moeda(desc):'—')+'</td>'+
+          '<td class="n">'+(desc>0?'− '+moeda(desc):'<span style="color:var(--muted)">—</span>')+'</td>'+
           '<td class="n"><b>'+moeda(x.total)+'</b></td>'+
           '<td><span class="fin-sit" style="color:'+c.cor+';border-color:'+c.cor+'55;background:'+c.fundo+'">'+c.t+'</span>'+
-            (x.situacao==='enviada'&&x.orcamento_enviado_em?'<div class="no" style="margin:0;font-size:.72rem">enviado '+d(x.orcamento_enviado_em)+'</div>':'')+
-            (x.situacao==='recebida'&&x.cobranca_fechada_em?'<div class="no" style="margin:0;font-size:.72rem">'+d(x.cobranca_fechada_em)+'</div>':'')+
+            (quando?'<span class="sub">'+d(quando)+'</span>':'')+
           '</td></tr>';
       }).join('')+
-      '</tbody></table>'
-    : '<div class="no">Nenhuma OS no período com essa situação.</div>';
+      '</tbody><tfoot><tr><td colspan="4">Total</td>'+
+        '<td class="n">'+moeda(totalServ)+'</td><td class="n">'+moeda(totalMat)+'</td>'+
+        '<td class="n">'+(tDesc>0?'− '+moeda(tDesc):'—')+'</td>'+
+        '<td class="n">'+moeda(totalGeral)+'</td><td></td></tr></tfoot></table></div>'
+    : '<div class="fin-wrap"><div class="fin-vazio">Nenhuma OS no período'+($("fin-sit").value?' com essa situação':'')+'.</div></div>';
 
   document.querySelectorAll('#fin-lista tr[data-os]').forEach(function(tr){
     tr.onclick = function(){ abreOS(tr.dataset.os); };
@@ -2844,7 +2904,10 @@ async function renderFinanceiro(){
 
 (function(){
   ['fin-de','fin-ate','fin-sit','fin-ver'].forEach(function(id){
-    var el = $(id); if(el) el.onchange = renderFinanceiro;
+    var el = $(id); if(el) el.onchange = function(){
+      if(id==='fin-de'||id==='fin-ate') document.querySelectorAll('[data-fin]').forEach(function(b){ b.classList.remove('on'); });
+      renderFinanceiro();
+    };
   });
   document.querySelectorAll('[data-fin]').forEach(function(b){
     b.onclick = function(){ finPeriodo(b.dataset.fin); renderFinanceiro(); };
