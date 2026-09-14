@@ -3433,7 +3433,7 @@ async function abreAeronave(id){
     else { toast('Formato não aceito. Envie um PDF ou uma imagem.','err'); return; }
     var b = this; b.disabled = true; b.textContent = 'Enviando…';
     var caminho = 'aeronaves/' + id + '/' + tipo + '-' + Date.now() + '.' + ext;
-    var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:ctype});
+    var up = await sb.storage.from('manutencao').upload(caminho, blob, {contentType:ctype, cacheControl:'31536000'});
     if(up.error){ b.disabled=false; b.textContent='⬆️ Anexar'; toast('Erro ao subir: '+up.error.message,'err'); return; }
     var r = await sb.from('manut_aeronave_docs').insert({
       aeronave_id:id, tipo:tipo, nome_arquivo:f.name, caminho:caminho, validade:val });
@@ -4850,7 +4850,7 @@ async function abreOS(id, scrollRestaurar){
         try{
           var dl = await sb.storage.from('manutencao').download(f.caminho);
           if(dl.error) throw new Error(dl.error.message);
-          var up = await sb.storage.from('manutencao-pub').upload(f.caminho, dl.data, {upsert:true});
+          var up = await sb.storage.from('manutencao-pub').upload(f.caminho, dl.data, {upsert:true, cacheControl:'31536000'});
           if(up.error) throw new Error(up.error.message);
           var r2 = await sb.from('manut_os_fotos').update({caminho_pub:f.caminho}).eq('id', f.id);
           if(r2.error) throw new Error(r2.error.message);
@@ -5010,7 +5010,7 @@ async function abreOS(id, scrollRestaurar){
               var dl = await sb.storage.from('manutencao').download(f.caminho);
               if(dl.error) throw new Error('não consegui ler o arquivo: '+dl.error.message);
               var up = await sb.storage.from('manutencao-pub')
-                         .upload(f.caminho, dl.data, {upsert:true});
+                         .upload(f.caminho, dl.data, {upsert:true, cacheControl:'31536000'});
               if(up.error) throw new Error('não consegui publicar: '+up.error.message);
               pub = f.caminho;
             }
@@ -5819,7 +5819,7 @@ async function abreOS(id, scrollRestaurar){
         var tit = $("ax-tit").value.trim() || f.name;
         var ext = (f.name.split('.').pop()||'pdf').toLowerCase();
         var caminho = 'os/'+id+'/anexos/'+Date.now()+'.'+ext;
-        var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf' });
+        var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf', cacheControl:'31536000' });
         if(up.error){ toast(up.error.message,'err'); return false; }
         var r = await sb.from('manut_os_anexos').insert({ os_id:id, titulo:tit,
           tipo:$("ax-tipo").value, caminho:caminho, tamanho:f.size });
@@ -5846,7 +5846,7 @@ async function abreOS(id, scrollRestaurar){
           // publica uma cópia no bucket público, que é o que o link do cliente lê
           var dl = await sb.storage.from('manutencao').download(anx.caminho);
           if(dl.error) throw new Error(dl.error.message);
-          var up = await sb.storage.from('manutencao-pub').upload(anx.caminho, dl.data, { upsert:true });
+          var up = await sb.storage.from('manutencao-pub').upload(anx.caminho, dl.data, { upsert:true, cacheControl:'31536000' });
           if(up.error) throw new Error(up.error.message);
           var r1 = await sb.from('manut_os_anexos').update({ publico:true, caminho_pub:anx.caminho }).eq('id', anx.id);
           if(r1.error) throw new Error(r1.error.message);

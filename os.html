@@ -146,6 +146,7 @@
     box-shadow:0 4px 14px rgba(18,33,46,.14);transition:transform .16s}
   .mi:hover{transform:translateY(-3px)}
   .mi img,.mi video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+  .mi--video{background:linear-gradient(135deg,#12294d,#0b1a33)}   /* sem quadro pré-carregado: fundo escuro + ▶ */
   .mi__c{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;color:#fff;
     background:linear-gradient(transparent,rgba(6,14,28,.9))}
   .mi__l{font-weight:700;font-size:.88rem;line-height:1.25}
@@ -659,7 +660,10 @@ function desenha(d){
       g.map(function(m,ix){
         var i = md.indexOf(m), url = PUB+m.caminho, v = m.midia==='video';
         return '<div class="mi'+(v?' mi--video':'')+'" data-i="'+i+'">'+
-          (v?'<video preload="metadata" src="'+esc(url)+'#t=0.5" muted playsinline></video>'
+          /* preload="none": antes, o "#t=0.5" fazia o navegador baixar boa parte
+             do vídeo só para mostrar um quadro — em cada abertura do link. Era o
+             maior consumo de tráfego do sistema. Agora só baixa quando tocar. */
+          (v?'<video preload="none" src="'+esc(url)+'" muted playsinline></video>'
              +'<div class="mi__play"><span>▶</span></div>'
             :'<img src="'+esc(url)+'" loading="lazy" alt="">')+
           '<div class="mi__c"><div class="mi__l">'+esc(m.legenda||'')+'</div>'+

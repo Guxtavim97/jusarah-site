@@ -3,7 +3,8 @@
 //  - HTML (navegação): rede primeiro (sempre fresco online), cai no cache se offline.
 //  - JS/CSS/imagens e libs de CDN: cache primeiro, atualizando em segundo plano.
 //  - Supabase (dados/escrita): NUNCA cacheia — passa direto (offline falha e o app trata).
-var CACHE = 'pjaero-mec-v45';
+var CACHE = 'pjaero-mec-v46';
+var MIDIA = 'pjaero-midia';   // fotos e vídeos: não muda de versão, senão rebaixa tudo
 var SHELL = [
   '/mecanica/',
   '/mecanica/index.html',
@@ -24,7 +25,7 @@ self.addEventListener('install', function(e){
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
-      return Promise.all(keys.filter(function(k){ return k !== CACHE; }).map(function(k){ return caches.delete(k); }));
+      return Promise.all(keys.filter(function(k){ return k !== CACHE && k !== MIDIA; }).map(function(k){ return caches.delete(k); }));
     }).then(function(){ return self.clients.claim(); })
   );
 });
@@ -34,6 +35,28 @@ self.addEventListener('fetch', function(e){
   if(req.method !== 'GET') return;                 // escrita (POST/PATCH/DELETE) passa direto
   var url = new URL(req.url);
   if(url.hostname.indexOf('supabase.co') >= 0){
+    // FOTOS E VÍDEOS (storage): cache primeiro, chaveado pelo CAMINHO do
+    // arquivo e não pela URL inteira. A URL assinada muda a cada abertura
+    // da OS, então o cache do navegador nunca acertava e cada foto era
+    // baixada de novo toda vez — isso estourou o tráfego do plano. A mídia
+    // de OS nunca é sobrescrita (o caminho leva a hora), então é seguro.
+    if(url.pathname.indexOf('/storage/v1/object/') >= 0){
+      var chave = url.origin + url.pathname;              // sem o token
+      e.respondWith(
+        caches.open(MIDIA).then(function(c){
+          return c.match(chave).then(function(hit){
+            if(hit) return hit;
+            return fetch(req).then(function(res){
+              // só respostas completas e até 40 MB (vídeo maior fica só na rede)
+              var tam = Number(res.headers.get('content-length') || 0);
+              if(res && res.ok && res.status === 200 && tam < 40*1024*1024) c.put(chave, res.clone());
+              return res;
+            });
+          });
+        })
+      );
+      return;
+    }
     // Leitura de dados (REST): rede primeiro, e guarda a última resposta
     // pra mostrar offline. Storage/auth passam direto (não cacheia).
     if(url.pathname.indexOf('/rest/v1/') >= 0){

@@ -38,7 +38,7 @@ window.Offline = (function(){
     tarefa_nova:    function(p){ return sb.from('manut_os_tarefas').insert(p.row); },
     pendencia_nova: function(p){ return sb.from('manut_os_pendencias').insert(p.row); },
     foto: async function(p){
-      var up = await sb.storage.from('manutencao').upload(p.caminho, p.blob, { contentType:p.ctype });
+      var up = await sb.storage.from('manutencao').upload(p.caminho, p.blob, { contentType:p.ctype, cacheControl:'31536000' });
       if(up.error) return { error: up.error };
       return sb.from('manut_os_fotos').insert(p.row);
     }
