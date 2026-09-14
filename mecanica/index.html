@@ -1482,7 +1482,7 @@ function montaOrcamento(o, a, pecas, cots, forn, nome, maoObra){
       '<td>'+esc((m.descricao||'').toUpperCase())+'</td>'+
       '<td style="text-align:right">'+(tabela(m)>0?moeda(tabela(m)):'—')+'</td>'+
       '<td style="text-align:right;font-weight:bold">'+
-        (m.cortesia || cobrado(m)===0
+        (m.cortesia
           ? '<span style="color:#1B6E3B">Cortesia</span>'
           : moeda(cobrado(m)))+'</td></tr>';
   }).join('');
@@ -4521,7 +4521,7 @@ async function abreOS(id, scrollRestaurar){
     ? '<table class="t" style="font-size:.85rem"><thead><tr><th style="width:34px">#</th><th>Descrição do serviço</th>'+
       '<th style="text-align:right">Valor tabela</th><th style="text-align:right">Valor cobrado</th>'+(travadoFin?'':'<th></th>')+'</tr></thead><tbody>'+
       moOrdenada.map(function(m,i){
-        var cort = m.cortesia || valorMO(m)===0;
+        var cort = !!m.cortesia;   // só se a equipe marcou — zero por desconto é desconto
         return '<tr><td>'+(i+1)+'</td><td>'+esc(m.descricao)+'</td>'+
           '<td style="text-align:right">'+(tabelaMO(m)>0?fmtR(tabelaMO(m)):'—')+'</td>'+
           '<td style="text-align:right"><b>'+(cort?'<span style="color:var(--green-d)">Cortesia</span>':fmtR(valorMO(m)))+'</b></td>'+

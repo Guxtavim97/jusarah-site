@@ -533,7 +533,7 @@ function desenha(d){
           '<div style="overflow-x:auto"><table class="orc"><thead><tr><th>#</th><th>Serviço</th>'+
             '<th class="r">Valor tabela</th><th class="r">Valor</th></tr></thead><tbody>'+
           oSv.map(function(s,i){
-            var cor = s.cortesia || Number(s.valor)===0;
+            var cor = !!s.cortesia;   // só se a oficina marcou cortesia
             return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(s.descricao)+'</td>'+
               '<td class="r" style="color:var(--muted)">'+(Number(s.tabela)>0?R$(s.tabela):'—')+'</td>'+
               '<td class="r"><b>'+(cor?'<span style="color:#2e9c5a">Cortesia</span>':R$(s.valor))+'</b></td></tr>';
