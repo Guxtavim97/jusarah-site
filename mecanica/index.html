@@ -603,6 +603,16 @@
     .tk-acao .aguarda{display:block;text-align:center}
   }
 
+  /* ---------- Cobrança (caixa na OS): as três etapas ---------- */
+  .cob-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cob-step{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff;color:var(--muted);min-width:0}
+  .cob-step b{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cob-step small{display:block;font-size:.72rem;margin-top:2px;min-height:1em}
+  .cob-step.done{border-color:#b9e0c6;background:#eef7f0;color:var(--green-d)}
+  .cob-step.now{border-color:var(--blue);background:#f2f6fb;color:var(--blue);box-shadow:0 0 0 2px #12294d22}
+  .cob-txt{margin-top:10px;font-size:.9rem;color:var(--ink)}
+  .cob-acao{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  @media (max-width:520px){ .cob-steps{grid-template-columns:1fr} .cob-step small{min-height:0} }
   /* ============================================================
      FINANCEIRO — tela. (o @media print ao fim cuida da impressão)
      ============================================================ */
@@ -636,6 +646,8 @@
   table.fin-t tr[data-os]:hover td{background:#f2f6fb}
   table.fin-t tfoot td{background:var(--paper);font-weight:800;border-top:2px solid var(--blue)}
   .fin-sit{display:inline-block;border:1px solid;border-radius:999px;padding:2px 10px;font-size:.72rem;font-weight:800;white-space:nowrap}
+  table.fin-t .fin-act{display:block;margin-top:5px;padding:3px 8px;font-size:.72rem}
+  @media print{ table.fin-t .fin-act{display:none} }
   .fin-vazio{padding:28px;text-align:center;color:var(--muted)}
   @media (max-width:900px){
     .fin-filtros{grid-template-columns:1fr 1fr}
@@ -2889,6 +2901,8 @@ async function renderFinanceiro(){
           '<td class="n"><b>'+moeda(x.total)+'</b></td>'+
           '<td><span class="fin-sit" style="color:'+c.cor+';border-color:'+c.cor+'55;background:'+c.fundo+'">'+c.t+'</span>'+
             (quando?'<span class="sub">'+d(quando)+'</span>':'')+
+            (x.situacao==='a_cobrar' ? '<button class="btn btn--ghost btn--sm fin-act" data-act="enviar" data-id="'+x.os_id+'">📤 Enviada</button>' :
+             x.situacao==='enviada' && podeFinanceiro() ? '<button class="btn btn--ghost btn--sm fin-act" data-act="receber" data-id="'+x.os_id+'">✅ Recebida</button>' : '')+
           '</td></tr>';
       }).join('')+
       '</tbody><tfoot><tr><td colspan="4">Total</td>'+
@@ -2899,6 +2913,24 @@ async function renderFinanceiro(){
 
   document.querySelectorAll('#fin-lista tr[data-os]').forEach(function(tr){
     tr.onclick = function(){ abreOS(tr.dataset.os); };
+  });
+  /* marcar enviada/recebida direto da lista, sem abrir a OS */
+  document.querySelectorAll('#fin-lista .fin-act').forEach(function(b){
+    b.onclick = function(ev){
+      ev.stopPropagation();
+      var enviar = b.dataset.act === 'enviar', osId = b.dataset.id;
+      abreModal(enviar ? 'Cobrança enviada ao cliente' : 'Pagamento recebido',
+        '<div class="no">'+(enviar
+          ? 'Confirma que a cobrança desta OS <b>já foi enviada</b> ao cliente?'
+          : 'Confirma que o pagamento desta OS <b>foi recebido</b>? Os valores ficam travados.')+'</div>',
+        enviar ? '📤 Marcar como enviada' : '✅ Marcar como recebida', async function(){
+          var r = enviar ? await sb.rpc('manut_orcamento_enviado', { p_os:osId })
+                         : await sb.rpc('manut_cobranca_fechar', { p_os:osId, p_fechar:true });
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast(enviar ? 'Marcada como enviada ✓' : 'Marcada como recebida ✓','ok');
+          renderFinanceiro(); return true;
+        });
+    };
   });
 }
 
@@ -4490,28 +4522,48 @@ async function abreOS(id, scrollRestaurar){
       (o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>'+
     (encerrada?'':'<button class="btn btn--ghost btn--sm" id="comp-edit" style="margin-top:8px">✏️ Editar componentes</button>');
 
-  /* Situação da cobrança, dita em português no alto do bloco financeiro.
-     A OS pode estar encerrada e o orçamento seguir aberto — é o caso comum. */
-  var avisoFin =
-    cobrFechada
-      ? '<div class="no" style="margin-bottom:10px;color:#12294d;border-color:#c9d6e6;background:#f2f6fb">'+
-        '🔒 <b>Cobrança fechada</b> em '+dt(o.cobranca_fechada_em)+
-        (podeFinanceiro() ? ' — você pode reabrir para corrigir algum valor.'+
-                     '<button class="btn btn--ghost btn--sm" id="cob-reabrir" style="margin:8px 0 0">🔓 Reabrir cobrança</button>'
-                   : ' — para alterar um valor, peça a quem cuida do orçamento.')+'</div>'
-    : orcEnviado
-      ? '<div class="no" style="margin-bottom:10px;color:#b06a2a;border-color:#e6c9a8;background:#fffbf2">'+
-        '📤 <b>Orçamento já enviado ao cliente</b> em '+dt(o.orcamento_enviado_em)+
-        ' · revisão <b>'+revisaoOrc+'</b>'+
-        (podeFinanceiro() ? ' — se mudar algum valor agora, o orçamento passa para a revisão '+(revisaoOrc+1)+
-                     ' e o cliente precisa receber a versão nova.'+
-                     '<button class="btn btn--green btn--sm" id="cob-fechar" style="margin:8px 0 0">✅ Pagamento recebido — fechar cobrança</button>'
-                   : ' — alterar valor agora gera uma revisão nova, então só quem cuida do orçamento faz isso.')+'</div>'
-    : encerrada
-      ? '<div class="no" style="margin-bottom:10px;color:var(--green-d)">'+
-        '✅ <b>Serviço encerrado, cobrança em aberto.</b> A parte técnica está fechada, mas o orçamento '+
-        'continua editável — lance o que faltar e envie ao cliente.</div>'
-      : '';
+  /* ============================================================
+     COBRANÇA — as três etapas, num lugar só.
+     A cobrar (serviço encerrado) → Enviada (cobrança foi ao cliente) →
+     Recebida (pagamento entrou). Quem marca: enviada, qualquer um da
+     oficina; recebida e reabrir, só Financeiro ou Diretor.
+     ============================================================ */
+  var cobHtml = '';
+  if(encerrada){
+    var etapaCob = cobrFechada ? 3 : orcEnviado ? 2 : 1;
+    var passo = function(n, titulo, quando, sub){
+      var cls = n < etapaCob ? 'done' : n === etapaCob ? 'now' : '';
+      return '<div class="cob-step '+cls+'"><b>'+(n<etapaCob?'✓ ':'')+titulo+'</b>'+
+        '<small>'+(quando ? dt(quando) : sub)+'</small></div>';
+    };
+    var acao = '', texto = '';
+    if(etapaCob === 1){
+      texto = 'A parte técnica está fechada e o orçamento continua editável. Confira os valores, emita a '+
+              '<b>🧾 Cobrança</b>, mande ao cliente e marque aqui que foi enviada.';
+      acao  = '<button class="btn btn--blue btn--sm" id="cob-enviar">📤 Marcar como enviada ao cliente</button>';
+    } else if(etapaCob === 2){
+      texto = 'Enviada em <b>'+dt(o.orcamento_enviado_em)+'</b> · revisão <b>'+revisaoOrc+'</b>. '+
+              (podeFinanceiro()
+                ? 'Se mudar algum valor agora, o documento passa para a revisão '+(revisaoOrc+1)+' e o cliente precisa receber a versão nova.'
+                : 'Alterar valor agora gera uma revisão nova — só quem cuida do financeiro faz isso.');
+      if(podeFinanceiro()) acao = '<button class="btn btn--green btn--sm" id="cob-fechar">✅ Marcar como recebida</button>';
+    } else {
+      texto = 'Pagamento recebido em <b>'+dt(o.cobranca_fechada_em)+'</b>. Os valores estão travados.';
+      if(podeFinanceiro()) acao = '<button class="btn btn--ghost btn--sm" id="cob-reabrir">🔓 Reabrir cobrança</button>';
+    }
+    cobHtml =
+      '<div class="box cob-box"><h3>💰 Cobrança'+
+        ' <span class="c" style="background:'+(etapaCob===3?'#1B6E3B':etapaCob===2?'#12294d':'#b06a2a')+';color:#fff">'+
+        (etapaCob===3?'Recebida':etapaCob===2?'Enviada':'A cobrar')+'</span></h3>'+
+      '<div class="cob-steps">'+
+        passo(1, 'A cobrar', o.encerrada_em, '')+
+        passo(2, 'Enviada', o.orcamento_enviado_em, 'cobrança foi ao cliente')+
+        passo(3, 'Recebida', o.cobranca_fechada_em, 'pagamento entrou')+
+      '</div>'+
+      '<div class="cob-txt">'+texto+'</div>'+
+      (acao ? '<div class="cob-acao">'+acao+'</div>' : '')+
+      '</div>';
+  }
 
   /* ============================================================
      REGISTRO DAS ALTERAÇÕES DE VALOR
@@ -4722,13 +4774,13 @@ async function abreOS(id, scrollRestaurar){
        '<div class="no" style="margin-bottom:6px">Pontos que a <b>próxima revisão desta aeronave</b> precisa olhar. '+
        'Aparecem em destaque quando a próxima OS for aberta.</div>'+avHtml+'</div>'+
      '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
+     cobHtml+
      '<div class="box"'+(o.etapa===3?' style="border:1.5px solid #12294d33;background:#f7f9fc"':'')+'>'+
        '<h3>🧰 Peças e Materiais'+(o.etapa===3?' <span class="c" style="background:#12294d;color:#fff">etapa atual</span>':'')+'</h3>'+
        (o.etapa===3 && !encerrada
          ? '<div class="no" style="margin-bottom:10px">Esta é a etapa do <b>orçamento</b>: monte a lista de peças (a busca preenche o P/N certo), '+
            'peça preço aos fornecedores e envie a comparação ao cliente.</div>'
          : '')+
-       avisoFin+
        pecasHtml+'</div>'+
      '<div class="box"><h3>🔧 Mão de obra'+(totalMO>0?' <span class="c">'+fmtR(totalMO)+'</span>':'')+'</h3>'+moHtml+'</div>'+
      (totalPecas>0 || totalMO>0
@@ -5290,6 +5342,16 @@ async function abreOS(id, scrollRestaurar){
         var r = await sb.rpc('manut_cobranca_fechar', { p_os:id, p_fechar:false });
         if(r.error){ toast(r.error.message,'err'); return false; }
         toast('Cobrança reaberta ✓','ok'); recarrega(); return true;
+      });
+  };
+  if($("cob-enviar")) $("cob-enviar").onclick = function(){
+    abreModal('Cobrança enviada ao cliente',
+      '<div class="no">Confirma que a cobrança desta OS <b>já foi enviada</b> ao cliente? '+
+      'A partir daqui, qualquer valor que mudar vira uma revisão nova do documento.</div>',
+      '📤 Marcar como enviada', async function(){
+        var r = await sb.rpc('manut_orcamento_enviado', { p_os:id });
+        if(r.error){ toast(r.error.message,'err'); return false; }
+        toast('Marcada como enviada ✓','ok'); recarrega(); return true;
       });
   };
   if($("cob-fechar")) $("cob-fechar").onclick = function(){
