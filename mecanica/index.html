@@ -957,8 +957,15 @@
               <option value="recebida">Recebida — cobrança fechada</option>
               <option value="aberta">Em andamento</option>
             </select></div>
+          <div><label class="blk">Ver por</label>
+            <select class="in" id="fin-ver">
+              <option value="os">OS (uma por linha)</option>
+              <option value="aeronave">Aeronave — quanto cada uma fez</option>
+              <option value="cliente">Cliente — quanto cada um gastou</option>
+            </select></div>
           <div style="display:flex;gap:6px">
             <button class="btn btn--ghost btn--sm" data-fin="mes">Este mês</button>
+            <button class="btn btn--ghost btn--sm" data-fin="safra">Safra</button>
             <button class="btn btn--ghost btn--sm" data-fin="ant">Mês passado</button>
             <button class="btn btn--ghost btn--sm" data-fin="ano">Este ano</button>
           </div>
@@ -2722,6 +2729,9 @@ function finPeriodo(qual){
   if(qual==='mes'){ de = new Date(h.getFullYear(), h.getMonth(), 1); ate = new Date(h.getFullYear(), h.getMonth()+1, 0); }
   if(qual==='ant'){ de = new Date(h.getFullYear(), h.getMonth()-1, 1); ate = new Date(h.getFullYear(), h.getMonth(), 0); }
   if(qual==='ano'){ de = new Date(h.getFullYear(), 0, 1); ate = new Date(h.getFullYear(), 11, 31); }
+  /* safra: de 1º de julho até 30 de junho seguinte — é assim que o dono pergunta */
+  if(qual==='safra'){ var y = h.getMonth() >= 6 ? h.getFullYear() : h.getFullYear()-1;
+    de = new Date(y, 6, 1); ate = new Date(y+1, 5, 30); }
   var iso = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
   $("fin-de").value = iso(de); $("fin-ate").value = iso(ate);
 }
@@ -2763,6 +2773,44 @@ async function renderFinanceiro(){
         '<div class="no" style="margin:0">'+lista.length+' OS · serviços '+moeda(totalServ)+' · materiais '+moeda(totalMat)+'</div></div>'+
     '</div>';
 
+  /* ---- visão agrupada: por aeronave ou por cliente ---- */
+  var ver = ($("fin-ver") && $("fin-ver").value) || 'os';
+  if(ver !== 'os' && lista.length){
+    var chave = ver === 'cliente' ? 'cliente' : 'prefixo';
+    var grupos = {};
+    lista.forEach(function(x){
+      var k = x[chave] || '(sem '+ver+')';
+      (grupos[k] = grupos[k] || []).push(x);
+    });
+    var linhasG = Object.keys(grupos).map(function(k){
+      var g = grupos[k];
+      var tot = g.reduce(function(s,x){ return s+Number(x.total||0); }, 0);
+      return { k:k, g:g, tot:tot,
+        serv: g.reduce(function(s,x){ return s+Number(x.servicos||0); }, 0),
+        mat:  g.reduce(function(s,x){ return s+Number(x.materiais||0); }, 0),
+        rec:  g.filter(function(x){ return x.situacao==='recebida'; }).reduce(function(s,x){ return s+Number(x.total||0); }, 0),
+        ab:   g.filter(function(x){ return x.situacao!=='recebida' && x.situacao!=='aberta'; }).reduce(function(s,x){ return s+Number(x.total||0); }, 0) };
+    }).sort(function(a,b){ return b.tot - a.tot; });
+    $("fin-lista").innerHTML =
+      '<table class="t fin-t"><thead><tr>'+
+        '<th>'+(ver==='cliente'?'Cliente':'Aeronave')+'</th>'+(ver==='aeronave'?'<th>Cliente</th>':'')+
+        '<th class="n">OS</th><th class="n">Serviços</th><th class="n">Materiais</th>'+
+        '<th class="n">Total</th><th class="n">Recebido</th><th class="n">Em aberto</th></tr></thead><tbody>'+
+      linhasG.map(function(r){
+        return '<tr>'+
+          '<td><b>'+esc(r.k)+'</b>'+(ver==='aeronave'?'<div class="no" style="margin:0;font-size:.72rem">'+esc(r.g[0].modelo||'')+'</div>':'')+'</td>'+
+          (ver==='aeronave'?'<td>'+esc(r.g[0].cliente||'—')+'</td>':'')+
+          '<td class="n">'+r.g.length+'</td>'+
+          '<td class="n">'+moeda(r.serv)+'</td><td class="n">'+moeda(r.mat)+'</td>'+
+          '<td class="n"><b>'+moeda(r.tot)+'</b></td>'+
+          '<td class="n" style="color:#1B6E3B">'+moeda(r.rec)+'</td>'+
+          '<td class="n" style="color:#b06a2a">'+moeda(r.ab)+'</td></tr>';
+      }).join('')+
+      '</tbody></table>'+
+      '<div class="no" style="margin-top:8px">Em aberto = encerrada e ainda não recebida. Troque para "OS (uma por linha)" para ver o detalhe.</div>';
+    return;
+  }
+
   /* ---- a tabela ---- */
   $("fin-lista").innerHTML = lista.length
     ? '<table class="t fin-t"><thead><tr>'+
@@ -2773,7 +2821,7 @@ async function renderFinanceiro(){
         var c = FIN_SIT[x.situacao] || FIN_SIT.aberta;
         var desc = Number(x.desconto_itens||0) + (Number(x.servicos||0)+Number(x.materiais||0))*Number(x.desconto_pct||0)/100;
         return '<tr data-os="'+x.os_id+'" style="cursor:pointer">'+
-          '<td><b>'+esc(codOS({numero:x.numero, aberta_em:x.aberta_em}))+'</b>'+(x.revisao>1?'<div class="no" style="margin:0;font-size:.72rem">rev. '+x.revisao+'</div>':'')+'</td>'+
+          '<td><b>'+esc(codOS({codigo:x.codigo, numero:x.numero}))+'</b>'+(x.revisao>1?'<div class="no" style="margin:0;font-size:.72rem">rev. '+x.revisao+'</div>':'')+'</td>'+
           '<td><b>'+esc(x.prefixo||'—')+'</b><div class="no" style="margin:0;font-size:.72rem">'+esc(x.modelo||'')+'</div></td>'+
           '<td>'+esc(x.cliente||'—')+'</td>'+
           '<td style="white-space:nowrap">'+d(x.encerrada_em)+'</td>'+
@@ -2795,7 +2843,7 @@ async function renderFinanceiro(){
 }
 
 (function(){
-  ['fin-de','fin-ate','fin-sit'].forEach(function(id){
+  ['fin-de','fin-ate','fin-sit','fin-ver'].forEach(function(id){
     var el = $(id); if(el) el.onchange = renderFinanceiro;
   });
   document.querySelectorAll('[data-fin]').forEach(function(b){
