@@ -1,0 +1,151 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">Cobrança e Financeiro no sistema
+<title>Cobrança e Financeiro no sistema</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  :root{
+    --azul:#12294d; --azul-2:#1d3f73; --verde:#1B6E3B; --ambar:#b06a2a;
+    --fundo:#f7f8fa; --papel:#ffffff; --texto:#15202e; --mudo:#5b6b78;
+    --linha:#d9e0e8; --chip:#eef2f7; --ambar-f:#fff8ec; --verde-f:#eef7f0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --azul:#9db8e6; --azul-2:#7ea0d9; --verde:#6cc08a; --ambar:#e0a25c;
+      --fundo:#0f1620; --papel:#182131; --texto:#e8edf3; --mudo:#9aa8b8;
+      --linha:#2a3646; --chip:#22304a; --ambar-f:#2b2416; --verde-f:#15281c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --azul:#9db8e6; --azul-2:#7ea0d9; --verde:#6cc08a; --ambar:#e0a25c;
+    --fundo:#0f1620; --papel:#182131; --texto:#e8edf3; --mudo:#9aa8b8;
+    --linha:#2a3646; --chip:#22304a; --ambar-f:#2b2416; --verde-f:#15281c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--texto);
+    font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.55}
+  .pg{max-width:680px;margin:0 auto;padding:28px 18px 60px}
+  h1,h2,h3{font-family:Manrope,system-ui,sans-serif;text-wrap:balance;color:var(--azul);margin:0}
+  h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  h2{font-size:1.25rem;font-weight:800;margin-top:44px;padding-top:22px;border-top:2px solid var(--azul)}
+  h3{font-size:1.02rem;font-weight:700;margin-top:18px}
+  .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mudo);font-weight:600;margin-bottom:8px}
+  .lead{font-size:1.08rem;color:var(--texto);margin:12px 0 0;max-width:60ch}
+  .lead b{color:var(--azul)}
+  p{margin:10px 0;max-width:65ch}
+  ol.passos{list-style:none;margin:12px 0 0;padding:0;counter-reset:p;display:grid;gap:8px}
+  ol.passos li{counter-increment:p;position:relative;padding:10px 12px 10px 46px;background:var(--papel);
+    border:1px solid var(--linha);border-radius:10px}
+  ol.passos li::before{content:counter(p);position:absolute;left:12px;top:10px;width:24px;height:24px;
+    border-radius:50%;background:var(--azul);color:#fff;font:700 .85rem/24px Manrope,sans-serif;text-align:center}
+  .btn{display:inline-block;padding:1px 9px;border:1px solid var(--linha);border-radius:7px;background:var(--chip);
+    font-weight:600;font-size:.94em;white-space:nowrap;color:var(--texto)}
+  .nota{border-left:3px solid var(--ambar);background:var(--ambar-f);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+  .nota.ok{border-color:var(--verde);background:var(--verde-f)}
+  .nota b{color:var(--azul)}
+  table{border-collapse:collapse;width:100%;font-size:.95rem;margin:12px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--linha);vertical-align:top}
+  th{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mudo);font-weight:600}
+  .tabela{overflow-x:auto}
+  .sit{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.82rem;font-weight:700;border:1px solid}
+  .s1{color:var(--ambar);border-color:var(--ambar);background:var(--ambar-f)}
+  .s2{color:var(--azul);border-color:var(--azul);background:var(--chip)}
+  .s3{color:var(--verde);border-color:var(--verde);background:var(--verde-f)}
+  .perg{background:var(--papel);border:1px solid var(--linha);border-radius:10px;padding:10px 14px;margin:8px 0;font-style:italic}
+  .perg::before{content:"“";color:var(--mudo)} .perg::after{content:"”";color:var(--mudo)}
+  .rodape{margin-top:48px;padding-top:16px;border-top:1px solid var(--linha);color:var(--mudo);font-size:.9rem}
+  @media (prefers-reduced-motion: no-preference){ a{transition:color .15s} }
+</style></head><body>
+
+<div class="pg">
+  <div class="eyebrow">PJ Aero Centro · sistema da oficina</div>
+  <h1>Cobrança e Financeiro no sistema</h1>
+  <p class="lead">Bianca, aqui está o que mudou a partir do que você e a Thaila pediram. Tudo já está no ar. <b>Antes de começar, feche e abra o aplicativo de novo</b> para pegar a versão nova.</p>
+
+  <!-- ============================================================ -->
+  <h2>1. Emitir a cobrança de uma OS</h2>
+  <p>O documento sai <b>já preenchido</b> com os serviços e materiais lançados na OS. Não tem mais linha em branco para escrever à mão — ele vai por link para o cliente.</p>
+  <ol class="passos">
+    <li>Abra a OS e clique em <span class="btn">🧾 Cobrança</span>, no topo, ao lado de Relatório e Orçamento.</li>
+    <li>Confira o que apareceu. Se faltar valor em algum serviço ou material, feche e lance antes (item 2 abaixo).</li>
+    <li>Se quiser deixar um recado no documento, clique em <span class="btn">📝 Observações da cobrança</span>, no bloco de Mão de obra. Isso sai impresso — serve para prazo de pagamento, garantia, próxima revisão.</li>
+    <li>Envie ao cliente pelo <span class="btn">📤 Enviar ao cliente</span>, dentro de <span class="btn">💰 Orçamento e cotações</span>.</li>
+  </ol>
+  <p>O que sai no documento: dados da OS e do cliente (CNPJ, IE e endereço completo), serviços e materiais com valor unitário, desconto e total, o resumo com o <b>total a pagar</b>, suas observações, os dados de PIX do Sicoob e a data já preenchida.</p>
+
+  <!-- ============================================================ -->
+  <h2>2. Corrigir valores depois que a OS foi concluída</h2>
+  <p>A OS concluída <b>não trava mais o orçamento</b>. O que trava ao concluir é só a parte técnica (serviços executados, checklist, assinaturas). Peças, mão de obra e valores continuam abertos.</p>
+  <ol class="passos">
+    <li>Abra a OS concluída. No bloco de Mão de obra ou de Peças, cada linha tem <span class="btn">✏️</span> para editar e <span class="btn">🗑️</span> para excluir.</li>
+    <li>Para lançar algo que faltou (o caso do óleo), use <span class="btn">+ Serviço</span> ou <span class="btn">+ Peça / Material</span>.</li>
+    <li>Emita a cobrança de novo. Ela sempre reflete o que está lançado agora.</li>
+  </ol>
+  <div class="tabela"><table>
+    <tr><th>Situação da OS</th><th>Quem pode mexer em valor</th></tr>
+    <tr><td>Concluída, orçamento <b>ainda não enviado</b></td><td>Qualquer um da oficina</td></tr>
+    <tr><td>Orçamento <b>já enviado</b> ao cliente</td><td>Você (papel Financeiro) ou o Diretor. O documento vira <b>Revisão 2</b>, e o cliente precisa receber a versão nova.</td></tr>
+    <tr><td>Cobrança <b>fechada</b></td><td>Você ou o Diretor, clicando em <span class="btn">🔓 Reabrir cobrança</span> antes.</td></tr>
+  </table></div>
+  <div class="nota"><b>Antes de concluir uma OS</b>, o sistema mostra a lista do que está sem valor e pergunta se quer concluir assim mesmo. Foi assim que o óleo ficou de fora — agora ele aparece na cara de quem conclui.</div>
+  <p>Toda alteração de valor fica registrada no bloco <b>🧾 Alterações de valor</b> da OS: quem mudou, quando, de quanto para quanto. Ninguém apaga esse registro.</p>
+
+  <!-- ============================================================ -->
+  <h2>3. Cortesia é só quando você marcar</h2>
+  <p>O sistema deixou de chamar de "cortesia" um serviço que ficou com valor zero por desconto. Agora:</p>
+  <ul>
+    <li><b>Desconto</b> — lance o valor de tabela e o valor cobrado (pode ser zero). Sai como R$ 0,00 com o desconto ao lado.</li>
+    <li><b>Cortesia</b> — só se você marcar a caixinha <span class="btn">Conceder como cortesia</span> ao lançar ou editar o serviço.</li>
+  </ul>
+  <p>Se alguma OS antiga estiver mostrando "Cortesia" onde deveria ser desconto, abra o serviço no <span class="btn">✏️</span> e desmarque.</p>
+
+  <!-- ============================================================ -->
+  <h2>4. Dados do proprietário</h2>
+  <p>A ficha do proprietário agora tem <span class="btn">✏️ Editar</span>. Entraram os campos que a cobrança precisa:</p>
+  <ul>
+    <li><b>Inscrição estadual</b> (só aparece para empresa; aceita "ISENTO")</li>
+    <li><b>Bairro</b> e <b>CEP</b></li>
+    <li>E-mail e telefone, que já existiam mas não dava para preencher depois</li>
+  </ul>
+  <ol class="passos">
+    <li>Aba <span class="btn">Proprietários</span> → clique no nome.</li>
+    <li><span class="btn">✏️ Editar</span> → complete → <span class="btn">Salvar</span>.</li>
+  </ol>
+  <p>Tudo o que estiver preenchido sai no cabeçalho da cobrança, como numa nota.</p>
+
+  <!-- ============================================================ -->
+  <h2>5. Aba Financeiro</h2>
+  <p>É a aba <span class="btn">💰 Financeiro</span>, no menu do topo. Só aparece para quem tem papel Financeiro ou Diretor. É o relatório para bater com o que a Thaila lança.</p>
+  <h3>O que cada linha mostra</h3>
+  <p>Cliente, aeronave, data de conclusão, serviços, materiais, desconto, total e a <b>situação da cobrança</b>, que o sistema preenche sozinho:</p>
+  <div class="tabela"><table>
+    <tr><th>Situação</th><th>Significa</th></tr>
+    <tr><td><span class="sit s1">A cobrar</span></td><td>OS concluída, orçamento ainda não enviado</td></tr>
+    <tr><td><span class="sit s2">Enviada</span></td><td>Orçamento enviado, aguardando pagamento</td></tr>
+    <tr><td><span class="sit s3">Recebida</span></td><td>Cobrança fechada — o dinheiro entrou</td></tr>
+  </table></div>
+  <h3>Filtros</h3>
+  <ul>
+    <li><b>Período</b>: <span class="btn">Este mês</span>, <span class="btn">Safra</span> (1º de julho a 30 de junho), <span class="btn">Este ano</span> ou datas livres.</li>
+    <li><b>Ver por</b>: <b>OS</b> (uma por linha), <b>Aeronave</b> (quanto cada uma fez) ou <b>Cliente</b> (quanto cada um gastou).</li>
+    <li><b>Situação</b>: para ver só o que está a cobrar, por exemplo.</li>
+  </ul>
+  <p>Os cartões no topo somam cada situação — de relance você vê quanto está na rua e quanto já entrou. Clicar numa linha abre a OS. <span class="btn">🖨️ Imprimir / PDF</span> gera o relatório no timbre da oficina.</p>
+  <div class="nota ok"><b>Para marcar que o cliente pagou:</b> abra a OS e, no aviso amarelo "Orçamento já enviado ao cliente", clique em <span class="btn">✅ Pagamento recebido — fechar cobrança</span>. A OS passa a aparecer como <b>Recebida</b> no relatório e os valores ficam travados. Se precisar corrigir depois, <span class="btn">🔓 Reabrir cobrança</span> no mesmo lugar.</div>
+
+  <!-- ============================================================ -->
+  <h2>6. Perguntar ao assistente</h2>
+  <p>O assistente do sistema agora responde faturamento. Ele puxa os mesmos números da aba Financeiro. Exemplos do que dá para perguntar:</p>
+  <div class="perg">Quanto o PT-EHY fez de agosto para cá?</div>
+  <div class="perg">Quanto o Murilo gastou com a gente nesta safra?</div>
+  <div class="perg">Quantas OS fechamos este mês e quanto está a cobrar?</div>
+  <div class="perg">Quais clientes mais faturaram no ano?</div>
+  <p>Só quem tem papel Financeiro ou Diretor recebe valores. Se um mecânico perguntar, o assistente responde com educação que o perfil não tem acesso.</p>
+
+  <!-- ============================================================ -->
+  <h2>7. Duas coisas pequenas</h2>
+  <ul>
+    <li><b>Ano de fabricação</b> entrou no cadastro da aeronave (em Aeronaves → ✏️ Editar aeronave). Vale preencher: as fichas de inspeção têm itens que só valem para certos anos.</li>
+    <li><b>Excluir serviço</b> lançado por engano: agora o Chefe de Manutenção também consegue, além do Diretor. Se o serviço já estava executado, o sistema avisa e registra no histórico da OS.</li>
+  </ul>
+
+  <div class="rodape">Se algo não aparecer como descrito aqui, o primeiro passo é fechar e reabrir o aplicativo. Se continuar diferente, mande um print para o Gustavo.</div>
+</div>
+</body></html>
