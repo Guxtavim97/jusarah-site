@@ -3,7 +3,7 @@
 //  - HTML (navegação): rede primeiro (sempre fresco online), cai no cache se offline.
 //  - JS/CSS/imagens e libs de CDN: cache primeiro, atualizando em segundo plano.
 //  - Supabase (dados/escrita): NUNCA cacheia — passa direto (offline falha e o app trata).
-var CACHE = 'pjaero-mec-v50';
+var CACHE = 'pjaero-mec-v51';
 var MIDIA = 'pjaero-midia';   // fotos e vídeos: não muda de versão, senão rebaixa tudo
 var SHELL = [
   '/mecanica/',

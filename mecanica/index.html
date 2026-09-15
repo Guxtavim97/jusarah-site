@@ -2035,6 +2035,7 @@ function comprimeVideo(arq, aoAndar){
 
 function novaMidia(osId, o, recarrega, forcar, depois){
   var trava = !!forcar;
+  var interna = !!o.encerrada_em;   // OS encerrada: registro interno, não vai ao cliente
   var opTipo = trava
     ? '<div class="mid-fix">'+(forcar==='antes'
         ? '📥 <b>ANTES</b> — como a aeronave está agora'
@@ -2043,7 +2044,9 @@ function novaMidia(osId, o, recarrega, forcar, depois){
       '<option value="antes">📥 ANTES — como a aeronave estava</option>'+
       '<option value="depois">📤 DEPOIS — como ficou</option></select>';
 
-  abreModal(trava ? 'Registre a mídia para avançar' : 'Nova foto ou vídeo',
+  abreModal(trava ? 'Registre a mídia para avançar' : (interna ? 'Registro interno' : 'Nova foto ou vídeo'),
+    (interna ? '<div class="no" style="margin-bottom:10px">🔒 A OS já está encerrada. Este registro fica <b>só para a oficina</b> '+
+       '(saída da aeronave, conferência, controle) — não entra no relatório nem no link do cliente.</div>' : '')+
     (trava ? '<div class="aviso-suave">Esta etapa só avança com o registro de <b>'+
        (forcar==='antes'?'como a aeronave chegou':'como o serviço ficou')+'</b>. '+
        'É esse registro que protege a oficina e comprova o trabalho.</div>' : '')+
@@ -2108,7 +2111,8 @@ function novaMidia(osId, o, recarrega, forcar, depois){
       }
       var caminho = osId + '/' + tipo + '-' + Date.now() + '.' + ext;
       var res = await Offline.exec('foto', { caminho:caminho, ctype:ctype, blob:blob,
-        row:{ os_id:osId, tipo:tipo, caminho:caminho, legenda:leg, etapa:o.etapa, midia: ehVideo ? 'video' : 'foto' } });
+        row:{ os_id:osId, tipo:tipo, caminho:caminho, legenda:leg, etapa:o.etapa, midia: ehVideo ? 'video' : 'foto',
+              compartilhada: interna ? false : undefined } });
       if(!res.ok){ toast('Erro ao subir: '+res.erro,'err'); return false; }
       if(res.offline){ toast((ehVideo?'Vídeo':'Foto')+' salvo no aparelho — sincroniza ao voltar.','ok'); return true; }
       toast(ehVideo ? 'Vídeo registrado.' : 'Foto registrada.','ok');
@@ -4707,7 +4711,7 @@ async function abreOS(id, scrollRestaurar){
               (f.etapa ? ' · etapa '+f.etapa : '')+'</div>'+
           '</figcaption>'+
           (encerrada
-            ? '<div class="ft__est'+(vai?' on':'')+'">'+(vai?'✓ enviada ao proprietário':'não enviada')+'</div>'
+            ? '<div class="ft__est'+(vai?' on':'')+'">'+(vai?'✓ enviada ao proprietário':(o.encerrada_em && f.quando > o.encerrada_em ? '🔒 registro interno':'não enviada'))+'</div>'
             : '<div class="ft__sel" data-fid="'+f.id+'">'+
                 '<button data-sh="1" class="'+(vai?'on':'')+'">Enviar</button>'+
                 '<button data-sh="0" class="'+(vai?'':'off')+'">Não enviar</button>'+
@@ -4816,8 +4820,11 @@ async function abreOS(id, scrollRestaurar){
      '</div>'+
      '<div class="box"><h3>✈️ Translado — chegada da aeronave</h3>'+trHtml+trBtn+'</div>'+
      '<div class="box"><h3>🎞️ Registro do serviço <span class="c">'+contaMidia(fotos)+'</span>'+
-       (encerrada?'':'<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Registrar</button>')+
-       '</h3>'+galeria+'</div>'+
+       '<button class="btn btn--ghost btn--sm" id="add-foto" style="margin-left:10px">+ Registrar</button>'+
+       '</h3>'+
+       (encerrada?'<div class="no" style="margin-bottom:10px">OS encerrada: o que for registrado agora entra como '+
+         '<b>registro interno</b> (saída da aeronave, conferências) — fica só para a oficina, o cliente não vê.</div>':'')+
+       galeria+'</div>'+
      '<div class="box"><h3>✍️ Assinaturas <span class="c">'+assins.length+'</span></h3>'+asHtml+
        '<div class="no" style="margin-top:10px">Assinatura registrada não pode ser apagada nem editada.</div></div>'+
      '<div class="box"><h3>📜 Histórico</h3>'+hHtml+'</div>'+
