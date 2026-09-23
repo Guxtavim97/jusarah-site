@@ -132,6 +132,25 @@
   .form-acts{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
 
   /* ---- Toast ---- */
+  /* ---- Conectar a chave do GitHub (a que salva as notícias) ---- */
+  .gh-ov{position:fixed;inset:0;background:rgba(10,20,32,.55);display:grid;place-items:center;
+    padding:18px;z-index:60}
+  .gh-ov[hidden]{display:none}
+  .gh-cx{background:#fff;border-radius:18px;width:min(520px,100%);max-height:92vh;overflow:auto;
+    box-shadow:0 30px 80px rgba(18,33,46,.3);padding:22px 24px}
+  .gh-cx h3{margin:0 0 4px;color:var(--blue);font-size:1.15rem}
+  .gh-cx .gh-sub{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+  .gh-cx ol{margin:0 0 14px;padding-left:20px;font-size:.94rem;line-height:1.7}
+  .gh-cx ol b{color:var(--ink)}
+  .gh-cx input{width:100%;padding:12px 13px;border:2px solid var(--line);border-radius:11px;
+    font-size:.95rem;font-family:Consolas,monospace;box-sizing:border-box}
+  .gh-res{margin-top:12px;font-size:.92rem;border-radius:10px;padding:10px 13px;display:none}
+  .gh-res.on{display:block}
+  .gh-res.ok{background:#eef7f0;color:#1B6E3B;border:1px solid #b9e0c6}
+  .gh-res.err{background:#fdf2f2;color:var(--danger);border:1px solid #f0cccc}
+  .gh-cx a.btn{text-decoration:none;justify-content:center}
+  .gh-acoes{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .gh-acoes .btn{flex:1}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90vw;text-align:center}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .toast.ok{background:#1e7a3d}
@@ -867,6 +886,28 @@
   </div>
 </div>
 
+<div class="gh-ov" id="gh-ov" hidden>
+  <div class="gh-cx">
+    <h3>Chave para publicar</h3>
+    <p class="gh-sub">Ela autoriza o painel a gravar as not&iacute;cias no site. &Eacute; pedida uma vez e fica guardada neste navegador.</p>
+    <ol>
+      <li>Abra a p&aacute;gina do GitHub no bot&atilde;o abaixo &mdash; j&aacute; vai preenchida.</li>
+      <li>Em <b>Expiration</b>, escolha <b>No expiration</b>, para n&atilde;o vencer mais.</li>
+      <li>Des&ccedil;a e clique em <b>Generate token</b>.</li>
+      <li>Copie a chave (come&ccedil;a com <b>ghp_</b>) e cole aqui embaixo.</li>
+    </ol>
+    <a class="btn btn--ghost btn--sm btn--block" id="gh-abrir" target="_blank" rel="noopener"
+       href="https://github.com/settings/tokens/new?scopes=repo&amp;description=Painel%20Jusarah">Abrir a p&aacute;gina do GitHub &#8599;</a>
+    <div style="margin-top:14px">
+      <input id="gh-chave" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="gh-res" id="gh-res"></div>
+    <div class="gh-acoes">
+      <button class="btn btn--ghost" id="gh-cancelar">Cancelar</button>
+      <button class="btn btn--green" id="gh-testar">Testar e salvar</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1082,9 +1123,53 @@ $("btn-reset").addEventListener("click", async function(){
 
 $("btn-logout").addEventListener("click", async function(){ paraControleInatividade(); await sb.auth.signOut(); usuario = null; mostraTela('login-entrar'); });
 
+/* A chave vence e ninguém descobre até tentar publicar. Aqui ela é
+   testada na hora: o painel pergunta ao GitHub se aquela chave realmente
+   grava neste repositório, e só guarda se a resposta for sim. */
+function ghRes(txt, ok){
+  var el = $("gh-res");
+  el.className = "gh-res on " + (ok ? "ok" : "err");
+  el.innerHTML = txt;
+}
+async function testaChave(t){
+  var res = await fetch(API, { headers: {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "Authorization": "Bearer " + t
+  }});
+  if(res.status === 401) return { ok:false, msg:"Esta chave não vale (expirou ou foi colada errada). Gere outra e cole de novo." };
+  if(res.status === 404) return { ok:false, msg:"A chave não enxerga o repositório <b>jusarah-site</b>. Ao gerar, marque o escopo <b>repo</b>." };
+  if(!res.ok)            return { ok:false, msg:"O GitHub respondeu com erro " + res.status + ". Tente de novo em instantes." };
+  var j = await res.json();
+  if(!(j.permissions && j.permissions.push))
+    return { ok:false, msg:"A chave abre o repositório mas <b>não pode gravar</b>. Gere outra marcando o escopo <b>repo</b> inteiro." };
+  return { ok:true };
+}
 $("btn-gh").addEventListener("click", function(){
-  var t = prompt("Cole o token do GitHub (Contents: Read and write no repo jusarah-site).\nSó é preciso pra SALVAR matérias/notícias.", token || "");
-  if(t !== null){ token = t.trim(); localStorage.setItem("jusarah_gh_token", token); atualizaGh(); toast(token ? "GitHub conectado ✓" : "Token removido", "ok"); }
+  $("gh-chave").value = token || "";
+  $("gh-res").className = "gh-res";
+  $("gh-ov").hidden = false;
+  $("gh-chave").focus();
+});
+$("gh-cancelar").addEventListener("click", function(){ $("gh-ov").hidden = true; });
+$("gh-ov").addEventListener("click", function(e){ if(e.target === $("gh-ov")) $("gh-ov").hidden = true; });
+$("gh-chave").addEventListener("keydown", function(e){ if(e.key === "Enter") $("gh-testar").click(); });
+$("gh-testar").addEventListener("click", async function(){
+  var b = this, t = $("gh-chave").value.trim();
+  if(!t){
+    token = ""; localStorage.removeItem("jusarah_gh_token"); atualizaGh();
+    $("gh-ov").hidden = true; toast("Chave removida deste navegador.", "ok"); return;
+  }
+  b.disabled = true; b.innerHTML = '<span class="spin"></span> Testando…';
+  try{
+    var r = await testaChave(t);
+    if(!r.ok){ ghRes(r.msg, false); return; }
+    token = t; localStorage.setItem("jusarah_gh_token", token); atualizaGh();
+    ghRes("Chave válida e com permissão de gravar ✓", true);
+    setTimeout(function(){ $("gh-ov").hidden = true; toast("Pronto — já dá para publicar.", "ok"); }, 900);
+  }catch(e){
+    ghRes("Não consegui falar com o GitHub. Confira a internet e tente de novo.", false);
+  }finally{ b.disabled = false; b.innerHTML = "Testar e salvar"; }
 });
 function atualizaGh(){ var b = $("btn-gh"); if(b) b.textContent = token ? "🔑 Chave salva ✓" : "🔑 Conectar chave"; }
 
