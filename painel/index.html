@@ -898,10 +898,20 @@ async function ghErr(res) {
     detail = j.message || "";
     if (j.errors) detail += " — " + JSON.stringify(j.errors);
   } catch (e) {}
-  if (res.status === 403 || res.status === 404) {
-    detail += " [Verifique se o token tem permissão 'Contents: Read and write' neste repositório.]";
-  }
+  /* As três falhas que realmente acontecem aqui, ditas em português.
+     O GitHub responde 404 (e não 403) quando a chave não tem permissão
+     de escrita — por isso os dois casos apontam para o mesmo lugar. */
+  if (res.status === 401)
+    return ": a chave do GitHub expirou ou foi revogada. Clique em 🔑 Conectar chave, no topo, e cole uma chave nova.";
+  if (res.status === 403 || res.status === 404)
+    return ": a chave não tem permissão para gravar neste repositório. Gere uma nova com 'Contents: Read and write' em jusarah-site e cole em 🔑 Conectar chave.";
   return " (" + res.status + (detail ? ": " + detail : "") + ")";
+}
+/* Sem chave nenhuma o GitHub devolve 404, que confunde. Avisa antes. */
+function exigeChave() {
+  if (token) return true;
+  toast("Para publicar é preciso conectar a chave do GitHub — botão 🔑 Conectar chave, no topo.", "err");
+  return false;
 }
 async function getFile(path) {
   const res = await gh("/contents/" + path + "?ref=" + REPO.branch + "&t=" + Date.now());
@@ -1523,6 +1533,7 @@ $("f-file").addEventListener("change", async (e) => {
 $("btn-save").addEventListener("click", async () => {
   const titulo = $("f-titulo").value.trim();
   if (!titulo) { toast("Coloque um título.", "err"); return; }
+  if (!exigeChave()) return;
   const isEdit = editIndex >= 0;
   const btn = $("btn-save");
   btn.innerHTML = '<span class="spin"></span> Publicando…';
