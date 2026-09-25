@@ -603,6 +603,46 @@
     .tk-acao .aguarda{display:block;text-align:center}
   }
 
+  /* ============================================================
+     COMPRESSÃO DIFERENCIAL DOS CILINDROS — o desenho da ficha.
+     Bancada par em cima, ímpar embaixo, hélice à esquerda, como
+     está no Service Instruction. A caixa de leitura fica do lado
+     de fora de cada cilindro, igual ao papel.
+     ============================================================ */
+  .cmp{--cil:74px;overflow-x:auto;padding:4px 0}
+  .cmp__d{display:grid;gap:6px;min-width:calc(var(--cil) * 3 + 90px);
+    grid-template-columns:44px repeat(var(--n), var(--cil))}
+  .cmp__lin{display:contents}
+  .cmp__rot{grid-column:1;align-self:center;font-size:.64rem;font-weight:800;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding-right:6px}
+  .cmp__cx{border:1.5px solid var(--line);border-radius:8px;background:#fff;
+    padding:6px 4px;text-align:center;min-height:52px;display:flex;
+    flex-direction:column;justify-content:center;gap:2px}
+  .cmp__v{font-size:1.02rem;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1.1}
+  .cmp__v small{font-weight:600;color:var(--muted);font-size:.72rem}
+  .cmp__v.vazio{color:var(--line)}
+  .cmp__cx.alerta{border-color:#e6c9a8;background:#fffbf2}
+  .cmp__cx.alerta .cmp__v{color:#b06a2a}
+  .cmp__vaza{font-size:.62rem;color:var(--muted);line-height:1.15}
+  .cmp__ant{font-size:.62rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .cmp__cil{border:1.5px solid #9aa6ae;border-radius:5px;background:var(--paper);
+    text-align:center;font-weight:800;font-size:.9rem;padding:9px 0;color:var(--ink)}
+  .cmp__bloco{grid-column:2 / -1;height:16px;background:#dfe6ee;border:1.5px solid #9aa6ae;
+    border-radius:4px;position:relative}
+  .cmp__bloco::before{content:"";position:absolute;left:-30px;top:-6px;width:26px;height:26px;
+    border:1.5px solid #9aa6ae;border-radius:50%;background:#eef2f6}
+  .cmp__cab{display:flex;gap:16px;flex-wrap:wrap;font-size:.84rem;margin-bottom:10px}
+  .cmp__cab b{color:var(--ink)}
+  .cmp__nota{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.5}
+  .cmp__mot{margin-top:14px}
+  .cmp__mot:first-child{margin-top:0}
+  .cmp__mot h4{margin:0 0 8px;font-size:.92rem;color:var(--blue)}
+  @media (max-width:520px){ .cmp{--cil:64px} }
+  @media print{
+    .cmp__d{page-break-inside:avoid}
+    .cmp__cx{border-color:#9aa6ae}
+    .cmp__v{color:#12294d}
+  }
   /* ---------- Cobrança (caixa na OS): as três etapas ---------- */
   .cob-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .cob-step{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff;color:var(--muted);min-width:0}
@@ -1127,6 +1167,70 @@ var N_ETAPAS = 10, ETAPA_GATE = 6, ETAPA_EXEC = 7, ETAPA_FIM = 10;
    As chaves 'motor' e 'helice' continuam sendo o nº 1, para que tudo o
    que já foi digitado siga valendo sem conversão.
    ============================================================ */
+/* ============================================================
+   TESTE DE COMPRESSÃO DIFERENCIAL DOS CILINDROS
+   Referência: Lycoming Service Instruction SI 1191A, que é o que a
+   ficha de inspeção do Saratoga manda seguir.
+
+   O número sozinho não diz nada: o que vale é a leitura comparada
+   com o ORIFÍCIO PADRÃO (master orifice) medido no mesmo dia, com o
+   mesmo aparelho. Por isso o orifício entra no cabeçalho e as
+   leituras abaixo dele saem destacadas — como ponto a investigar,
+   nunca como aprovação ou reprovação, que é decisão do mecânico.
+   ============================================================ */
+var CMP_VAZA = { escape:'válvula de escape', admissao:'válvula de admissão',
+                 aneis:'anéis / pistão', cabecote:'cabeçote / camisa', outro:'outro' };
+
+/* lê as leituras de um teste como mapa {nº do cilindro: registro} */
+function cmpMapa(t){
+  var m = {};
+  ((t && t.leituras) || []).forEach(function(x){ m[Number(x.n)] = x; });
+  return m;
+}
+/* ordem do desenho: pares em cima (2,4,6), ímpares embaixo (1,3,5) */
+function cmpBancadas(n){
+  var par = [], imp = [];
+  for(var i=1; i<=n; i++){ (i % 2 === 0 ? par : imp).push(i); }
+  return { par:par, imp:imp };
+}
+/* O desenho da ficha, em HTML. Serve na tela e no relatório impresso. */
+function desenhaCompressao(t, ant){
+  var n = Number(t.cilindros) || 6, pres = Number(t.pressao) || 80;
+  var b = cmpBancadas(n), mapa = cmpMapa(t), mant = cmpMapa(ant || {});
+  var orif = t.orificio != null && t.orificio !== '' ? Number(t.orificio) : null;
+
+  function caixa(i){
+    var r = mapa[i] || {}, v = (r.leitura === 0 || r.leitura) ? Number(r.leitura) : null;
+    var a = mant[i] || {}, va = (a.leitura === 0 || a.leitura) ? Number(a.leitura) : null;
+    var abaixo = v != null && orif != null && v < orif;
+    return '<div class="cmp__cx'+(abaixo?' alerta':'')+'">'+
+      '<div class="cmp__v'+(v==null?' vazio':'')+'">'+(v==null?'—':v+'<small>/'+pres+'</small>')+'</div>'+
+      (r.vaza ? '<div class="cmp__vaza">'+esc(CMP_VAZA[r.vaza]||r.vaza)+'</div>' : '')+
+      (va != null ? '<div class="cmp__ant">antes '+va+'/'+(ant.pressao||pres)+'</div>' : '')+
+    '</div>';
+  }
+  function cil(i){ return '<div class="cmp__cil">'+i+'</div>'; }
+
+  return '<div class="cmp"><div class="cmp__d" style="--n:'+b.par.length+'">'+
+      '<div class="cmp__rot">leitura</div>'+ b.par.map(caixa).join('')+
+      '<div class="cmp__rot">cil.</div>'+   b.par.map(cil).join('')+
+      '<div class="cmp__bloco"></div>'+
+      '<div class="cmp__rot">cil.</div>'+   b.imp.map(cil).join('')+
+      '<div class="cmp__rot">leitura</div>'+ b.imp.map(caixa).join('')+
+    '</div></div>';
+}
+/* cabeçalho do teste: é aqui que mora o dado que valida a leitura */
+function cabecalhoCompressao(t, ant){
+  var orif = t.orificio != null && t.orificio !== '' ? Number(t.orificio) : null;
+  return '<div class="cmp__cab">'+
+    '<span>Data: <b>'+(t.feito_em?dataBR(t.feito_em):'—')+'</b></span>'+
+    '<span>Orifício padrão: <b>'+(orif!=null?orif+'/'+(t.pressao||80):'— não informado —')+'</b></span>'+
+    (t.horimetro?'<span>Horímetro: <b>'+esc(t.horimetro)+'</b></span>':'')+
+    (ant && ant.feito_em ? '<span>Teste anterior: <b>'+dataBR(ant.feito_em)+
+      (ant.numero?' · '+esc(codOS({codigo:ant.codigo, numero:ant.numero})):'')+'</b></span>' : '')+
+  '</div>';
+}
+
 function qtdMotores(comp){
   comp = comp || {};
   if(comp.motores) return Number(comp.motores) || 1;
@@ -1659,6 +1763,22 @@ function montaFicha(o, a, tarefas, pecas, nome){
   var tipoTx = o.tipo || 'inspeção';
   var comp = o.componentes || {};
   function cl(k,lbl){ var c=comp[k]||{}; return '<tr><td><b>'+lbl+'</b></td><td>'+esc(c.fab||'')+'</td><td>'+esc(c.mod||'')+'</td><td>'+esc(c.serie||'')+'</td><td>'+esc(c.tsn||'')+'</td><td>'+esc(c.tso||'')+'</td></tr>'; }
+  /* Compressão diferencial: sai como o desenho da ficha, para o
+     relatório valer como registro do teste. */
+  var cmpDoc = compress.length
+    ? '<h2>Compressão diferencial dos cilindros</h2>'+
+      compress.map(function(t){
+        var rot = compress.length > 1 ? ('Motor ' + t.motor + (t.motor===1?' (LH)':' (RH)')) : 'Motor';
+        return '<div style="break-inside:avoid;margin-bottom:10px">'+
+          '<div style="font-weight:bold;font-size:9.5pt;margin-bottom:3px">'+esc(rot)+'</div>'+
+          cabecalhoCompressao(t, null) + desenhaCompressao(t, null)+
+          (t.observacoes ? '<div style="font-size:8.5pt;margin-top:4px"><b>Observações:</b> '+esc(t.observacoes)+'</div>' : '')+
+        '</div>';
+      }).join('')+
+      '<div style="font-size:8pt;color:#5b6b78">Ensaio conforme Lycoming Service Instruction SI 1191A. '+
+      'Leituras em x/pressão de entrada, comparadas ao orifício padrão aferido no mesmo ensaio.</div>'
+    : '';
+
   var compTab = '<h2>Dados dos Componentes</h2><table class="rp-t"><thead><tr><th></th><th>Fabricante</th><th>Modelo</th><th>Nº Série</th><th>TSN</th><th>TSO</th></tr></thead><tbody>'+
     listaComponentes(comp).map(function(x){ return cl(x.k, x.lbl); }).join('')+'</tbody></table>'+
     (o.horimetro!=null?'<div style="font-size:8.5pt;color:#5b6b78;margin-top:4px">Horímetro: <b>'+esc(o.horimetro)+'</b>'+(o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>':'');
@@ -1750,8 +1870,9 @@ function verDocNaTela(titulo){
   document.getElementById('ovd-imp').onclick = function(){ try{ window.print(); }catch(e){ toast('Este aparelho não permite imprimir. Use o link do proprietário no computador.','err'); } };
 }
 
-function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
+function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas, compress){
   entregas = entregas || [];
+  compress = compress || [];
   var c = CATS[a.categoria] || CATS['agricola'];
   var dono = nomeProp(a.proprietario_id), oper = nomeProp(a.operador_id);
   var pDono = a.proprietario_id ? PROPMAP[a.proprietario_id] : null;
@@ -1881,6 +2002,8 @@ function montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas){
     '</div>'+
     '<div style="font-size:8.5pt;color:#5b6b78;margin-top:5px">Permanência na oficina: <b>'+dias+' dia(s)</b>'+
       (o.tipo?' · Serviço: <b>'+esc(o.tipo)+'</b>':'')+'</div>'+
+
+    cmpDoc+
 
     (o.descricao ? '<h2>Objeto do serviço</h2><div>'+esc(o.descricao)+'</div>' : '')+
 
@@ -2155,6 +2278,9 @@ function toast(msg, tipo){
 function dt(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function dataBR(s){ return s ? new Date(s).toLocaleDateString('pt-BR') : '—'; }
+/* data de hoje no formato do <input type="date"> */
+function hoje(){ var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 /* data+hora com segundos, para a trilha de auditoria da assinatura */
 function dtSeg(s){ if(!s) return '—'; var d=new Date(s);
   return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
@@ -4110,6 +4236,14 @@ async function abreOS(id, scrollRestaurar){
   var avisos  = o.aeronave_id
     ? ((await sb.from('manut_aeronave_avisos').select('*').eq('aeronave_id',o.aeronave_id).order('criado_em')).data||[])
     : [];
+  /* teste de compressão diferencial (um por motor) + o teste anterior
+     da mesma aeronave, que é o que dá sentido ao número */
+  var compress = (await sb.from('manut_os_compressao').select('*').eq('os_id',id).order('motor')).data||[];
+  var compAnt  = {};
+  for(var cm=1; cm<=2; cm++){
+    var ra = await sb.rpc('manut_compressao_anterior', { p_os:id, p_motor:cm });
+    if(ra.data && ra.data.length) compAnt[cm] = ra.data[0];
+  }
   var fotos   = (await sb.from('manut_os_fotos').select('*').eq('os_id',id).order('quando')).data||[];
   /* URL assinada de cada foto — serve pra galeria E pro relatório */
   for(var fi=0; fi<fotos.length; fi++){
@@ -4526,6 +4660,32 @@ async function abreOS(id, scrollRestaurar){
       (o.manutencao_num?' · Manutenção Nº '+esc(o.manutencao_num):'')+'</div>'+
     (encerrada?'':'<button class="btn btn--ghost btn--sm" id="comp-edit" style="margin-top:8px">✏️ Editar componentes</button>');
 
+  /* --- compressão diferencial: um desenho por motor --- */
+  var podeCompress = !encerrada || temPapel('diretor_tecnico') || temPapel('chefe_manutencao');
+  var compHtml = listaComponentes(comp)
+    .filter(function(x){ return x.k === 'motor' || x.k === 'motor2'; })
+    .map(function(x){
+      var nm = x.k === 'motor2' ? 2 : 1;
+      var t  = compress.filter(function(c){ return Number(c.motor) === nm; })[0];
+      var ant = compAnt[nm];
+      var rot = qtdMotores(comp) > 1 ? x.lbl : 'Motor';
+      return '<div class="cmp__mot"><h4>'+esc(rot)+'</h4>'+
+        (t
+          ? cabecalhoCompressao(t, ant) + desenhaCompressao(t, ant) +
+            (t.observacoes ? '<div class="cmp__nota"><b>Observações:</b> '+esc(t.observacoes)+'</div>' : '')+
+            (t.alterado_em ? '<div class="cmp__nota">Alterado em '+dt(t.alterado_em)+
+               (t.alterado_por?' por '+esc(nome(t.alterado_por)):'')+'.</div>' : '')
+          : '<div class="no">Sem teste registrado para este motor.</div>')+
+        (podeCompress
+          ? '<button class="btn btn--ghost btn--sm cmp-edit" data-m="'+nm+'" style="margin-top:9px">'+
+            (t?'✏️ Editar teste':'+ Registrar teste')+'</button>'
+          : '')+
+      '</div>';
+    }).join('');
+  compHtml += '<div class="cmp__nota">Leitura na forma <b>x/'+80+'</b>, conforme a <b>Lycoming SI 1191A</b>. '+
+    'A referência do dia é o <b>orifício padrão</b> medido no mesmo aparelho: cilindro abaixo dele sai '+
+    'destacado como <b>ponto a investigar</b> — o sistema não aprova nem reprova, quem decide é o mecânico.</div>';
+
   /* ============================================================
      COBRANÇA — as três etapas, num lugar só.
      A cobrar (serviço encerrado) → Enviada (cobrança foi ao cliente) →
@@ -4778,6 +4938,7 @@ async function abreOS(id, scrollRestaurar){
        '<div class="no" style="margin-bottom:6px">Pontos que a <b>próxima revisão desta aeronave</b> precisa olhar. '+
        'Aparecem em destaque quando a próxima OS for aberta.</div>'+avHtml+'</div>'+
      '<div class="box"><h3>⏱️ Tempos dos componentes</h3>'+componentesHtml+'</div>'+
+     '<div class="box"><h3>🔧 Compressão diferencial dos cilindros</h3>'+compHtml+'</div>'+
      cobHtml+
      '<div class="box"'+(o.etapa===3?' style="border:1.5px solid #12294d33;background:#f7f9fc"':'')+'>'+
        '<h3>🧰 Peças e Materiais'+(o.etapa===3?' <span class="c" style="background:#12294d;color:#fff">etapa atual</span>':'')+'</h3>'+
@@ -4987,7 +5148,7 @@ async function abreOS(id, scrollRestaurar){
   };
   $("bt-rel").onclick = function(){
     emiteDoc('Relatório', function(){
-      montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas);
+      montaRelatorio(o, a, tarefas, fotos, assins, pend, nome, entregas, compress);
     }, 300);
   };
   if($("bt-ficha")) $("bt-ficha").onclick = function(){
@@ -5399,6 +5560,100 @@ async function abreOS(id, scrollRestaurar){
       });
     if(window.Voz) Voz.ativarTodos(sb, SB_URL);
   };
+  /* --- registrar / editar o teste de compressão de um motor --- */
+  document.querySelectorAll('.cmp-edit').forEach(function(bt){
+    bt.onclick = function(){
+      var nm = Number(bt.dataset.m);
+      var t  = compress.filter(function(c){ return Number(c.motor) === nm; })[0] || {};
+      var ant = compAnt[nm];
+      var nCil = Number(t.cilindros) || 6;
+      var mapa = cmpMapa(t), mant = cmpMapa(ant || {});
+      var pres = Number(t.pressao) || 80;
+
+      function campos(n){
+        var b = cmpBancadas(n), linhas = [];
+        b.imp.concat(b.par).sort(function(x,y){ return x-y; }).forEach(function(i){
+          var r = mapa[i] || {}, a2 = mant[i] || {};
+          linhas.push(
+            '<tr><td style="font-weight:800;text-align:center">'+i+'</td>'+
+            '<td><input class="in cmp-l" data-n="'+i+'" type="number" min="0" max="'+pres+'" inputmode="numeric" '+
+              'style="padding:7px 8px" value="'+((r.leitura===0||r.leitura)?r.leitura:'')+'"></td>'+
+            '<td><select class="in cmp-z" data-n="'+i+'" style="padding:7px 8px">'+
+              '<option value="">—</option>'+
+              Object.keys(CMP_VAZA).map(function(k){
+                return '<option value="'+k+'"'+(r.vaza===k?' selected':'')+'>'+CMP_VAZA[k]+'</option>';
+              }).join('')+
+            '</select></td>'+
+            '<td class="no" style="white-space:nowrap">'+
+              ((a2.leitura===0||a2.leitura) ? a2.leitura+'/'+(ant.pressao||pres) : '—')+'</td></tr>');
+        });
+        return linhas.join('');
+      }
+
+      abreModal('Compressão diferencial — motor '+nm,
+        '<div class="no" style="margin-bottom:10px">Teste conforme <b>Lycoming SI 1191A</b>. '+
+          'Motor <b>quente</b>. Anote primeiro o <b>orifício padrão</b> do aparelho: é ele que diz, naquele dia, '+
+          'a partir de onde um cilindro merece investigação.</div>'+
+        '<div class="row">'+
+          '<div style="flex:1"><label class="blk">Data do teste</label>'+
+            '<input class="in" type="date" id="cmp-data" value="'+esc(t.feito_em || hoje())+'"></div>'+
+          '<div style="flex:1"><label class="blk">Horímetro</label>'+
+            '<input class="in" id="cmp-hor" value="'+esc(t.horimetro || o.horimetro || '')+'"></div>'+
+        '</div>'+
+        '<div class="row" style="margin-top:8px">'+
+          '<div style="flex:1"><label class="blk">Cilindros</label>'+
+            '<select class="in" id="cmp-n">'+
+              [4,6].map(function(k){ return '<option value="'+k+'"'+(nCil===k?' selected':'')+'>'+k+' cilindros</option>'; }).join('')+
+            '</select></div>'+
+          '<div style="flex:1"><label class="blk">Pressão de entrada</label>'+
+            '<input class="in" id="cmp-p" type="number" value="'+pres+'"></div>'+
+          '<div style="flex:1"><label class="blk">Orifício padrão</label>'+
+            '<input class="in" id="cmp-o" type="number" inputmode="numeric" placeholder="ex.: 42" '+
+              'value="'+(t.orificio!=null?esc(t.orificio):'')+'"></div>'+
+        '</div>'+
+        '<label class="blk" style="margin-top:12px">Leituras por cilindro</label>'+
+        '<table class="t" style="font-size:.88rem"><thead><tr><th style="width:34px">Cil.</th>'+
+          '<th>Leitura (x/'+pres+')</th><th>Onde vaza</th><th>Teste anterior</th></tr></thead>'+
+          '<tbody id="cmp-corpo">'+campos(nCil)+'</tbody></table>'+
+        '<label class="blk" style="margin-top:10px">Observações</label>'+
+        '<textarea class="in" id="cmp-obs" rows="3" placeholder="ex.: cilindro 3 abaixo do padrão — refeito após voo, manteve. Borescópio agendado.">'+
+          esc(t.observacoes||'')+'</textarea>',
+        'Salvar teste', async function(){
+          var n = Number($("cmp-n").value) || 6;
+          var leituras = [];
+          document.querySelectorAll('.cmp-l').forEach(function(el){
+            var i = Number(el.dataset.n);
+            if(i > n) return;
+            var v = el.value.trim();
+            var z = document.querySelector('.cmp-z[data-n="'+i+'"]');
+            if(v === '' && !(z && z.value)) return;
+            leituras.push({ n:i, leitura: v===''?null:Number(v), vaza: (z && z.value) || null });
+          });
+          if(!leituras.length){ toast('Informe ao menos uma leitura.','err'); return false; }
+          var r = await sb.rpc('manut_compressao_salvar', { p_os:id, p_motor:nm, p_dados:{
+            cilindros:n, pressao:Number($("cmp-p").value)||80,
+            orificio:$("cmp-o").value.trim(), feito_em:$("cmp-data").value,
+            horimetro:$("cmp-hor").value.trim(), observacoes:$("cmp-obs").value.trim(),
+            leituras:leituras
+          }});
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Teste de compressão registrado ✓','ok'); recarrega(); return true;
+        },
+        { largura: 620 });
+
+      /* trocar 4 <-> 6 cilindros redesenha as linhas sem fechar */
+      var sel = $("cmp-n");
+      if(sel) sel.onchange = function(){
+        document.querySelectorAll('.cmp-l').forEach(function(el){
+          var z = document.querySelector('.cmp-z[data-n="'+el.dataset.n+'"]');
+          mapa[Number(el.dataset.n)] = { n:Number(el.dataset.n), leitura: el.value===''?null:Number(el.value),
+                                          vaza:(z&&z.value)||null };
+        });
+        $("cmp-corpo").innerHTML = campos(Number(sel.value)||6);
+      };
+    };
+  });
+
   if($("comp-edit")) $("comp-edit").onclick = function(){
     var c = o.componentes || {};
     function campos(k, lbl){
@@ -6302,7 +6557,8 @@ function abreModal(titulo, corpo, btn, onOk, opcoes){
   var prev = $("modal").innerHTML;
   var d=document.createElement('div');
   d.className='ov';
-  d.innerHTML='<div class="sheet" style="max-width:560px"><div class="sheet__h"><h2>'+esc(titulo)+'</h2>'+
+  var larg = (opcoes && opcoes.largura) || 560;
+  d.innerHTML='<div class="sheet" style="max-width:'+larg+'px"><div class="sheet__h"><h2>'+esc(titulo)+'</h2>'+
     '<div class="spacer"></div><button class="btn btn--ghost btn--sm" data-x>Cancelar</button></div>'+
     '<div class="sheet__b"><div class="box">'+corpo+
     '<button class="btn btn--blue btn--block" data-ok style="margin-top:16px">'+esc(btn)+'</button></div></div></div>';
