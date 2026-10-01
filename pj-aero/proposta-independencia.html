@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#12294d">
+<meta property="og:title" content="Proposta de manutenção — PJ Aero Centro">
+<meta property="og:description" content="Programa de manutenção para o Air Tractor AT-502 da Fazenda Independência.">
+<title>Proposta Fazenda Independência</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* Documento comercial de marca: compromete-se com o visual claro da PJ,
+     com tudo pintado explicitamente para não herdar o fundo do hospedeiro. */
+  :root{
+    --navy:#12294d; --navy-e:#0b1c37; --verde:#1B6E3B; --verde-c:#2f9e44;
+    --tinta:#15202e; --mudo:#5a6977; --linha:#dde3ea; --papel:#fff; --areia:#f4f6f9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"Inter",-apple-system,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--sans);
+    font-size:16px;line-height:1.6}
+  h1,h2,h3{margin:0;font-family:var(--serif);font-weight:700;color:var(--navy);text-wrap:balance}
+  p{margin:0 0 1rem}
+  b,strong{font-weight:600;color:var(--navy)}
+  .env{max-width:720px;margin:0 auto;padding:0 22px}
+  .rot{font-size:.7rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--mudo)}
+
+  /* ---------- abertura ---------- */
+  .capa{background:linear-gradient(158deg,#0b1c37 0%,#12294d 50%,#143f2a 100%);color:#fff;
+    padding:46px 0 0}
+  .capa .rot{color:#8fb0a0}
+  .capa img{width:270px;max-width:74%;height:auto;filter:brightness(0) invert(1);margin-bottom:38px}
+  .capa h1{color:#fff;font-size:clamp(2rem,6.5vw,2.9rem);line-height:1.1;letter-spacing:-.02em;margin:14px 0 18px}
+  .capa .sub{color:#c3d2e6;font-size:1.06rem;max-width:34ch}
+  .alvo{margin:34px 0 0;border-left:3px solid var(--verde-c);padding:2px 0 2px 18px}
+  .alvo .q{font-family:var(--serif);font-size:1.4rem;color:#fff;margin-top:4px}
+  .alvo .d{font-size:.92rem;color:#c3d2e6;margin-top:3px}
+  .baixar{display:inline-flex;align-items:center;gap:9px;margin-top:30px;background:#fff;color:#12294d;
+    text-decoration:none;font-weight:600;font-size:.95rem;padding:13px 22px;border-radius:11px;
+    box-shadow:0 8px 24px rgba(0,0,0,.22)}
+  .baixar:hover{background:#eef3f9}
+  .baixar:focus-visible{outline:3px solid #2f9e44;outline-offset:3px}
+  @media print{ .baixar{display:none} }
+  .capa .faixa{margin-top:40px;background:rgba(0,0,0,.26);padding:14px 0;font-size:.82rem;color:#c3d2e6}
+  .capa .faixa .env{display:flex;gap:8px 26px;flex-wrap:wrap}
+  .capa .faixa b{color:#fff;font-weight:600}
+
+  /* ---------- seções ---------- */
+  section{padding:52px 0}
+  section.areia{background:var(--areia)}
+  h2{font-size:1.6rem;letter-spacing:-.01em;margin-bottom:6px}
+  h2 + .lede{color:var(--mudo);font-size:1.02rem;margin-bottom:26px}
+  h3{font-size:1.02rem;color:var(--verde);margin:26px 0 8px}
+
+  /* ---------- números ---------- */
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:28px 0 6px}
+  .num{border-top:3px solid var(--verde);padding-top:10px}
+  .num b{display:block;font-family:var(--serif);font-size:1.3rem;color:var(--navy);line-height:1.15}
+  .num span{display:block;font-size:.84rem;color:var(--mudo);margin-top:3px;line-height:1.4}
+
+  /* ---------- selo regulatório ---------- */
+  .selo{border:1.5px solid var(--navy);border-left-width:5px;border-radius:0 10px 10px 0;
+    background:#f5f8fc;padding:20px 22px;margin:30px 0 0}
+  .selo .rot{color:var(--navy)}
+  .selo p{font-size:.95rem;margin:8px 0 0}
+  .selo p:last-child{margin-bottom:0}
+
+  /* ---------- preços ---------- */
+  .prog{display:grid;gap:14px;margin:24px 0 18px}
+  .ins{border:1px solid var(--linha);border-radius:12px;background:var(--papel);padding:18px 20px;
+    display:grid;grid-template-columns:1fr auto;gap:6px 20px;align-items:start}
+  .ins__n{font-family:var(--serif);font-size:1.18rem;color:var(--navy);line-height:1.2}
+  .ins__v{font-size:1.12rem;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;
+    white-space:nowrap;text-align:right}
+  .ins__d{grid-column:1 / -1;font-size:.92rem;color:var(--tinta);margin:0}
+  .ins__x{grid-column:1 / -1;font-size:.84rem;color:var(--mudo);margin:0}
+  .ins__n small{display:block;font-family:var(--sans);font-size:.72rem;color:var(--mudo);
+    letter-spacing:.04em;margin-top:2px}
+
+  /* ---------- etapas ---------- */
+  ol.etapas{counter-reset:e;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px}
+  ol.etapas li{counter-increment:e;position:relative;padding-left:48px}
+  ol.etapas li::before{content:counter(e);position:absolute;left:0;top:-1px;width:30px;height:30px;
+    border-radius:50%;background:var(--navy);color:#fff;font:600 .85rem/30px var(--sans);text-align:center}
+  ol.etapas b{display:block;color:var(--navy)}
+  ol.etapas span{font-size:.95rem}
+
+  /* ---------- diferenciais ---------- */
+  .sis{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;margin:24px 0 0}
+  .sis div{border-left:2px solid var(--linha);padding-left:16px}
+  .sis b{display:block;font-size:.98rem;color:var(--navy)}
+  .sis span{display:block;font-size:.9rem;color:var(--mudo);margin-top:2px;line-height:1.45}
+
+  .fino{font-size:.92rem;color:var(--mudo)}
+  .fino b{color:var(--navy)}
+
+  /* ---------- fechamento ---------- */
+  .fim{background:var(--navy);color:#fff;padding:48px 0}
+  .fim h2{color:#fff}
+  .fim p{color:#c3d2e6}
+  .fim .rot{color:#8fb0a0}
+  .fim .cnt{margin-top:26px;display:grid;gap:4px;font-size:.95rem;color:#fff}
+  .fim .cnt span{color:#c3d2e6;font-size:.86rem}
+  .fim .data{margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.22);
+    font-size:.86rem;color:#8fb0a0}
+
+  @media (max-width:560px){
+    .nums{grid-template-columns:1fr;gap:16px}
+    .sis{grid-template-columns:1fr}
+    .ins{grid-template-columns:1fr}
+    .ins__v{text-align:left;font-size:1.2rem}
+  }
+  @media (prefers-reduced-motion: no-preference){
+    a{transition:opacity .15s}
+  }
+</style>
+</head>
+<body>
+
+<header class="capa">
+  <div class="env">
+    <img src="../assets/img/pj-logo.png" alt="PJ Aero Centro">
+    <div class="rot">Proposta de programa de manutenção</div>
+    <h1>Manutenção aeronáutica para quem não pode parar na safra.</h1>
+    <p class="sub">Oficina própria em Cerejeiras–RO, dedicada à aviação agrícola, com rastreabilidade
+      digital de cada serviço executado na sua aeronave.</p>
+    <div class="alvo">
+      <div class="rot">Apresentada a</div>
+      <div class="q">Fazenda Independência</div>
+      <div class="d">Air Tractor AT-502 · Programa 50 / 100 / 200 / 300 horas e CVA</div>
+    </div>
+    <a class="baixar" href="proposta-independencia.pdf" download="Proposta PJ Aero Centro - Fazenda Independencia.pdf">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
+      </svg>
+      Baixar a proposta em PDF
+    </a>
+  </div>
+  <div class="faixa"><div class="env">
+    <span><b>PJ AERO CENTRO</b> · Manutenção Aeronáutica</span>
+    <span>CNPJ 61.078.588/0001-90</span>
+    <span>Cerejeiras – RO</span>
+  </div></div>
+</header>
+
+<section>
+  <div class="env">
+    <h2>Quem somos</h2>
+    <p class="lede">A oficina que nasceu do problema que todo operador conhece.</p>
+    <p>A <b>PJ Aero Centro</b> é a oficina de manutenção aeronáutica instalada em Cerejeiras–RO para
+      atender a aviação agrícola da região. Nasceu de uma necessidade que todo operador conhece:
+      aeronave parada esperando vaga em oficina longe, em plena janela de aplicação, custa mais do
+      que qualquer manutenção.</p>
+    <p>Trabalhamos com estrutura própria, equipe fixa e um sistema de ordem de serviço digital que
+      registra cada etapa do trabalho — com foto, assinatura do mecânico que executou e do
+      profissional que conferiu.</p>
+
+    <div class="nums">
+      <div class="num"><b>Cerejeiras</b><span>RO — no centro da região produtora, perto da sua pista</span></div>
+      <div class="num"><b>Equipe fixa</b><span>Mecânicos, inspetor e direção técnica dedicados</span></div>
+      <div class="num"><b>100% digital</b><span>Cada serviço registrado, assinado e rastreável</span></div>
+    </div>
+
+    <h3>Nossa especialidade</h3>
+    <p>Aeronaves agrícolas de asa fixa — Air Tractor, Ipanema, Sertanejo e similares — com atendimento
+      às inspeções periódicas, revisões de célula, motor e hélice, cumprimento de boletins de serviço
+      e diretrizes de aeronavegabilidade.</p>
+
+    <div class="selo">
+      <div class="rot">Situação regulatória — transparência</div>
+      <p>A PJ Aero Centro encontra-se em <b>processo de certificação como Organização de Manutenção
+        junto à ANAC</b>, com documentação protocolada e aguardando parecer final.</p>
+      <p>Apresentamos esta proposta desde já porque entendemos que o planejamento de manutenção de uma
+        frota se faz com antecedência. <b>A execução dos serviços aqui propostos se inicia com a emissão
+        do certificado</b>, e manteremos a Fazenda Independência informada de cada etapa até a homologação.</p>
+    </div>
+  </div>
+</section>
+
+<section class="areia">
+  <div class="env">
+    <h2>O programa de manutenção</h2>
+    <p class="lede">O ano inteiro planejado — e não uma sequência de emergências.</p>
+
+    <div class="prog">
+      <article class="ins">
+        <div class="ins__n">50 horas</div>
+        <div class="ins__v">R$ 5.000,00</div>
+        <p class="ins__d">Inspeção periódica de rotina: motor, filtros, lubrificação, comandos,
+          sistema de aplicação e verificação geral de segurança de voo.</p>
+        <p class="ins__x">É a inspeção que mantém a aeronave voando dentro da safra.</p>
+      </article>
+      <article class="ins">
+        <div class="ins__n">100 horas</div>
+        <div class="ins__v">R$ 7.000,00</div>
+        <p class="ins__d">Inspeção ampliada de célula, motor e hélice, com abertura de painéis,
+          verificação estrutural e de sistemas, e cumprimento de boletins aplicáveis.</p>
+      </article>
+      <article class="ins">
+        <div class="ins__n">200 horas</div>
+        <div class="ins__v">R$ 7.000,00</div>
+        <p class="ins__d">Inspeção periódica com itens adicionais de célula e motor previstos
+          no programa do fabricante.</p>
+      </article>
+      <article class="ins">
+        <div class="ins__n">300 horas</div>
+        <div class="ins__v">R$ 9.000,00</div>
+        <p class="ins__d">Inspeção de maior profundidade, incluindo itens estruturais, trem de pouso,
+          comandos e ensaios do motor.</p>
+        <p class="ins__x">Inclui teste de compressão diferencial dos cilindros, com registro comparado
+          às inspeções anteriores.</p>
+      </article>
+      <article class="ins">
+        <div class="ins__n">CVA<small>Certificado de Verificação de Aeronavegabilidade</small></div>
+        <div class="ins__v">R$ 8.000,00</div>
+        <p class="ins__d">Inspeção e organização documental para renovação do CVA: conferência de
+          cumprimento de DA e boletins, mapa de componentes e histórico de manutenção da aeronave.</p>
+      </article>
+    </div>
+
+    <p class="fino"><b>Valores referentes à mão de obra.</b> Peças, componentes e materiais aeronáuticos
+      são orçados à parte e aprovados pelo cliente antes da aplicação.</p>
+
+    <h3>Como o serviço acontece</h3>
+    <ol class="etapas">
+      <li><b>Recebimento</b><span>A aeronave chega, é registrada com fotos do estado em que chegou e o
+        piloto relata o que vem sentindo em voo.</span></li>
+      <li><b>Orçamento</b><span>Levantamos o que precisa ser feito e enviamos o orçamento. Nada é
+        executado sem sua aprovação.</span></li>
+      <li><b>Execução e cross check</b><span>Cada serviço é executado por um profissional e conferido
+        por um segundo. Os dois assinam.</span></li>
+      <li><b>Entrega</b><span>Você recebe o relatório completo, com fotos do antes e do depois, e a
+        aeronave volta para a pista.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="env">
+    <h2>O que nos diferencia</h2>
+    <p class="lede">Toda oficina entrega a aeronave. Poucas entregam o histórico dela.</p>
+    <p>Trabalhamos com um sistema próprio de ordem de serviço em que o proprietário acompanha o
+      trabalho em tempo real, por um link no celular — sem precisar ligar perguntando como está.</p>
+
+    <div class="sis">
+      <div><b>Acompanhamento por link</b><span>Você vê em que etapa a aeronave está, o que já foi feito e o que falta.</span></div>
+      <div><b>Foto do antes e do depois</b><span>O estado em que chegou e o serviço executado, registrados.</span></div>
+      <div><b>Dupla assinatura</b><span>Quem executou e quem conferiu, identificados em cada serviço.</span></div>
+      <div><b>Relatório de entrega</b><span>Documento completo do serviço, com peças aplicadas e tempos.</span></div>
+      <div><b>Histórico que acompanha</b><span>Compressão por cilindro, tempos de componente e pendências de uma inspeção para a outra.</span></div>
+      <div><b>Pendências registradas</b><span>O que foi observado hoje e precisa ser olhado na próxima revisão não se perde.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="areia">
+  <div class="env">
+    <h2>Condições comerciais</h2>
+
+    <h3>Material e peças</h3>
+    <p class="fino">O material poderá ser fornecido pelo cliente ou cobrado à parte, caso sejam
+      utilizados materiais da PJ Aero Centro — graxas, óleos, desengraxantes, desengripantes, AV-GAS,
+      etanol, abraçadeiras, roldanas, rolamentos, cabos, entre outros. Todo material utilizado é
+      aeronáutico e possui formulário equivalente (FORM), anexado à documentação do Mapa de
+      Componentes da Aeronave.</p>
+
+    <h3>Serviços terceirizados</h3>
+    <p class="fino">Jateamento de areia em peças, soldas de estrutura e trabalhos de torno são cobrados
+      à parte, conforme necessidade verificada após o início da revisão, com orçamento complementar
+      específico. O polimento total da aeronave é negociado separadamente.</p>
+
+    <h3>Validade e vigência</h3>
+    <p class="fino">Proposta válida por <b>60 dias</b>. Os valores de mão de obra aqui apresentados ficam
+      garantidos para as inspeções realizadas nos <b>12 meses</b> seguintes à contratação. A execução
+      tem início com a emissão do certificado de Organização de Manutenção.</p>
+  </div>
+</section>
+
+<footer class="fim">
+  <div class="env">
+    <div class="rot">Próximo passo</div>
+    <h2>Vamos planejar o ano da aeronave juntos.</h2>
+    <p>Sendo do interesse da Fazenda Independência, registramos a aeronave em nosso sistema e enviamos
+      o acesso de acompanhamento. A partir daí, o planejamento das inspeções passa a ser feito em conjunto.</p>
+    <div class="cnt">
+      <div><b style="color:#fff">PJ AERO CENTRO</b> — Manutenção Aeronáutica</div>
+      <span>Linha 2, KM 2, 3º p/ 2º eixo · CEP 76997-000 · Cerejeiras – RO</span>
+      <span>(65) 9994-3131 · manutencao@voejusarah.com</span>
+      <span>CNPJ 61.078.588/0001-90</span>
+    </div>
+    <div class="data">Cerejeiras – RO, <span id="data"></span>.</div>
+  </div>
+</footer>
+
+<script>
+  var m = ['janeiro','fevereiro','março','abril','maio','junho',
+           'julho','agosto','setembro','outubro','novembro','dezembro'];
+  var d = new Date();
+  document.getElementById('data').textContent =
+    d.getDate() + ' de ' + m[d.getMonth()] + ' de ' + d.getFullYear();
+</script>
+</body>
+</html>
