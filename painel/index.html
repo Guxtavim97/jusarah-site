@@ -371,6 +371,12 @@
   .crm-cli b{display:block;color:var(--ink)}
   .crm-cli span{font-size:.82rem;color:var(--muted)}
   .crm-val{font-weight:800;color:var(--green-d);white-space:nowrap}
+  .crm-ha{display:block;font-weight:600;font-size:.78rem;color:var(--muted);margin-top:2px}
+  .prop-ed{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;
+    border:1.5px solid #c9a227;border-left-width:5px;border-radius:0 10px 10px 0;
+    background:#fffbef;padding:11px 15px;font-size:.92rem;color:var(--ink)}
+  .prop-ed b{color:var(--ink)}
+  .prop-ed .btn{margin-left:auto}
   .crm-status{border:1px solid #f0dcb0;border-radius:999px;padding:5px 10px;font-size:.76rem;font-weight:800;background:#fff3d6;color:#a06b00;font-family:inherit;cursor:pointer;max-width:180px}
   .crm-status:hover{filter:brightness(.97)}
   .crm-status:focus{outline:none;border-color:var(--green)}
@@ -793,6 +799,7 @@
       <div class="form hidden" id="form-nova-prop">
         <div class="form-topbar"><b>✍️ Nova proposta</b><button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-prop">✕ Fechar</button></div>
         <p class="opt" style="margin:-4px 0 16px">Preencha, clique em <b>Gerar proposta</b> e envie o link no WhatsApp do produtor. Os valores ficam só no link — nunca no site.</p>
+        <div class="prop-ed hidden" id="prop-editando"></div>
         <div class="solic-box">
           <label style="font-weight:700;font-size:.92rem;display:block;margin-bottom:7px">⚡ Puxar dados de um cliente que pediu orçamento</label>
           <select id="pr-solic"><option value="">— começar do zero —</option></select>
@@ -2067,15 +2074,24 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   var avSel = avioesSelecionados();
   var cliId = await resolveCliente(nome, pv('pr-whats'), pv('pr-cpf'));
   var propId = await resolvePropriedade(cliId, pv('pr-fazenda'), area || null, pv('pr-local'));
-  var ins = await sb.from('propostas').insert({
+  var dados = {
     apresentador: pv('pr-apresentador'), produtor: nome, fazenda: pv('pr-fazenda'), local: pv('pr-local'),
     area: area || null, validade: pv('pr-validade') || null, mensagem: pv('pr-msg'),
     aviao_id: avSel[0] || null, aviao_ids: avSel.length ? avSel : null, aviao_nome: avioNome() || null,
     whats: pv('pr-whats') || null, cpf: pv('pr-cpf') || null,
     cliente_id: cliId, propriedade_id: propId,
-    codigo: codigo, planos: planos, valor_total: valorTotal
-  }).select('id,codigo').single();
-  btnG.disabled = false; btnG.textContent = "Gerar proposta";
+    planos: planos, valor_total: valorTotal
+  };
+  var ins;
+  if(PROP_EDIT){
+    /* editando: mantém o código, para o link já enviado seguir valendo */
+    ins = await sb.from('propostas').update(dados).eq('id', PROP_EDIT.id).select('id,codigo').single();
+  } else {
+    dados.codigo = codigo;
+    ins = await sb.from('propostas').insert(dados).select('id,codigo').single();
+  }
+  var editando = !!PROP_EDIT;
+  btnG.disabled = false; btnG.textContent = editando ? "Salvar alterações" : "Gerar proposta";
   if(ins.error){ toast('Erro ao salvar: ' + ins.error.message, 'err'); return; }
   var link = location.origin + "/p/" + (ins.data.codigo || codigo);
   $('prop-link').value = link;
@@ -2086,7 +2102,8 @@ $('btn-gerar-prop').addEventListener('click', async function(){
   $('prop-enviar').onclick = function(){ window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(wmsg), "_blank"); };
   $('prop-result').classList.remove('hidden');
   $('prop-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  toast('Proposta gerada! ✓', 'ok');
+  toast(editando ? 'Alterações salvas ✓ — o mesmo link já mostra a versão nova.' : 'Proposta gerada! ✓', 'ok');
+  if(editando) marcaModoEdicao({ id:ins.data.id, codigo:ins.data.codigo, produtor:nome });
   loadPropostas();
 });
 $('prop-copiar').addEventListener('click', function(){
@@ -2179,9 +2196,89 @@ $("btn-dash-reload").addEventListener("click", loadDashboard);
 function digits(s){ return String(s||'').replace(/\D/g,''); }
 function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''); }
 var PROP_LEADS = [];
+/* Proposta aberta para edição. Vazio = está criando uma nova.
+   Antes, mexer numa proposta obrigava a gerar outra — e a lista enchia de
+   duplicatas que alguém tinha que apagar depois. Editando, o CÓDIGO não
+   muda: o link que já foi para o cliente continua valendo e mostra a
+   versão nova. */
+var PROP_EDIT = null;
+
+function marcaModoEdicao(p){
+  PROP_EDIT = p || null;
+  var bt = $('btn-gerar-prop'), av = $('prop-editando');
+  if(p){
+    bt.textContent = 'Salvar alterações';
+    av.innerHTML = '✏️ Editando a proposta de <b>'+esc(p.produtor||'')+'</b>'+
+      (p.codigo?' · código <b>'+esc(p.codigo)+'</b>':'')+
+      ' — o link já enviado continua o mesmo.'+
+      '<button type="button" class="btn btn--ghost btn--sm" id="prop-cancel-ed">Cancelar edição</button>';
+    av.classList.remove('hidden');
+    var c = $('prop-cancel-ed');
+    if(c) c.onclick = function(){ abreFormNova(null); toast('Edição cancelada.','ok'); };
+  } else {
+    bt.textContent = 'Gerar proposta';
+    av.innerHTML = ''; av.classList.add('hidden');
+  }
+}
+
+function limpaFormProposta(){
+  ['pr-nome','pr-whats','pr-cpf','pr-fazenda','pr-local','pr-area','pr-validade','pr-msg']
+    .forEach(function(id){ var e=$(id); if(e) e.value=''; });
+  $('planos-wrap').innerHTML = '';
+  PLANOS_DEF.forEach(function(pl){ criaPlanoCard(pl); });
+  document.querySelectorAll('#pr-avioes input:checked').forEach(function(c){ c.checked = false; });
+  atualizaTotais();
+}
+
+/* Repõe na tela exatamente o que foi salvo */
+function preencheDaProposta(p){
+  PROP_VINCULO = { cliente_id: p.cliente_id || null, propriedade_id: p.propriedade_id || null };
+  $('pr-apresentador').value = p.apresentador || '';
+  $('pr-nome').value    = p.produtor || '';
+  $('pr-whats').value   = p.whats || '';
+  $('pr-cpf').value     = p.cpf || '';
+  $('pr-fazenda').value = p.fazenda || '';
+  $('pr-local').value   = p.local || '';
+  $('pr-area').value    = p.area != null ? p.area : '';
+  $('pr-validade').value= p.validade || '';
+  $('pr-msg').value     = p.mensagem || '';
+
+  $('planos-wrap').innerHTML = '';
+  var planos = (p.planos && p.planos.length) ? p.planos : [];
+  if(!planos.length) PLANOS_DEF.forEach(function(pl){ criaPlanoCard(pl); });
+  planos.forEach(function(pl){
+    var card = criaPlanoCard({ nome:pl.nome, tag:pl.tagline, rec:!!pl.recomendado });
+    var box = card.querySelector('.pl-itens');
+    box.innerHTML = '';                       // tira o item em branco do molde
+    (pl.itens||[]).forEach(function(it){ addItem(box, it); });
+    if(!(pl.itens||[]).length) addItem(box);
+  });
+
+  var ids = p.aviao_ids || (p.aviao_id ? [p.aviao_id] : []);
+  document.querySelectorAll('#pr-avioes input').forEach(function(c){ c.checked = ids.indexOf(c.value) >= 0; });
+  var sel = $('pr-aviao-nome-sel');
+  if(sel && p.aviao_nome){
+    var achou = Array.prototype.slice.call(sel.options).some(function(o){ return o.value === p.aviao_nome; });
+    if(achou){ sel.value = p.aviao_nome; $('pr-aviao-nome').classList.add('hidden'); }
+    else { sel.value = '__outro'; $('pr-aviao-nome').classList.remove('hidden'); $('pr-aviao-nome').value = p.aviao_nome; }
+  }
+  atualizaTotais();
+}
+
+function abreFormEdicao(p){
+  if(!p) return;
+  $("form-nova-prop").classList.remove('hidden');
+  $("prop-result").classList.add('hidden');
+  preencheDaProposta(p);
+  marcaModoEdicao(p);
+  $("form-nova-prop").scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
 function abreFormNova(lead){
   $("form-nova-prop").classList.remove('hidden');
   $("prop-result").classList.add('hidden');
+  marcaModoEdicao(null);
+  limpaFormProposta();
   if(lead) preencheDaSolicitacao(lead);
   else PROP_VINCULO = { cliente_id:null, propriedade_id:null };
   $("form-nova-prop").scrollIntoView({ behavior:'smooth', block:'start' });
@@ -2200,6 +2297,23 @@ async function apagaProposta(id){
   toast('Proposta excluída.', 'ok');
   loadPropostas();
 }
+/* O valor por hectare não aparecia em lugar nenhum da lista — e é o número
+   que a equipe precisa ter na mão para conferir e para apresentar. Mostra o
+   do plano que vale: o aceito, ou o recomendado. */
+function precoHa(p){
+  var planos = p.planos || [];
+  var pl = (p.status==='aceita' && p.plano_aceito)
+    ? planos.filter(function(x){ return x.nome === p.plano_aceito; })[0]
+    : (planos.filter(function(x){ return x.recomendado; })[0] || planos[0]);
+  if(!pl) return '';
+  var hs = (pl.itens||[]).filter(function(it){ return it.unidade==='ha' && Number(it.preco) > 0; })
+                         .map(function(it){ return Number(it.preco); });
+  if(!hs.length) return '';
+  var min = Math.min.apply(null, hs), max = Math.max.apply(null, hs);
+  var txt = min === max ? brlN(min) : (brlN(min) + ' a ' + brlN(max));
+  return '<span class="crm-ha">' + txt + '/ha</span>';
+}
+
 async function loadPropostas(){
   var lista = $("propostas-lista"), alertas = $("leads-alertas");
   if(!lista) return;
@@ -2245,10 +2359,11 @@ async function loadPropostas(){
         nomes.map(function(nm){ return '<option value="'+esc(nm)+'"'+((ac && p.plano_aceito===nm)?' selected':'')+'>✓ Aceita: '+esc(nm)+'</option>'; }).join('');
       return '<tr>'+
         '<td class="crm-cli"><b>'+esc(p.produtor||'')+'</b><span>'+esc(p.fazenda||'')+'</span></td>'+
-        '<td class="crm-val">'+brlN(val)+'</td>'+
+        '<td class="crm-val">'+brlN(val)+precoHa(p)+'</td>'+
         '<td><select class="crm-status'+(ac?' is-ac':'')+'" data-id="'+p.id+'" title="Mudar o status da proposta">'+opts+'</select></td>'+
         '<td>'+dataBR(p.criado_em)+'</td>'+
         '<td><div class="crm-acts">'+
+          '<button title="Editar esta proposta" class="crm-ed" data-id="'+p.id+'">✏️</button>'+
           '<button title="Copiar link" class="crm-copy" data-link="'+esc(link)+'">🔗</button>'+
           '<a title="Abrir proposta" href="'+esc(link)+'" target="_blank" rel="noopener">👁</a>'+
           '<a title="Baixar em PDF" href="'+esc(link+(link.indexOf('?')>=0?'&':'?')+'pdf=1')+'" target="_blank" rel="noopener">📄</a>'+
@@ -2274,6 +2389,9 @@ async function loadPropostas(){
   document.querySelectorAll('.crm-copy').forEach(function(b){ b.addEventListener('click', function(){ var l=b.getAttribute('data-link'); if(navigator.clipboard){ navigator.clipboard.writeText(l).then(function(){ toast('Link copiado! ✓','ok'); }); } else toast(l); }); });
   document.querySelectorAll('.crm-reab').forEach(function(b){ b.addEventListener('click', function(){ reabordar(props.filter(function(x){return x.id===b.getAttribute('data-id');})[0]); }); });
   document.querySelectorAll('.crm-del').forEach(function(b){ b.addEventListener('click', function(){ apagaProposta(b.getAttribute('data-id')); }); });
+  document.querySelectorAll('.crm-ed').forEach(function(b){ b.addEventListener('click', function(){
+    abreFormEdicao(props.filter(function(x){ return x.id === b.getAttribute('data-id'); })[0]);
+  }); });
 }
 $("btn-prop-reload").addEventListener("click", loadPropostas);
 $("btn-nova-prop").addEventListener("click", function(){ abreFormNova(null); });
