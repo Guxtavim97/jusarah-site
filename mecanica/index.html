@@ -1231,6 +1231,27 @@ function cabecalhoCompressao(t, ant){
   '</div>';
 }
 
+/* ============================================================
+   SERVIÇO → MÃO DE OBRA  (pedido da Bianca)
+   O mesmo serviço era digitado duas vezes: uma em Serviços, para o
+   mecânico executar, e outra em Mão de obra, para poder cobrar. Aqui
+   a linha da cobrança nasce da descrição que já existe.
+   Valor é opcional — o técnico lança o serviço, o financeiro põe o
+   preço depois, sem redigitar nada.
+   ============================================================ */
+function valorBR(v){
+  var t = String(v == null ? '' : v).trim().replace(/\./g,'').replace(',','.');
+  return t ? Number(t) : null;
+}
+async function lancaMaoObra(osId, descricao, horas, valorHora, valor){
+  var h  = valorBR(horas), vh = valorBR(valorHora), v = valorBR(valor);
+  if(v == null && h != null && vh != null) v = h * vh;
+  return await sb.from('manut_os_mao_obra').insert({
+    os_id: osId, descricao: descricao,
+    horas: h, valor_hora: vh, valor: v, valor_tabela: v
+  });
+}
+
 function qtdMotores(comp){
   comp = comp || {};
   if(comp.motores) return Number(comp.motores) || 1;
@@ -4364,6 +4385,11 @@ async function abreOS(id, scrollRestaurar){
     : '';
   /* Lista em CARTÕES, não em tabela (pedido da Bianca): o botão de
      executar fica sempre à vista, sem rolar a barra para o lado. */
+  /* serviço que já virou linha de cobrança não mostra o botão de novo */
+  var moDescs = {};
+  maoObra.forEach(function(m){ moDescs[(m.descricao||'').trim().toLowerCase()] = 1; });
+  function jaNaMO(d){ return !!moDescs[(d||'').trim().toLowerCase()]; }
+
   var tHtml=tResumo+chips+'<div>';
   if(!tarefas.length) tHtml+='<div class="no">Nenhuma tarefa registrada.</div>';
   var prevSist=null;
@@ -4401,6 +4427,10 @@ async function abreOS(id, scrollRestaurar){
            poder corrigir. O que não pode é sumir sem rastro: quando já há
            execução ou cross check, o aviso é mais forte e a exclusão fica
            registrada no histórico da OS com quem tinha feito. */
+        /* manda este serviço para a cobrança sem redigitar a descrição */
+        (encerrada || jaNaMO(t.descricao) ? ''
+          : '<button class="tk-mo" data-mo="'+esc(t.descricao)+'" title="Lançar na mão de obra (cobrança)"'+
+            ' style="flex:0 0 auto;border:0;background:none;color:#b9c4cf;font-size:1rem;cursor:pointer;padding:4px 6px;line-height:1">💰</button>')+
         (encerrada ? ''
           : '<button class="tk-del" data-del="'+t.id+'" data-desc="'+esc(t.descricao)+'"'+
             (t.executado_em ? ' data-exec="'+esc(nome(t.executor_id))+' · '+dt(t.executado_em)+'"' : '')+
@@ -5484,15 +5514,38 @@ async function abreOS(id, scrollRestaurar){
       '<label class="blk">Descrição do serviço *'+(window.Voz?Voz.botao('t-desc','descrição do serviço'):'')+'</label><input class="in" id="t-desc">'+
       '<label class="blk" style="margin-top:10px">Zona da aeronave <span style="font-weight:600;text-transform:none;letter-spacing:0">(marca o ponto na prancheta)</span></label>'+
       '<select class="in" id="t-zona">'+zops+'</select>'+
-      '<label class="blk" style="margin-top:10px">Referência do manual (AMM/IPC/SB)</label><input class="in" id="t-ref">',
+      '<label class="blk" style="margin-top:10px">Referência do manual (AMM/IPC/SB)</label><input class="in" id="t-ref">'+
+      /* Pedido da Bianca: o mesmo serviço era digitado duas vezes — uma aqui,
+         outra na mão de obra para poder cobrar. Marcando aqui, a linha da
+         cobrança nasce junto, com a mesma descrição. */
+      '<label class="chk" style="margin-top:14px;display:flex;gap:8px;align-items:flex-start">'+
+        '<input type="checkbox" id="t-mo" style="margin-top:3px">'+
+        '<span>Lançar também na <b>mão de obra</b> (cobrança)<br>'+
+        '<span class="no" style="margin:0">Evita digitar o mesmo serviço duas vezes.</span></span></label>'+
+      '<div id="t-mo-box" class="hidden" style="margin-top:10px;padding:11px 13px;background:var(--paper);border-radius:10px">'+
+        '<div class="row">'+
+          '<div style="flex:1"><label class="blk">Horas</label><input class="in" id="t-mo-h" type="number" step="0.5" min="0" placeholder="ex.: 4"></div>'+
+          '<div style="flex:1"><label class="blk">Valor da hora</label><input class="in" id="t-mo-vh" inputmode="decimal" placeholder="ex.: 250,00"></div>'+
+          '<div style="flex:1"><label class="blk">ou valor fechado</label><input class="in" id="t-mo-v" inputmode="decimal" placeholder="ex.: 1.000,00"></div>'+
+        '</div>'+
+        '<div class="no" style="margin-top:7px">Pode deixar sem valor agora e lançar depois, no bloco de Mão de obra.</div>'+
+      '</div>',
       'Adicionar', async function(){
-        if(!$("t-desc").value.trim()){ toast('Descreva o serviço.','err'); return false; }
-        var res = await Offline.exec('tarefa_nova', {row:{os_id:id, descricao:$("t-desc").value.trim(),
+        var d = $("t-desc").value.trim();
+        if(!d){ toast('Descreva o serviço.','err'); return false; }
+        var res = await Offline.exec('tarefa_nova', {row:{os_id:id, descricao:d,
           zona:$("t-zona").value||null, referencia_manual:$("t-ref").value.trim()||null}});
         if(!res.ok){ toast(res.erro,'err'); return false; }
         if(res.offline){ toast('Salvo no aparelho — sincroniza ao voltar a internet.','ok'); return true; }
+        if($("t-mo").checked){
+          var r2 = await lancaMaoObra(id, d, $("t-mo-h").value, $("t-mo-vh").value, $("t-mo-v").value);
+          if(r2.error){ toast('Serviço criado, mas a mão de obra falhou: '+r2.error.message,'err'); recarrega(); return true; }
+          toast('Serviço criado e lançado na mão de obra ✓','ok');
+        }
         recarrega(); return true;
       });
+    var cb = $("t-mo");
+    if(cb) cb.onchange = function(){ $("t-mo-box").classList.toggle('hidden', !cb.checked); };
     if(window.Voz) Voz.ativarTodos(sb, SB_URL);
   };
   /* Vincular/trocar o proprietário sem sair da OS e sem refazer nada:
@@ -6458,6 +6511,28 @@ async function abreOS(id, scrollRestaurar){
      executado ou conferido: isso é registro do que foi feito na aeronave. */
   /* Excluir um serviço lançado por engano — sempre com confirmação,
      porque o toque pode ter sido sem querer. */
+  document.querySelectorAll('.tk-mo').forEach(function(b){
+    b.onclick = function(){
+      var d = b.dataset.mo;
+      abreModal('Lançar na mão de obra',
+        '<div class="no" style="margin-bottom:10px">Vai para a cobrança com a mesma descrição do serviço — '+
+        'sem precisar digitar de novo.</div>'+
+        '<label class="blk">Serviço</label><input class="in" id="tm-desc" value="'+esc(d)+'">'+
+        '<div class="row" style="margin-top:10px">'+
+          '<div style="flex:1"><label class="blk">Horas</label><input class="in" id="tm-h" type="number" step="0.5" min="0" placeholder="ex.: 4"></div>'+
+          '<div style="flex:1"><label class="blk">Valor da hora</label><input class="in" id="tm-vh" inputmode="decimal" placeholder="250,00"></div>'+
+          '<div style="flex:1"><label class="blk">ou valor fechado</label><input class="in" id="tm-v" inputmode="decimal" placeholder="1.000,00"></div>'+
+        '</div>'+
+        '<div class="no" style="margin-top:8px">Pode lançar sem valor agora — o financeiro completa depois.</div>',
+        '💰 Lançar', async function(){
+          var dd = $("tm-desc").value.trim();
+          if(!dd){ toast('Descreva o serviço.','err'); return false; }
+          var r = await lancaMaoObra(id, dd, $("tm-h").value, $("tm-vh").value, $("tm-v").value);
+          if(r.error){ toast(r.error.message,'err'); return false; }
+          toast('Lançado na mão de obra ✓','ok'); recarrega(); return true;
+        });
+    };
+  });
   document.querySelectorAll('.tk-del').forEach(function(b){
     b.onclick = function(){
       var desc = b.getAttribute('data-desc') || 'este serviço';
