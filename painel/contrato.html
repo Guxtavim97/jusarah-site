@@ -157,8 +157,10 @@
       background:var(--green);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
-<body>
+<body hidden>
+<noscript><p style="font-family:sans-serif;padding:20px">Esta página precisa de JavaScript.</p></noscript>
 <div class="wrap">
 
   <!-- ============ CAMPOS (uso interno) ============ -->
@@ -245,13 +247,45 @@
 
 <script>
 /* ---------- dados fixos da CONTRATADA ---------- */
-var EMPRESA = {
-  nome:'JUSARAH AEROAGRICOLA LTDA', cnpj:'46.691.888/0001-57',
-  sede:'Estrada Linha 02, Lote 09 R2, s/n, Zona Rural do município de Cerejeiras-RO, CEP 76.997-000',
-  socia:'TAYLLA LARA SCHERWINSKI', socia_q:'brasileira, casada, empresária',
-  socia_cpf:'015.552.091-14', socia_rg:'17171261 SSP/MT'
-};
+/* ------------------------------------------------------------------
+   DADOS DA EMPRESA — vêm do banco, só para quem está logado.
+   Antes, o CPF e o RG da sócia ficavam escritos aqui dentro — e este
+   arquivo é público (repositório aberto + servido pelo site sem login).
+   Agora a página exige sessão do painel e busca os dados na tabela
+   empresa_contrato, que o visitante anônimo não consegue ler.
+   ------------------------------------------------------------------ */
+var EMPRESA = null;
+/* endereço, fone e e-mail são públicos (estão no site); fica como
+   reserva caso a tabela ainda não tenha o rodapé preenchido */
 var FOOT_ADDR = 'Estrada Linha 02, Lote 09 R2, s/n – Zona Rural – Cerejeiras-RO · Fone (69) 99325-7000 · financeiro@voejusarah.com';
+
+(async function travaDeLogin(){
+  var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
+  var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
+  function bloqueia(msg){
+    document.body.innerHTML =
+      '<div style="max-width:460px;margin:12vh auto;padding:28px 30px;background:#fff;border:1px solid #e3dfd0;'+
+      'border-radius:14px;font-family:system-ui,sans-serif;color:#21261d;text-align:center">'+
+      '<h2 style="margin:0 0 8px;color:#1f5130">Gerador de contrato</h2>'+
+      '<p style="margin:0 0 18px;color:#6f6a5b">'+msg+'</p>'+
+      '<a href="/painel/" style="display:inline-block;background:#1f5130;color:#fff;text-decoration:none;'+
+      'font-weight:700;padding:11px 20px;border-radius:10px">Ir para o painel</a></div>';
+    document.body.hidden = false;
+  }
+  try{
+    var sb = window.supabase.createClient(SB_URL, SB_KEY);
+    var s = await sb.auth.getSession();
+    if(!s.data || !s.data.session){ bloqueia('Esta página é de uso interno. Entre no painel e abra o contrato por lá.'); return; }
+    var r = await sb.from('empresa_contrato').select('*').eq('id', 1).maybeSingle();
+    if(r.error || !r.data){ bloqueia('Os dados da empresa ainda não estão cadastrados no banco (tabela empresa_contrato). Avise o Gustavo.'); return; }
+    EMPRESA = { nome:r.data.nome, cnpj:r.data.cnpj, sede:r.data.sede, socia:r.data.socia,
+                socia_q:r.data.socia_q, socia_cpf:r.data.socia_cpf, socia_rg:r.data.socia_rg };
+    if(r.data.foot_addr) FOOT_ADDR = r.data.foot_addr;
+    document.body.hidden = false;
+  }catch(e){
+    bloqueia('Não foi possível confirmar o seu acesso. Abra o painel e tente de novo.');
+  }
+})();
 
 /* avião line-art (timbre) */
 var PLANE = '<svg class="plane" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">'+
@@ -320,6 +354,7 @@ function render(){
     t1n:v('f_t1n'), t1rg:v('f_t1rg'), t1cpf:v('f_t1cpf'), t2n:v('f_t2n'), t2rg:v('f_t2rg'), t2cpf:v('f_t2cpf')
   };
   var E = EMPRESA;
+  if(!E){ alert('Os dados da empresa ainda não carregaram. Aguarde um instante e clique de novo.'); return; }
   var valorTxt = d.valor ? ('<b class="fill">R$ '+esc(d.valor)+'</b>'+(d.ext?(' (<b class="fill">'+esc(d.ext)+'</b>)'):'')) : fld('', 'valor total');
   var periodoResumo = (d.ini||d.fim) ? (resumoVal(d.ini,'início')+' a '+resumoVal(d.fim,'fim')) : '<span class="bl">a preencher</span>';
 
