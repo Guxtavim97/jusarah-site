@@ -2367,8 +2367,17 @@ if($("btn-entrar-fid")) $("btn-entrar-fid").onclick = async function(){
     else toast(m||'Não foi possível entrar com Face ID.','err');
   }
 };
-$("btn-sair").onclick  = async function(){ await sb.auth.signOut(); location.reload(); };
-$("btn-sair2").onclick = async function(){ await sb.auth.signOut(); location.reload(); };
+/* Sair: alem de encerrar a sessao, apaga o cache do service worker — ele
+   guardava respostas do banco e fotos no aparelho, e no totem compartilhado
+   a proxima pessoa podia ver dados da anterior sem logar. */
+async function sairLimpo(){
+  try{ await sb.auth.signOut(); }catch(e){}
+  try{ if(window.caches){ var ks = await caches.keys(); for(var i=0;i<ks.length;i++) await caches.delete(ks[i]); } }catch(e){}
+  try{ localStorage.removeItem("jus_totem_sessao"); }catch(e){}
+  location.replace("/mecanica/");
+}
+$("btn-sair").onclick  = sairLimpo;
+$("btn-sair2").onclick = sairLimpo;
 
 /* MODO TOTEM: abre o /mecanica com ?totem=1 (uma vez) e ele passa a
    travar sozinho por inatividade — só nesse aparelho compartilhado.
