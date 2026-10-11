@@ -477,7 +477,7 @@
   var SB_URL = "https://tsjxcxkdgzkkqpzykajz.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzanhjeGtkZ3pra3FwenlrYWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTkyODgsImV4cCI6MjA5OTY5NTI4OH0.N_OOoW-ZTOYYGrCYLWfmijaVJC9B7gex3NANpAxj6KE";
   var sb = window.supabase.createClient(SB_URL, SB_KEY);
-  var P = null, propId = null;
+  var P = null, codigoProposta = null;
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function mapRow(row){
@@ -489,8 +489,16 @@
     var cod = qs.get('p'), id = qs.get('id');
     if(!cod){ var mm = location.pathname.match(/\/p\/([^\/?#]+)/); if(mm) cod = decodeURIComponent(mm[1]); }
     try{
-      if(cod){ var rc = await sb.from('propostas').select('*').eq('codigo', cod).single(); if(rc.data){ P = mapRow(rc.data); propId = rc.data.id; } }
-      else if(id){ var r = await sb.from('propostas').select('*').eq('id', id).single(); if(r.data){ P = mapRow(r.data); propId = id; } }
+      /* A pagina NAO le mais a tabela 'propostas'. Lia com a chave anon, que
+         e publica, e o filtro pelo codigo era do navegador — bastava tirar o
+         filtro para baixar todas as propostas, com CPF e WhatsApp dos
+         produtores. Agora quem procura e o banco, pela funcao, e ela devolve
+         so os campos que esta tela mostra. O caminho por ?id= saiu: o codigo
+         do link e o que prova que a pessoa recebeu a proposta. */
+      if(cod){
+        var rc = await sb.rpc('proposta_publica', { p_codigo: cod });
+        if(rc.data){ P = mapRow(rc.data); codigoProposta = cod; }
+      }
       else { P = decodifica(); }
     }catch(e){}
     if(!P || !P.produtor){ document.getElementById('nf').classList.remove('hidden'); return; }
@@ -653,11 +661,11 @@
 
   function aceitar(pl,total,area){
     /* .then() é obrigatório: o supabase-js só dispara a requisição quando a promise é consumida */
-    if(propId){
+    if(codigoProposta){
       try{
-        sb.rpc('aceitar_proposta', { pid: propId, plano: (pl.nome || 'Plano') })
-          .then(function(r){ if(r && r.error) console.error('aceitar_proposta', r.error); },
-                function(e){ console.error('aceitar_proposta', e); });
+        sb.rpc('proposta_aceitar', { p_codigo: codigoProposta, p_plano: (pl.nome || 'Plano') })
+          .then(function(r){ if(r && r.error) console.error('proposta_aceitar', r.error); },
+                function(e){ console.error('proposta_aceitar', e); });
       }catch(e){ console.error(e); }
     }
     var linhas=(pl.itens||[]).map(function(it){return "• "+(it.servico||"Serviço")+": "+brl(itemVal(it,area));}).join("%0A");

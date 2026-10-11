@@ -52,7 +52,6 @@
 </script>
 <script src="../assets/js/qr.js"></script>
 <script src="../assets/js/assistente.js"></script>
-<script src="../assets/js/rosto.js"></script>
 <script src="../assets/js/offline.js"></script>
 <script src="../assets/js/voz.js"></script>
 <style>
@@ -867,8 +866,12 @@
         <span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span>ou<span style="flex:1;height:1px;background:rgba(127,212,255,.18)"></span>
       </div>
       <button class="btn btn--green btn--block" id="btn-entrar-fid">🔐 Entrar com Face ID</button>
-      <button class="btn btn--blue btn--block" id="btn-entrar-rosto" style="margin-top:8px">🙂 Entrar com o rosto</button>
-      <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular:</b> use o Face ID. <b>Totem da oficina:</b> use o rosto (câmera). Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima.</p>
+      <!-- O "Entrar com o rosto" saiu por segurança (out/2026). Ele comparava um
+           vetor de 128 números que o próprio navegador enviava — e esse vetor sai
+           igual de uma FOTO parada, então uma foto do rosto de um funcionário
+           bastava para entrar. O Face ID abaixo é passkey (criptografia de
+           verdade, presa ao aparelho) e não tem esse problema. -->
+      <p class="sub" style="margin-top:10px;font-size:.78rem"><b>Celular e totem:</b> use o <b>Face ID</b>. Cadastre o seu depois de entrar, no botão <b>🔐 Face ID</b> lá em cima. Se ainda não cadastrou, entre com e-mail e senha.</p>
       <p class="sub" style="text-align:center;margin-top:12px">Ainda não tem conta? <a href="#" id="lk-criar" style="color:#4a9fd4;font-weight:700;text-decoration:none">Criar conta</a></p>
       <p class="sub" style="text-align:center;margin-top:4px"><a href="#" id="lk-reset" style="color:#8fb4d6;text-decoration:none">Esqueci minha senha</a></p>
     </div>
@@ -2364,16 +2367,6 @@ if($("btn-entrar-fid")) $("btn-entrar-fid").onclick = async function(){
     else toast(m||'Não foi possível entrar com Face ID.','err');
   }
 };
-/* login por reconhecimento facial (câmera do totem) */
-if($("btn-entrar-rosto")) $("btn-entrar-rosto").onclick = async function(){
-  var b=this, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
-  try{
-    if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
-    var ok = await Rosto.entrar(sb, SB_URL);
-    if(ok){ b.textContent='Entrando…'; entrar(); return; }
-  }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível entrar pelo rosto.','err'); }
-  b.disabled=false; b.textContent=old;
-};
 $("btn-sair").onclick  = async function(){ await sb.auth.signOut(); location.reload(); };
 $("btn-sair2").onclick = async function(){ await sb.auth.signOut(); location.reload(); };
 
@@ -2527,29 +2520,11 @@ if($("btn-faceid")) $("btn-faceid").onclick = function(){
         'Depois, no gate e no cross check, você assina com Face ID / digital em vez de digitar a senha. '+
         'Faça isso em cada aparelho que você usa.</p>'+
       '<button id="fid-cad" style="width:100%;border:0;border-radius:9px;padding:12px;background:#1e5a8a;color:#fff;font-weight:700;cursor:pointer">🔐 Cadastrar Face ID (celular)</button>'+
-      '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(127,212,255,.14)">'+
-        '<div style="font-size:.82rem;color:#cfe3f5;font-weight:700;margin-bottom:6px">🙂 Cadastrar meu rosto (totem)</div>'+
-        '<button class="fid-rosto" data-rot="Como trabalho" style="width:100%;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">👷 Como trabalho</button>'+
-        '<button class="fid-rosto" data-rot="Sem acessórios" style="width:100%;margin-top:7px;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">🙂 Sem acessórios</button>'+
-        '<button class="fid-rosto" data-rot="Com máscara" style="width:100%;margin-top:7px;border:0;border-radius:9px;padding:11px;background:#2e86c1;color:#fff;font-weight:700;cursor:pointer">😷 Com máscara</button>'+
-        '<p style="margin:8px 0 0;color:#8fb4d6;font-size:.76rem">Cadastre em cada situação que você usa (pode repetir com boné/óculos). O totem reconhece qualquer uma delas. <b>Com máscara</b> é mais difícil — cadastre também sem, por garantia.</p>'+
-      '</div>'+
       '<button id="fid-fecha" style="width:100%;margin-top:10px;border:0;border-radius:9px;padding:11px;background:#26364a;color:#fff;cursor:pointer">Fechar</button>'+
     '</div>';
   document.body.appendChild(ov);
   ov.querySelector('#fid-fecha').onclick = function(){ ov.remove(); };
   ov.querySelector('#fid-cad').onclick = function(){ cadastrarFaceId(this); };
-  ov.querySelectorAll('.fid-rosto').forEach(function(b){
-    b.onclick = async function(){
-      var rot=b.dataset.rot, old=b.textContent; b.disabled=true; b.textContent='Abrindo câmera…';
-      try{
-        if(!window.Rosto) throw new Error('Reconhecimento facial não carregou. Recarregue a página.');
-        await Rosto.cadastrar(sb, rot);
-        toast('Rosto "'+rot+'" cadastrado ✓','ok');
-      }catch(e){ toast((e&&(e.message||String(e)))||'Não foi possível cadastrar o rosto.','err'); }
-      b.disabled=false; b.textContent=old;
-    };
-  });
 };
 
 /* ---------------- EXCLUSÃO SEGURA ----------------
