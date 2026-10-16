@@ -1498,22 +1498,33 @@ function montaCobranca(o, a, pecas, maoObra, dono, obs){
     return Number(m.horas||0) * Number(m.valor_hora||0);
   }
   function tabela(m){ return m.valor_tabela != null ? Number(m.valor_tabela) : cobrado(m); }
+  /* O cliente NÃO vê valor unitário nem valor de tabela (pedido da Bianca,
+     out/2026): só quantidade, total e — se houver — o desconto. Quando o
+     cobrado fica ACIMA da tabela (serviço mais complexo), o total é o
+     cobrado; a tabela só entra na conta quando gera desconto. */
+  function bruto(m){ return Math.max(tabela(m), cobrado(m)); }
 
   /* ---------- serviços ---------- */
   var sTab = 0, sCob = 0;
-  var linhasServ = maoObra.map(function(m, i){
+  var dadosServ = maoObra.map(function(m){
     var qt = (m.horas != null && m.valor_hora != null) ? Number(m.horas) : 1;
-    var un = (m.horas != null && m.valor_hora != null) ? Number(m.valor_hora) : tabela(m);
-    var tot = tabela(m), desc = tot - cobrado(m);
-    sTab += tot; sCob += cobrado(m);
+    var tot = bruto(m), cob = cobrado(m);
+    sTab += tot; sCob += cob;
+    return { m:m, qt:qt, tot:tot, cob:cob, desc:tot - cob };
+  });
+  var temDesc = dadosServ.some(function(x){ return x.desc > 0.004; });
+  var linhasServ = dadosServ.map(function(x, i){
+    var m = x.m;
     return '<tr>'+
       '<td class="c">'+(i+1)+'</td>'+
       '<td>'+esc(m.descricao)+(m.cortesia?' <i style="color:#0f3d24">(cortesia)</i>':'')+'</td>'+
-      '<td class="n">'+moeda(qt)+'</td>'+
-      '<td class="n">'+moeda(un)+'</td>'+
-      '<td class="n">'+moeda(tot)+'</td>'+
-      '<td class="n">'+(desc>0?'−'+moeda(desc):'—')+'</td>'+
-      '<td class="n b">'+moeda(cobrado(m))+'</td></tr>';
+      '<td class="n">'+moeda(x.qt)+'</td>'+
+      (temDesc
+        ? '<td class="n">'+moeda(x.tot)+'</td>'+
+          '<td class="n">'+(x.desc>0.004?'−'+moeda(x.desc):'—')+'</td>'+
+          '<td class="n b">'+moeda(x.cob)+'</td>'
+        : '<td class="n b">'+moeda(x.cob)+'</td>')+
+      '</tr>';
   }).join('');
 
   /* ---------- produtos ---------- */
@@ -1526,9 +1537,6 @@ function montaCobranca(o, a, pecas, maoObra, dono, obs){
       '<td class="c">'+(i+1)+'</td>'+
       '<td>'+esc(p.descricao)+(p.pn?' <span style="color:#5b6b78">· P/N '+esc(p.pn)+'</span>':'')+'</td>'+
       '<td class="n">'+moeda(qt)+'</td>'+
-      '<td class="n">'+moeda(un)+'</td>'+
-      '<td class="n">'+moeda(tot)+'</td>'+
-      '<td class="n">—</td>'+
       '<td class="n b">'+moeda(tot)+'</td></tr>';
   }).join('');
 
@@ -1577,25 +1585,29 @@ function montaCobranca(o, a, pecas, maoObra, dono, obs){
     '<h2>Serviços</h2>'+
     '<table class="rp-t cb-t"><thead><tr>'+
       '<th style="width:26px">#</th><th>Descrição</th>'+
-      '<th class="n" style="width:52px">Qtde.</th><th class="n" style="width:76px">Valor unit.</th>'+
-      '<th class="n" style="width:80px">Total</th><th class="n" style="width:74px">Desconto</th>'+
-      '<th class="n" style="width:86px">Total c/ desc.</th></tr></thead><tbody>'+
-      (linhasServ || '<tr><td colspan="7" style="padding:9px;color:#5b6b78">Nenhum serviço lançado nesta OS.</td></tr>')+
-      '<tr class="tot"><td colspan="4">Subtotal de serviços</td>'+
-        '<td class="n">'+moeda(sTab)+'</td><td class="n">'+(descServ>0?'−'+moeda(descServ):'—')+'</td>'+
-        '<td class="n b">'+moeda(sCob)+'</td></tr>'+
+      '<th class="n" style="width:52px">Qtde.</th>'+
+      (temDesc
+        ? '<th class="n" style="width:84px">Total</th><th class="n" style="width:78px">Desconto</th>'+
+          '<th class="n" style="width:92px">Total c/ desc.</th>'
+        : '<th class="n" style="width:96px">Total</th>')+
+      '</tr></thead><tbody>'+
+      (linhasServ || '<tr><td colspan="4" style="padding:9px;color:#5b6b78">Nenhum serviço lançado nesta OS.</td></tr>')+
+      '<tr class="tot"><td colspan="3">Subtotal de serviços</td>'+
+        (temDesc
+          ? '<td class="n">'+moeda(sTab)+'</td><td class="n">'+(descServ>0.004?'−'+moeda(descServ):'—')+'</td>'+
+            '<td class="n b">'+moeda(sCob)+'</td>'
+          : '<td class="n b">'+moeda(sCob)+'</td>')+
+      '</tr>'+
     '</tbody></table>'+
 
     /* ---------- produtos ---------- */
     '<h2>Produtos e materiais</h2>'+
     '<table class="rp-t cb-t"><thead><tr>'+
       '<th style="width:26px">#</th><th>Descrição</th>'+
-      '<th class="n" style="width:52px">Qtde.</th><th class="n" style="width:76px">Valor unit.</th>'+
-      '<th class="n" style="width:80px">Total</th><th class="n" style="width:74px">Desconto</th>'+
-      '<th class="n" style="width:86px">Total c/ desc.</th></tr></thead><tbody>'+
-      (linhasProd || '<tr><td colspan="7" style="padding:9px;color:#5b6b78">Nenhum material lançado nesta OS.</td></tr>')+
-      '<tr class="tot"><td colspan="4">Subtotal de produtos</td>'+
-        '<td class="n">'+moeda(pTot)+'</td><td class="n">—</td>'+
+      '<th class="n" style="width:52px">Qtde.</th><th class="n" style="width:96px">Total</th>'+
+      '</tr></thead><tbody>'+
+      (linhasProd || '<tr><td colspan="4" style="padding:9px;color:#5b6b78">Nenhum material lançado nesta OS.</td></tr>')+
+      '<tr class="tot"><td colspan="3">Subtotal de produtos</td>'+
         '<td class="n b">'+moeda(pTot)+'</td></tr>'+
     '</tbody></table>'+
 
