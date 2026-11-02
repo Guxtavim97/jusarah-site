@@ -6360,7 +6360,18 @@ async function abreOS(id, scrollRestaurar){
        Tractor é 100/200/300/Anual; o PT6A é MINOR/ROUTINE/por horas. Em vez
        de fixar no código, lemos os intervalos que a ficha escolhida realmente
        tem — assim qualquer ficha nova funciona sem mexer aqui. */
-    var comInt = (await sb.from('manut_inspecao_itens').select('inspecao_id,intervalo').not('intervalo','is',null)).data||[];
+    /* o banco entrega no máximo 1000 linhas por vez e as fichas com
+       intervalo já passam disso: sem paginar, a última ficha cadastrada
+       (ou só parte dela) fica de fora e a tela oferece as opções erradas */
+    var comInt = [];
+    for(;;){
+      var rInt = await sb.from('manut_inspecao_itens').select('inspecao_id,intervalo')
+        .not('intervalo','is',null).order('id').range(comInt.length, comInt.length + 999);
+      if(rInt.error){ toast(rInt.error.message,'err'); return; }
+      var pgInt = rInt.data || [];
+      comInt = comInt.concat(pgInt);
+      if(pgInt.length < 1000) break;
+    }
     var intervPorInsp = {};
     comInt.forEach(function(x){
       if(!intervPorInsp[x.inspecao_id]) intervPorInsp[x.inspecao_id] = {};
@@ -6381,10 +6392,17 @@ async function abreOS(id, scrollRestaurar){
       lista.forEach(function(k){ k.split('/').forEach(function(h){ todas[h]=1; }); });
       return Object.keys(todas).sort(function(a,b){ return parseInt(a,10)-parseInt(b,10); });
     }
+    /* Ficha de colunas cumulativas (o Thrush marca a coluna de 400 h só nos
+       itens próprios dela): na 400 h vencem junto a de 50 e a de 100 h, porque
+       400 é múltiplo delas. Nas outras fichas em colunas o manual já marca
+       cada coluna inteira, então lá continua valendo só a coluna escolhida. */
+    function vence(ins, c, h){
+      return c === h || (!!ins.colunas_cumulativas && parseInt(h,10) % parseInt(c,10) === 0);
+    }
     function contaColuna(ins, h){
       var mapa = intervPorInsp[ins.id] || {}, n = 0;
       Object.keys(mapa).forEach(function(k){
-        if(k && k!=='—' && k.split('/').indexOf(h)>=0) n += mapa[k]; });
+        if(k && k!=='—' && k.split('/').some(function(c){ return vence(ins, c, h); })) n += mapa[k]; });
       return n;
     }
     function opcoesTipo(ins){
@@ -6399,7 +6417,9 @@ async function abreOS(id, scrollRestaurar){
       var colunas = colunasDaFicha(lista);
       if(colunas)
         return colunas.map(function(h){
-          return '<option value="c:'+h+'">'+h+' horas ('+contaColuna(ins,h)+' itens)</option>'; }).join('')+
+          var junto = colunas.filter(function(c){ return c !== h && vence(ins, c, h); });
+          return '<option value="c:'+h+'">'+h+' horas'+(junto.length ? ' — inclui '+junto.join(' e ')+' h' : '')+
+            ' ('+contaColuna(ins,h)+' itens)</option>'; }).join('')+
           '<option value="tudo">Ficha completa</option>';
       /* o Air Tractor é cumulativo por horas — mantém as opções que a equipe já conhece */
       var soHoras = lista.every(function(k){ return /^\d+$/.test(k) || /^(Anual|2 Anos|—)$/i.test(k); });
@@ -6422,9 +6442,10 @@ async function abreOS(id, scrollRestaurar){
       if(aerMod.indexOf('minuano')>=0 && m.indexOf('minuano')>=0) p+=5;
       if(aerMod.indexOf('piper')>=0 && m.indexOf('piper')>=0) p+=5;
       if(aerMod.indexOf('saratoga')>=0 && m.indexOf('pa-32r')>=0) p+=5;
+      if(aerMod.indexOf('thrush')>=0 && m.indexOf('thrush')>=0) p+=5;
       ['at-502','at502','at-504','at504','502','504','203','810c','emb-810',
        '721c','721d','720c','720d','emb-721','emb-720',
-       'pa-32r','pa32r','32r-301'].forEach(function(k){
+       'pa-32r','pa32r','32r-301','s2r'].forEach(function(k){
         if(aerMod.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0 && m.replace(/[\s-]/g,'').indexOf(k.replace(/[\s-]/g,''))>=0) p+=2; });
       return p;
     }
@@ -6471,7 +6492,7 @@ async function abreOS(id, scrollRestaurar){
           else if(tipo.indexOf('c:')===0){     // coluna da tabela do manual (ex.: Seneca 50/100/500/1000)
             var h = tipo.slice(2);
             itens = todos.filter(function(it){
-              return ref(it) || String(it.intervalo).split('/').indexOf(h) >= 0; });
+              return ref(it) || String(it.intervalo).split('/').some(function(c){ return vence(insp, c, h); }); });
             permite = 'pronto';
           }
           else if(tipo==='100') permite={'100':1};
@@ -6493,6 +6514,7 @@ async function abreOS(id, scrollRestaurar){
         var r = await sb.from('manut_os_tarefas').insert(rows);
         if(r.error){ toast(r.error.message,'err'); return false; }
         var rotulo = tipo.indexOf('i:')===0 ? tipo.slice(2)
+                   : tipo.indexOf('c:')===0 ? tipo.slice(2)+'h'
                    : ehIntervalo(insp) ? (tipo==='tudo'?'Completa':tipo==='anual'?'Anual':tipo+'h')
                    : tipo+'h';
         await sb.from('manut_os').update({ tipo:'Inspeção '+rotulo+' · '+insp.modelo }).eq('id', id);
