@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Operação Roraima · Jusarah Agro Aérea</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Combate aéreo a incêndios: apresentação da Jusarah Agro Aérea para a Defesa Civil de Roraima.">
+<meta name="theme-color" content="#080D0B">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Operação Roraima · Jusarah Agro Aérea">
+<meta property="og:description" content="Combate aéreo a incêndios: apresentação para a Defesa Civil de Roraima.">
+<meta property="og:url" content="https://www.jusarah.com.br/roraima">
+<meta property="og:site_name" content="Jusarah Agro Aérea">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://www.jusarah.com.br/roraima/m/compartilhar.jpg">
+<meta property="og:image:secure_url" content="https://www.jusarah.com.br/roraima/m/compartilhar.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Aeronave da Jusarah lança água sobre área queimada na Amazônia">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.jusarah.com.br/roraima/m/compartilhar.jpg">
+<link rel="icon" href="/roraima/m/logo-branca.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>:root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}html{height:100%}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: sala de situação. Cenas 16:9 em tela cheia (modo palco, escala única --u) com HUD fixo; no celular vira página rolável com tudo visível. */
+:root{
+  --night:#080D0B; --panel:#111915; --panel2:#17221C; --line:#2A382F; --line2:#3A4A40;
+  --smoke:#A3B4A9; --mist:#7F9386; --paper:#F3EFE7; --fire:#FF5A1F; --ember:#FFB547; --leaf:#4CC47F; --water:#8FD3F4; --alert:#E8402A;
+  --ink-on-fire:#1A0C05; --sheet:#F4F1E8; --sheet-ink:#17201B;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --body:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
+  --mono:'IBM Plex Mono',Consolas,monospace;
+  --u:calc(100vw / 620);
+  color-scheme:dark;
+}
+html,body{background:var(--night);color:var(--paper)}
+body{font-family:var(--body);-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+*{box-sizing:border-box}
+h1,h2,h3,p,ul,ol,dl,dd,figure,blockquote{margin:0}
+ul,ol{padding:0;list-style:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ember);outline-offset:3px}
+
+/* ---------- tipografia ---------- */
+.eyebrow{font:500 calc(20*var(--u))/1.25 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ember)}
+.t-mega{font:800 calc(150*var(--u))/.88 var(--display);text-transform:uppercase}
+.t-h1{font:800 calc(84*var(--u))/.96 var(--display);text-transform:uppercase;text-wrap:balance}
+.t-h2{font:700 calc(60*var(--u))/1 var(--display);text-transform:uppercase;text-wrap:balance}
+.t-h3{font:700 calc(38*var(--u))/1.05 var(--display);text-transform:uppercase}
+.t-lead{font:400 calc(31*var(--u))/1.4 var(--body);color:#D5DED7;max-width:34em}
+.t-body{font:400 calc(25*var(--u))/1.45 var(--body);color:var(--smoke)}
+.t-small{font:400 calc(18*var(--u))/1.45 var(--mono);color:var(--mist)}
+.num{font-family:var(--display);font-weight:800;font-variant-numeric:tabular-nums;line-height:.9}
+.fire{color:var(--fire)} .ember{color:var(--ember)} .leaf{color:var(--leaf)} .water{color:var(--water)}
+.tag{display:inline-flex;align-items:center;gap:.6em;font:500 calc(16*var(--u))/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--paper);background:rgba(8,13,11,.72);border:1px solid rgba(243,239,231,.25);padding:.7em .9em;border-radius:3px}
+.tag::before{content:"";width:.6em;height:.6em;border-radius:50%;background:var(--leaf)}
+.src{font:400 calc(17*var(--u))/1.45 var(--mono);color:var(--mist)}
+
+/* ---------- cenas (modo página, padrão) ---------- */
+.deck{display:flex;flex-direction:column}
+.scene{position:relative;padding-block:52px;display:flex;flex-direction:column;gap:26px;border-bottom:1px solid var(--line);overflow:hidden}
+.scene .inner{position:relative;z-index:2;display:flex;flex-direction:column;gap:26px;min-width:0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+.stack{display:flex;flex-direction:column;gap:calc(26*var(--u));min-width:0}
+.media{position:relative;overflow:hidden;border-radius:4px;background:#000}
+.media video,.media img{display:block;width:100%;height:100%;object-fit:cover}
+.bgmedia{position:absolute;inset:0;z-index:0;background:#000}
+.bgmedia video,.bgmedia img{width:100%;height:100%;object-fit:cover;display:block}
+.bgmedia::after{content:"";position:absolute;inset:0;background:rgba(8,13,11,.8)}
+.gridbg{background-image:linear-gradient(rgba(163,180,169,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(163,180,169,.06) 1px,transparent 1px);background-size:calc(60*var(--u)) calc(60*var(--u))}
+.hud{display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.6em;padding:.85em 1.3em;border-radius:999px;border:1px solid var(--line2);background:rgba(8,13,11,.6);font:600 calc(22*var(--u))/1 var(--body);color:var(--paper);cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--ember)}
+.btn.primary{background:var(--leaf);border-color:var(--leaf);color:#06140C}
+.btn.primary:hover{background:#63DB97}
+.btn.hot{background:var(--fire);border-color:var(--fire);color:var(--ink-on-fire);font:800 calc(40*var(--u))/1 var(--display);letter-spacing:.04em;text-transform:uppercase;padding:.7em 1.3em;border-radius:6px;box-shadow:0 0 0 0 rgba(255,90,31,.55);animation:beat 1.8s infinite}
+.btn.hot:hover{background:#FF7A45;border-color:#FF7A45}
+@keyframes beat{70%{box-shadow:0 0 0 calc(26*var(--u)) rgba(255,90,31,0)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0)}}
+
+/* ---------- modo palco ---------- */
+body.stage{padding:0;overflow:hidden;height:100%}
+.stage{--u:min(calc(100vw / 1920),calc(100vh / 1080))}
+.stage .deck{position:fixed;inset:0;display:block}
+.stage .scene{position:absolute;inset:0;padding:calc(138*var(--u)) calc(120*var(--u)) calc(150*var(--u));border:0;gap:calc(40*var(--u));visibility:hidden;opacity:0}
+.stage .scene.is-on{visibility:visible;opacity:1}
+.stage.ready .scene{transition:opacity .6s ease,visibility 0s linear .6s}
+.stage.ready .scene.is-on{transition:opacity .6s ease}
+.stage .scene .inner{gap:calc(38*var(--u));flex:1;min-height:0}
+.stage .cols{grid-template-columns:var(--cols,minmax(0,1fr) minmax(0,1fr));gap:calc(72*var(--u))}
+.stage .hud{display:flex}
+.stage .bgmedia::after{background:linear-gradient(90deg,rgba(8,13,11,.9) 0%,rgba(8,13,11,.66) 46%,rgba(8,13,11,.12) 100%)}
+.stage .bgmedia.low::after{background:linear-gradient(0deg,rgba(8,13,11,.92) 0%,rgba(8,13,11,.5) 42%,rgba(8,13,11,.1) 70%,rgba(8,13,11,.35) 100%)}
+.stage .bottom{margin-top:auto}
+
+/* passos e entradas */
+@keyframes rise{from{opacity:0;transform:translateY(calc(36*var(--u)))}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes zoom{from{transform:scale(1.12)}to{transform:scale(1)}}
+.stage .scene.is-on [data-a]{animation:rise .85s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0) * 1s)}
+.stage .scene.is-on .kb{animation:zoom 12s ease-out both}
+.stage [data-show]{opacity:0;transform:translateY(calc(30*var(--u)));pointer-events:none}
+.stage.ready [data-show]{transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.stage [data-show].vis{opacity:1;transform:none;pointer-events:auto}
+.stage.ready [data-until]{transition:opacity .5s ease}
+.stage [data-until].gone{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){
+  .stage .scene.is-on [data-a],.stage .scene.is-on .kb{animation:none}
+  .stage.ready .scene,.stage.ready [data-show]{transition:none}
+  .btn.hot{animation:none}
+}
+
+/* ---------- HUD ---------- */
+@media (prefers-reduced-motion:reduce){.stage *,.stage *::before,.stage *::after{animation-duration:.001s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
+.hud-top{position:fixed;z-index:20;top:0;left:0;right:0;align-items:center;gap:calc(34*var(--u));padding:calc(30*var(--u)) calc(120*var(--u));background:linear-gradient(180deg,rgba(8,13,11,.85),rgba(8,13,11,0));pointer-events:none}
+.hud-top img{height:calc(50*var(--u));width:auto}
+.mode{display:inline-flex;align-items:center;gap:.7em;font:500 calc(17*var(--u))/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:.75em 1em;border:1px solid currentColor;border-radius:3px;transition:color .5s,background .5s}
+.mode::before{content:"";width:.65em;height:.65em;border-radius:50%;background:currentColor;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.mode[data-m=painel]{color:var(--ember)}
+.mode[data-m=alerta]{color:var(--alert)}
+.mode[data-m=calmo]{color:var(--leaf)}
+.mode[data-m=sim]{color:var(--ember)}
+.mode[data-m=real]{color:var(--leaf)}
+.mode[data-m=plano]{color:var(--water)}
+.phases{display:flex;align-items:center;gap:calc(10*var(--u));font:500 calc(17*var(--u))/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--smoke)}
+.phases i{width:calc(34*var(--u));height:calc(5*var(--u));background:#33433A;border-radius:2px;transition:background .4s}
+.phases i.on{background:var(--ember)}
+.phases span{margin-left:calc(12*var(--u));color:var(--paper)}
+.hud-top .where{margin-left:auto;font:500 calc(17*var(--u))/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--smoke)}
+.hud-bot{position:fixed;z-index:20;left:0;right:0;bottom:0;align-items:center;gap:calc(26*var(--u));padding:calc(40*var(--u)) calc(120*var(--u)) calc(34*var(--u));background:linear-gradient(0deg,rgba(8,13,11,.9),rgba(8,13,11,0))}
+.tele{display:flex;gap:calc(34*var(--u));align-items:flex-end;min-width:calc(640*var(--u));transition:opacity .4s}
+.tele.off{opacity:0}
+.tele div{display:flex;flex-direction:column;gap:calc(7*var(--u))}
+.tele dt{font:500 calc(13*var(--u))/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mist)}
+.tele dd{font:700 calc(34*var(--u))/1 var(--display);font-variant-numeric:tabular-nums;text-transform:uppercase;color:var(--paper);white-space:nowrap}
+.tele dd.st{color:var(--ember)}
+.segs{flex:1;display:flex;gap:calc(5*var(--u))}
+.segs button{flex:1;height:calc(30*var(--u));border:0;background:none;padding:0;cursor:pointer;position:relative}
+.segs button::after{content:"";position:absolute;left:0;right:0;top:50%;height:calc(4*var(--u));transform:translateY(-50%);background:#33433A;border-radius:2px;transition:background .3s}
+.segs button.done::after{background:#6E8276}
+.segs button.on::after{background:var(--fire)}
+.navbtn{width:calc(54*var(--u));height:calc(54*var(--u));border-radius:50%;border:1px solid var(--line);background:rgba(17,25,21,.85);cursor:pointer;display:grid;place-items:center;font:500 calc(20*var(--u))/1 var(--mono);color:var(--paper)}
+.navbtn:hover{border-color:var(--ember)}
+.navbtn.wide{width:auto;border-radius:999px;padding:0 calc(20*var(--u));font-size:calc(15*var(--u));letter-spacing:.1em;text-transform:uppercase}
+.count{font:500 calc(17*var(--u))/1 var(--mono);color:var(--smoke);min-width:calc(72*var(--u));text-align:center}
+
+/* ---------- 1 · SOS ---------- */
+#sos{background:radial-gradient(ellipse at 50% 55%,#0E1612 0%,var(--night) 65%)}
+#sos.alert{background:radial-gradient(ellipse at 50% 55%,#2E0F09 0%,#0B0706 72%)}
+#sos.fired{background:radial-gradient(ellipse at 50% 55%,#1A150B 0%,var(--night) 65%)}
+.sos-head{display:flex;flex-direction:column;gap:calc(8*var(--u))}
+.stage .sos-head{align-items:center;text-align:center}
+.stage #sos{padding-top:calc(112*var(--u));padding-bottom:calc(118*var(--u))}
+.stage #sos .inner{gap:calc(6*var(--u));align-items:center}
+.sos-stage{position:relative;display:flex;flex-direction:column;gap:20px;min-width:0;width:100%}
+.stage .sos-stage{flex:1;min-height:0;flex-direction:row;justify-content:center;align-items:center}
+.sos-map{position:relative;display:flex;flex-direction:column;align-items:center;gap:calc(12*var(--u));min-width:0}
+.sos-map svg{display:block;width:100%;height:auto;max-height:76vh;overflow:visible}
+.stage .sos-map svg{height:calc(650*var(--u));width:auto;max-height:none}
+.stage #sos .sos-map svg{height:calc(660*var(--u))}
+.warns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.warn{display:flex;flex-direction:column;gap:calc(10*var(--u));align-items:flex-start;padding:calc(20*var(--u)) calc(24*var(--u));background:rgba(232,64,42,.12);border:1px solid rgba(232,64,42,.6);border-left:calc(6*var(--u)) solid var(--alert)}
+.warn b{font:700 calc(38*var(--u))/1.02 var(--display);text-transform:uppercase;color:var(--paper)}
+.atag{font:500 calc(15*var(--u))/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--paper);background:var(--alert);padding:.45em .7em;animation:blink 1s steps(2,jump-none) infinite}
+.stage .warns{display:block;position:absolute;inset:0;pointer-events:none}
+.stage .warn{position:absolute;width:calc(400*var(--u));opacity:0}
+.stage .warn:nth-child(1){left:0;top:14%}
+.stage .warn:nth-child(2){left:0;top:60%}
+.stage .warn:nth-child(3){right:0;top:14%}
+.stage .warn:nth-child(4){right:0;top:60%}
+.stage #sos.alert .warn{animation:pop .45s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(.5s + var(--i) * .3s)}
+@keyframes pop{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+body:not(.stage) #sos:not(.alert) .warns{display:none}
+.uf-hit{fill:#13201A;stroke:var(--leaf);stroke-width:2.5;cursor:pointer;transition:stroke .3s}
+.uf-hit:hover,.uf-hit:focus-visible{stroke:var(--paper);stroke-width:5;outline:none}
+.sonar{fill:none;stroke:var(--alert);stroke-width:3;transform-box:fill-box;transform-origin:center;pointer-events:none;opacity:0}
+.mun-line{fill:none;stroke:rgba(243,239,231,.2);stroke-width:1;pointer-events:none}
+.sos-txt{font:800 96px/1 var(--display);fill:#8FA79A;text-anchor:middle;pointer-events:none;letter-spacing:.04em}
+.sos-sub{font:500 17px/1 var(--mono);fill:#8FA79A;text-anchor:middle;letter-spacing:.16em;pointer-events:none}
+.bv-dot{fill:var(--paper);pointer-events:none}
+.bv-lab{font:500 15px/1 var(--mono);fill:var(--paper);letter-spacing:.12em;pointer-events:none}
+.sos-call{font:600 calc(28*var(--u))/1.3 var(--body);color:var(--smoke);text-align:center}
+.sos-call b{color:var(--ember)}
+/* alerta */
+#sos.alert .uf-hit{fill:url(#gAlert);stroke:var(--alert);stroke-width:3;animation:breathe 1s ease-in-out infinite}
+#sos.alert .uf-hit:hover,#sos.alert .uf-hit:focus-visible{stroke:var(--paper);stroke-width:6}
+@keyframes breathe{0%,100%{fill-opacity:.5}50%{fill-opacity:1}}
+#sos.alert .sonar{animation:sonar 1.8s ease-out infinite}
+#sos.alert .sonar.b{animation-delay:.6s}
+#sos.alert .sonar.c{animation-delay:1.2s}
+@keyframes sonar{from{transform:scale(1);opacity:.7}to{transform:scale(1.2);opacity:0}}
+#sos.alert .sos-txt{font-size:200px;fill:var(--paper);animation:sosbeat 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes sosbeat{50%{transform:scale(1.08)}}
+#sos.alert .sos-sub{fill:var(--paper)}
+#sos.alert .sos-call{color:var(--paper)}
+.alarm{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;box-shadow:inset 0 0 calc(240*var(--u)) calc(50*var(--u)) rgba(232,64,42,.9);border:calc(8*var(--u)) solid var(--alert)}
+#sos.alert .alarm{animation:alarm 1s ease-in-out infinite}
+@keyframes alarm{0%,100%{opacity:.2}50%{opacity:1}}
+.noise{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen}
+#sos.glitch .noise{opacity:.6}
+#sos.glitch .inner{animation:shake .12s steps(2) 7}
+@keyframes shake{0%{transform:translate(calc(-14*var(--u)),calc(6*var(--u))) skewX(-2deg)}50%{transform:translate(calc(12*var(--u)),calc(-8*var(--u))) skewX(2deg)}100%{transform:none}}
+/* acionado */
+#sos.fired .uf-hit{animation:none;fill:rgba(255,181,71,.16);stroke:var(--ember);cursor:default}
+#sos.fired .sonar{animation:shock 1.3s ease-out 1 both;stroke:var(--ember)}
+@keyframes shock{from{transform:scale(1);opacity:.9}to{transform:scale(1.5);opacity:0}}
+#sos.fired .sos-txt{animation:none;font-size:100px}
+#sos.fired .alarm{animation:none;opacity:0;transition:opacity .5s}
+#sos.fired .warn{border-color:rgba(255,181,71,.5);border-left-color:var(--ember);background:rgba(255,181,71,.07)}
+#sos.fired .atag{animation:none;background:#6B4A12}
+@media (prefers-reduced-motion:reduce){
+  #sos.alert .uf-hit,#sos.alert .sonar,#sos.alert .sos-txt,#sos.alert .alarm,#sos.glitch .inner,.atag,.mode::before{animation:none}
+  #sos.alert .alarm{opacity:.6}
+  .stage #sos.alert .warn{animation:none;opacity:1}
+}
+/* 1b · dados */
+.sos-data{display:flex;flex-direction:column}
+.sos-data li{display:grid;grid-template-columns:calc(190*var(--u)) minmax(0,1fr);gap:calc(26*var(--u));align-items:center;padding:calc(14*var(--u)) 0;border-bottom:1px solid var(--line)}
+.sos-data .num{font-size:calc(72*var(--u));color:var(--paper)}
+.sos-data .num.fire{color:var(--fire)}
+.sos-data div{display:flex;flex-direction:column;gap:calc(4*var(--u));min-width:0}
+.sos-data b{font:500 calc(24*var(--u))/1.3 var(--body);color:var(--paper)}
+.sos-data small{font:400 calc(15*var(--u))/1.3 var(--mono);color:var(--mist);letter-spacing:.04em}
+.uf-ok{fill:rgba(255,181,71,.16);stroke:var(--ember);stroke-width:3}
+.ok-txt{font:800 100px/1 var(--display);fill:var(--paper);text-anchor:middle;letter-spacing:.04em}
+.ok-sub{font:500 17px/1 var(--mono);fill:var(--paper);text-anchor:middle;letter-spacing:.16em}
+
+/* ---------- números ---------- */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.stage .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(44*var(--u))}
+.stage .stats.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat{display:flex;flex-direction:column;gap:calc(12*var(--u));padding-top:calc(22*var(--u));border-top:2px solid var(--line2)}
+.stat .num{font-size:calc(112*var(--u))}
+.stat p{font:400 calc(24*var(--u))/1.35 var(--body);color:var(--smoke)}
+.callout{padding:calc(26*var(--u)) calc(34*var(--u));background:rgba(17,25,21,.86);border-left:4px solid var(--leaf)}
+.callout p{font:500 calc(31*var(--u))/1.35 var(--body);color:var(--paper)}
+.command{display:flex;flex-direction:column;gap:calc(14*var(--u));padding:calc(34*var(--u)) calc(40*var(--u));background:linear-gradient(90deg,rgba(255,181,71,.16),rgba(255,181,71,.03));border-left:4px solid var(--ember)}
+
+/* ---------- cenas de vídeo em tela cheia ---------- */
+.lower{display:flex;flex-direction:column;gap:calc(22*var(--u));max-width:calc(1200*var(--u))}
+.checks{display:flex;flex-wrap:wrap;gap:calc(14*var(--u))}
+.checks li{display:inline-flex;align-items:center;gap:.6em;font:600 calc(23*var(--u))/1 var(--body);padding:.75em 1em;border:1px solid rgba(243,239,231,.3);background:rgba(8,13,11,.7);border-radius:3px}
+.checks li::before{content:"✓";color:var(--leaf);font-weight:700}
+.gauge{display:flex;flex-direction:column;gap:calc(12*var(--u));width:calc(300*var(--u))}
+.gauge .tank{position:relative;height:calc(360*var(--u));border:2px solid rgba(243,239,231,.55);border-radius:6px;overflow:hidden;background:rgba(8,13,11,.55)}
+.gauge .tank i{position:absolute;left:0;right:0;bottom:0;height:100%;background:linear-gradient(180deg,#BFE8FB,#5DB6E6);transform-origin:bottom}
+.stage .scene.is-on .gauge .tank i{animation:fill 3.2s cubic-bezier(.3,.6,.2,1) .8s both}
+@keyframes fill{from{transform:scaleY(.04)}to{transform:scaleY(1)}}
+.gauge b{font:800 calc(54*var(--u))/1 var(--display)}
+.gauge span{font:500 calc(15*var(--u))/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--paper)}
+
+/* foco + comporta */
+.feed{position:relative;height:440px}
+.stage .feed{height:100%;min-height:0}
+.feed video{width:100%;height:100%;object-fit:cover}
+.feed .cross{position:absolute;inset:0;pointer-events:none}
+.feed .cross svg{width:100%;height:100%}
+.stage .scene.is-on .ring{animation:spin 16s linear infinite;transform-origin:center;transform-box:fill-box}
+@keyframes spin{to{transform:rotate(360deg)}}
+.feed .tag{position:absolute;left:calc(14*var(--u));bottom:calc(14*var(--u))}
+.takeover{position:relative;aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden}
+.takeover video{width:100%;height:100%;object-fit:cover;display:block}
+.takeover .tag{position:absolute;left:calc(16*var(--u));bottom:calc(16*var(--u))}
+.stage .takeover{position:absolute;inset:0;z-index:6;aspect-ratio:auto;border-radius:0;opacity:0;pointer-events:none}
+.stage.ready .takeover{transition:opacity .5s ease}
+.stage .takeover.on{opacity:1}
+.stage .takeover .tag{left:calc(120*var(--u));bottom:calc(150*var(--u))}
+.stage .takeover video{opacity:0}
+.stage.ready .takeover video{transition:opacity .4s ease .7s}
+.stage .takeover.on video{opacity:1}
+.bigfact{font:800 calc(92*var(--u))/.95 var(--display);text-transform:uppercase}
+
+/* legenda do relato */
+.caps{min-height:calc(190*var(--u));display:flex;align-items:flex-end}
+.caps p{font:600 calc(52*var(--u))/1.18 var(--body);color:var(--paper);text-shadow:0 2px 18px rgba(0,0,0,.8);max-width:22em}
+.caps .w{opacity:.28;transition:opacity .18s}
+.caps .w.on{opacity:1}
+.caps p.final{font:800 calc(78*var(--u))/1 var(--display);text-transform:uppercase}
+
+/* ciclo */
+.stage .stats.daystats{grid-template-columns:minmax(0,.7fr) minmax(0,1.35fr) minmax(0,.7fr);gap:calc(30*var(--u))}
+.daystats .stat .num{font-size:calc(96*var(--u));white-space:nowrap}
+.loop svg{display:block;width:100%;height:auto}
+.daybar{position:relative;height:calc(10*var(--u));background:rgba(243,239,231,.18);border-radius:5px;overflow:hidden}
+.daybar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p,0));background:linear-gradient(90deg,#FFE29A,var(--ember),var(--fire),#5A2A4A)}
+.dusk{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(20,10,40,.75),rgba(120,40,10,.45));opacity:var(--dusk,0);pointer-events:none}
+
+/* relatório */
+.sheet{position:relative;background:var(--sheet);color:var(--sheet-ink);border-radius:4px;padding:calc(38*var(--u)) calc(44*var(--u));display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;transition:box-shadow .4s}
+.sheet::before{content:"EXEMPLO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);font:800 calc(190*var(--u))/1 var(--display);color:rgba(23,32,27,.06);letter-spacing:.08em;pointer-events:none}
+.sheet h3{font:800 calc(40*var(--u))/1 var(--display);text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-bottom:calc(18*var(--u));border-bottom:2px solid var(--sheet-ink)}
+.sheet h3 small{font:500 calc(15*var(--u))/1 var(--mono);letter-spacing:.14em;color:#8A3B12}
+.sheet .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:calc(15*var(--u)) 0;border-bottom:1px solid rgba(23,32,27,.16)}
+.sheet .row span{font:400 calc(22*var(--u))/1.3 var(--body);color:#45544B}
+.sheet .row b{font:600 calc(23*var(--u))/1.3 var(--body);text-align:right}
+.sheet .row b::before{content:"✓ ";color:#1E8A4E}
+.sheet .row.fiscal b::before{content:""}
+.sheet .row.fiscal{min-height:calc(150*var(--u));border-bottom:0;align-items:start;padding-top:calc(22*var(--u))}
+.stage .scene.is-on .sheet .row{animation:rise .5s ease both;animation-delay:calc(.4s + var(--i) * .22s)}
+.stamp{position:absolute;right:calc(44*var(--u));bottom:calc(30*var(--u));font:800 calc(54*var(--u))/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:#1E8A4E;border:calc(6*var(--u)) solid #1E8A4E;padding:.25em .5em;border-radius:6px;transform:rotate(-8deg) scale(2.4);opacity:0;pointer-events:none}
+.stamp small{display:block;font:500 calc(15*var(--u))/1.2 var(--mono);letter-spacing:.14em}
+.sheet.ok .stamp{opacity:.92;transform:rotate(-8deg) scale(1);transition:transform .28s cubic-bezier(.3,1.6,.5,1),opacity .15s}
+.sheet.ok{box-shadow:0 0 0 calc(5*var(--u)) #1E8A4E,0 30px 80px rgba(0,0,0,.5)}
+.sheet .btn.hot{font-size:calc(26*var(--u));animation-duration:1.6s}
+.sheet.ok .btn.hot{display:none}
+
+/* 32 dias */
+.tiles{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:calc(8*var(--u))}
+.stage .tiles{grid-template-columns:repeat(32,minmax(0,1fr))}
+.tiles i{aspect-ratio:3/4;background:var(--sheet);border-radius:2px;opacity:.95}
+.stage .scene.is-on .tiles i{animation:tile .35s ease both;animation-delay:calc(.5s + var(--i) * .055s)}
+@keyframes tile{from{opacity:0;transform:translateY(calc(-30*var(--u))) scale(1.4)}to{opacity:.95;transform:none}}
+
+/* contratos */
+.cbar{display:flex;flex-direction:column;gap:calc(12*var(--u))}
+.cbar header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.cbar header b{font:700 calc(34*var(--u))/1.05 var(--display);text-transform:uppercase}
+.cbar header span{font:700 calc(40*var(--u))/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ember)}
+.cbar .track{position:relative;height:calc(34*var(--u));background:repeating-linear-gradient(135deg,#1C2821 0 calc(10*var(--u)),#24322A calc(10*var(--u)) calc(20*var(--u)));border-radius:4px;overflow:hidden}
+.cbar .track i{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:linear-gradient(90deg,var(--ember),var(--fire));transform-origin:left}
+.stage .scene.is-on .cbar .track i{animation:grow 1.5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0) * 1s)}
+.cbar .track em{position:absolute;right:calc(12*var(--u));top:50%;transform:translateY(-50%);font:500 calc(15*var(--u))/1 var(--mono);font-style:normal;letter-spacing:.1em;color:var(--paper)}
+.cbar p{font:400 calc(21*var(--u))/1.4 var(--body);color:var(--smoke);font-variant-numeric:tabular-nums}
+.strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.stage .strip{grid-template-columns:repeat(5,minmax(0,1fr));gap:calc(18*var(--u))}
+.strip li{font:500 calc(21*var(--u))/1.3 var(--body);padding:calc(18*var(--u)) calc(20*var(--u));background:var(--panel);border-top:3px solid var(--leaf)}
+
+/* frentes */
+.legs{display:grid;grid-template-columns:minmax(0,1fr);gap:0 calc(40*var(--u))}
+.stage .legs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.legs li{display:flex;flex-direction:column;gap:calc(6*var(--u));padding:calc(16*var(--u)) 0;border-top:1px solid var(--line)}
+.legs small{font:400 calc(16*var(--u))/1.3 var(--mono);color:var(--smoke);letter-spacing:.05em}
+.legs b{font:700 calc(32*var(--u))/1.05 var(--display);text-transform:uppercase}
+.legs .num{font-size:calc(58*var(--u));color:var(--ember)}
+.regmap svg{display:block;width:100%;height:auto}
+.regmap .am{fill:#16221B;stroke:#3A4A40;stroke-width:1.5}
+.regmap .rr{fill:rgba(255,181,71,.14);stroke:var(--ember);stroke-width:2}
+.route{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1000;stroke-dashoffset:0}
+.stage .scene.is-on .route{animation:draw 2.2s cubic-bezier(.6,0,.2,1) both;animation-delay:calc(var(--d,0) * 1s)}
+@keyframes draw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(26*var(--u))}
+.mini div{display:flex;flex-direction:column;gap:calc(8*var(--u));padding-top:calc(16*var(--u));border-top:2px solid var(--line2)}
+.mini .num{font-size:calc(62*var(--u));color:var(--paper)}
+.mini p{font:400 calc(19*var(--u))/1.35 var(--body);color:var(--smoke)}
+
+/* jusarah */
+.stage #jusarah .bgmedia::after{transition:background .6s}
+.stage #jusarah[data-step="1"] .bgmedia::after{background:rgba(8,13,11,.84)}
+.swap{display:grid}
+.swap>*{grid-area:1/1;min-width:0}
+body:not(.stage) .swap{gap:26px}
+body:not(.stage) .swap>*{grid-area:auto}
+.quote{font:800 calc(150*var(--u))/.9 var(--display);text-transform:uppercase}
+.press{display:flex;flex-wrap:wrap;gap:calc(12*var(--u))}
+.press span{font:700 calc(26*var(--u))/1 var(--display);text-transform:uppercase;letter-spacing:.04em;padding:.55em .8em;border:1px solid rgba(243,239,231,.35);background:rgba(8,13,11,.6)}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(24*var(--u)) calc(40*var(--u))}
+.stage .facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+.facts div{display:flex;flex-direction:column;gap:calc(8*var(--u));padding-top:calc(16*var(--u));border-top:2px solid rgba(243,239,231,.3)}
+.facts .num{font-size:calc(62*var(--u));color:var(--ember)}
+.facts p{font:400 calc(21*var(--u))/1.35 var(--body);color:#D5DED7}
+
+/* plano */
+.plan{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;min-height:0}
+.stage .plan{grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr) minmax(0,.85fr);gap:calc(40*var(--u));flex:1}
+.stage #plano{padding-top:calc(118*var(--u));padding-bottom:calc(128*var(--u))}
+.stage #plano .inner{gap:calc(24*var(--u))}
+.planmap{display:flex;flex-direction:column;gap:calc(12*var(--u));min-width:0;min-height:0}
+.planmap svg{display:block;width:100%;height:auto;max-height:70vh}
+.stage .planmap svg{flex:1 1 0;min-height:0;height:0;width:100%;max-height:none}
+.mun{fill:#17221C;stroke:#4A5C50;stroke-width:1.2;cursor:pointer;transition:fill .25s}
+.mun:hover{fill:#26362C}
+.mun.sel{fill:var(--fire);stroke:var(--paper)}
+.mun:focus-visible{outline:none;stroke:var(--ember);stroke-width:4}
+.mun-lab{font:600 18px/1 var(--display);fill:#C5D1C8;text-anchor:middle;pointer-events:none;text-transform:uppercase;letter-spacing:.04em}
+.mun-lab.sel{fill:var(--ink-on-fire)}
+.qlist{display:flex;flex-direction:column;gap:18px;min-width:0}
+.stage .qlist{overflow-y:auto;padding-right:calc(18*var(--u));gap:calc(22*var(--u));scrollbar-color:#3A4A40 transparent;min-height:0}
+.q{display:flex;flex-direction:column;gap:12px;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:4px;min-width:0}
+.stage .q{padding:calc(24*var(--u)) calc(28*var(--u));gap:calc(14*var(--u))}
+.q.ok{border-color:#2F6E4B}
+.q .ql{font:700 calc(30*var(--u))/1.12 var(--display);text-transform:uppercase;color:var(--paper);padding:0;display:flex;gap:12px;align-items:baseline}
+.q .qn{font:500 calc(15*var(--u))/1 var(--mono);color:var(--ember);letter-spacing:.08em}
+.q .hint{font:400 calc(19*var(--u))/1.35 var(--body);color:var(--smoke)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.stage .chips{gap:calc(10*var(--u))}
+.opt{display:inline-flex;position:relative}
+.opt input{position:absolute;left:0;top:0;opacity:0;width:1px;height:1px;margin:0}
+.opt span{display:inline-flex;align-items:center;padding:10px 14px;border:1px solid var(--line2);border-radius:999px;font:500 calc(20*var(--u))/1.1 var(--body);color:#D6E0D9;cursor:pointer;transition:background .2s,border-color .2s,color .2s;user-select:none}
+.stage .opt span{padding:calc(11*var(--u)) calc(18*var(--u))}
+.opt span:hover{border-color:var(--ember)}
+.opt input:checked+span{background:var(--fire);border-color:var(--fire);color:var(--ink-on-fire)}
+.opt input:focus-visible+span{outline:3px solid var(--ember);outline-offset:2px}
+.q input[type=text],.q input[type=tel],.q textarea{width:100%;background:#0B110E;border:1px solid var(--line2);border-radius:4px;padding:12px 14px;font:400 calc(21*var(--u))/1.35 var(--body);color:var(--paper)}
+.q textarea{min-height:84px;resize:vertical}
+.q input::placeholder,.q textarea::placeholder{color:#62766A}
+.row2{display:grid;grid-template-columns:1fr;gap:10px}
+.stage .row2{grid-template-columns:1fr 1fr}
+.ficha{display:flex;flex-direction:column;gap:16px;padding:22px;overflow:hidden;background:var(--sheet);color:var(--sheet-ink);border-radius:4px;min-width:0;position:relative}
+.stage .ficha{padding:calc(30*var(--u)) calc(32*var(--u));gap:calc(16*var(--u));overflow-y:auto;overflow-x:hidden;min-height:0}
+.ficha h3{font:800 calc(36*var(--u))/1 var(--display);text-transform:uppercase;padding-bottom:calc(12*var(--u));border-bottom:2px solid var(--sheet-ink);display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.ficha h3 small{font:500 calc(15*var(--u))/1 var(--mono);letter-spacing:.1em;color:#8A3B12}
+.sumlist div{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:12px;padding:calc(10*var(--u)) 0;border-bottom:1px solid rgba(23,32,27,.16)}
+.sumlist dt{font:500 calc(14*var(--u))/1.35 var(--mono);color:#5A6A60;letter-spacing:.06em;text-transform:uppercase}
+.sumlist dd{font:600 calc(20*var(--u))/1.35 var(--body);overflow-wrap:anywhere}
+.sumlist dd.empty{color:#9AA79F;font-weight:400;font-style:italic}
+.prog{display:flex;align-items:center;gap:12px;font:500 calc(15*var(--u))/1 var(--mono);color:#5A6A60;letter-spacing:.06em}
+.prog .bar{flex:1;position:relative;height:calc(10*var(--u));background:rgba(23,32,27,.14);border-radius:5px;overflow:hidden}
+.prog .bar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p,0));transition:transform .5s;background:linear-gradient(90deg,var(--ember),var(--fire))}
+.mini-btn{font-size:calc(16*var(--u));padding:.6em 1em;background:transparent;color:var(--sheet-ink);border-color:rgba(23,32,27,.35)}
+.note{font:500 calc(17*var(--u))/1.4 var(--mono);color:var(--leaf);min-height:1.4em}
+
+/* fechar */
+.path{display:grid;grid-template-columns:1fr;gap:10px}
+.stage .path{gap:calc(10*var(--u))}
+.stage #fechar .stack{gap:calc(20*var(--u))}
+.path li{display:grid;grid-template-columns:calc(170*var(--u)) minmax(0,1fr);gap:calc(22*var(--u));align-items:baseline;padding:calc(13*var(--u)) calc(22*var(--u));background:var(--panel);border-left:4px solid var(--line2)}
+.path li.now{border-left-color:var(--fire);background:linear-gradient(90deg,rgba(255,90,31,.16),var(--panel) 70%)}
+.path .when{font:500 calc(16*var(--u))/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ember)}
+.path b{display:block;font:700 calc(31*var(--u))/1.05 var(--display);text-transform:uppercase}
+.path span{font:400 calc(20*var(--u))/1.35 var(--body);color:var(--smoke)}
+.contacts{display:grid;grid-template-columns:1fr;gap:14px}
+.stage .contacts{grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(30*var(--u))}
+.contacts dt{font:500 calc(15*var(--u))/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);margin-bottom:calc(6*var(--u))}
+.contacts dd{font:600 calc(21*var(--u))/1.3 var(--body);color:var(--paper);user-select:all;overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.seal{position:absolute;right:calc(30*var(--u));bottom:calc(30*var(--u));font:800 calc(44*var(--u))/1 var(--display);letter-spacing:.05em;text-transform:uppercase;color:#1E6FA8;border:calc(5*var(--u)) solid #1E6FA8;padding:.25em .5em;border-radius:6px;transform:rotate(7deg) scale(2.2);opacity:0;pointer-events:none;background:rgba(244,241,232,.9)}
+.seal small{display:block;font:500 calc(14*var(--u))/1.2 var(--mono);letter-spacing:.14em}
+.ficha.ok .seal{opacity:1;transform:rotate(7deg) scale(1);transition:transform .28s cubic-bezier(.3,1.6,.5,1),opacity .15s}
+
+/* ---------- modo página (celular) ---------- */
+body:not(.stage) :is(.t-small,.src,.tag,.eyebrow,.atag,.sos-data small,.legs small,.sumlist dt,.q .qn,.prog,.note,.contacts dt,.path .when,.cbar .track em,.sheet h3 small,.ficha h3 small,.mode,.gauge span,.tele dt){font-size:max(12px,calc(15*var(--u)))}
+body:not(.stage) :is(.t-body,.t-lead,.stat p,.acard p,.sos-data b,.cbar p,.path span,.facts p,.mini p,.q .hint,.sheet .row span,.sheet .row b,.sumlist dd,.strip li,.callout p,.contacts dd,.checks li){font-size:max(15px,calc(24*var(--u)))}
+body:not(.stage) .q input[type=text],body:not(.stage) .q input[type=tel],body:not(.stage) .q textarea{font-size:16px}
+body:not(.stage) .opt span{font-size:15px}
+body:not(.stage) .btn{font-size:16px}
+body:not(.stage) .btn.hot{font-size:24px}
+body:not(.stage) .t-h1{font-size:calc(64*var(--u))}
+body:not(.stage) .t-h2{font-size:calc(50*var(--u))}
+body:not(.stage) .t-mega{font-size:calc(88*var(--u))}
+body:not(.stage) .quote{font-size:calc(88*var(--u))}
+body:not(.stage) .stat .num{font-size:calc(74*var(--u))}
+body:not(.stage) .bigfact{font-size:calc(54*var(--u))}
+body:not(.stage) .caps p{font-size:calc(30*var(--u))}
+body:not(.stage) .caps p.final{font-size:calc(40*var(--u))}
+body:not(.stage) .feed{max-width:340px}
+body:not(.stage) #sos{padding-inline:14px}
+body:not(.stage) .path li{grid-template-columns:minmax(0,1fr);gap:4px}
+body:not(.stage) .gauge .tank i{transform:none}
+.hud-mobile{display:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:30;justify-content:space-between;align-items:center;padding-block:10px;background:rgba(8,13,11,.94);border-bottom:1px solid var(--line);margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body:not(.stage) .hud-mobile{display:flex}
+.hud-mobile img{height:32px;width:auto}
+.hud-mobile a{font:600 14px/1 var(--body);color:var(--night);background:var(--ember);padding:10px 14px;border-radius:999px;text-decoration:none}
+body:not(.stage)::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--night)}
+</style>
+
+<div class="hud-mobile"><img src="/roraima/m/logo-branca.png" alt="Jusarah Agro Aérea"><a href="#plano">Plano de Roraima</a></div>
+
+<div class="hud hud-top" aria-hidden="true">
+  <img src="/roraima/m/logo-branca.png" alt="">
+  <span class="mode" id="hudMode" data-m="painel">Painel ilustrativo</span>
+  <div class="phases" id="hudPhases" hidden><i></i><i></i><i></i><i></i><i></i><i></i><span id="hudPhase"></span></div>
+  <span class="where" id="hudWhere"></span>
+</div>
+
+<main class="deck" id="deck">
+
+<!-- 1 · SOS -->
+<section class="scene gridbg" id="sos" data-label="Central de monitoramento">
+  <div class="alarm" aria-hidden="true"></div>
+  <canvas class="noise" id="sosNoise" aria-hidden="true"></canvas>
+  <div class="inner">
+    <div class="sos-head">
+      <p class="eyebrow" id="sosEyebrow">Central de monitoramento · painel ilustrativo</p>
+      <h1 class="t-h1" id="sosTitle">Situação em Roraima</h1>
+    </div>
+    <div class="sos-stage">
+      <ul class="warns" aria-hidden="true">
+        <li class="warn" style="--i:0"><span class="atag">Alerta</span><b>Focos de incêndio</b></li>
+        <li class="warn" style="--i:2"><span class="atag">Alerta</span><b>Qualidade do ar</b></li>
+        <li class="warn" style="--i:1"><span class="atag">Alerta</span><b>Municípios em emergência</b></li>
+        <li class="warn" style="--i:3"><span class="atag">Alerta</span><b>Focos de calor</b></li>
+      </ul>
+      <figure class="sos-map">
+        <svg id="sosSvg" viewBox="0 0 750 862" aria-label="Mapa de Roraima">
+          <defs><radialGradient id="gAlert" cx="55%" cy="42%" r="70%"><stop offset="0" stop-color="#FF7A2E"/><stop offset=".55" stop-color="#E8402A"/><stop offset="1" stop-color="#7A1410"/></radialGradient></defs>
+          <path class="sonar a" id="sonarA"/><path class="sonar b" id="sonarB"/><path class="sonar c" id="sonarC"/>
+          <path class="uf-hit" id="ufHit" role="button" tabindex="0" aria-label="Acionar o apoio aéreo para Roraima"/>
+          <g id="sosMun"></g>
+          <circle class="bv-dot" id="bvDot" r="6"/><text class="bv-lab" id="bvLab">BOA VISTA</text>
+          <text class="sos-txt" id="sosTxt" x="408" y="520">RORAIMA</text>
+          <text class="sos-sub" id="sosSub" x="408" y="560">MONITORAMENTO</text>
+        </svg>
+      </figure>
+    </div>
+    <p class="sos-call" id="sosCall">Monitoramento em andamento. Avance para iniciar.</p>
+  </div>
+</section>
+
+<!-- 1b · DADOS -->
+<section class="scene gridbg" id="dados" data-label="Roraima em alerta">
+  <div class="inner">
+    <div class="cols" style="align-items:center;flex:1">
+      <div class="stack">
+        <p class="eyebrow" data-a>Painel de situação · dados públicos de 9 e 10/11/2026</p>
+        <h1 class="t-mega" data-a style="--d:.1;font-size:calc(124*var(--u))">Roraima em <span class="fire">alerta</span></h1>
+        <ul class="sos-data">
+          <li data-a style="--d:.4"><span class="num fire" data-count="857">857</span><div><b>focos de 1 a 6/11: o triplo do mesmo período de 2025</b><small>Defesa Civil de Roraima</small></div></li>
+          <li data-a style="--d:.7"><span class="num" data-count="152">152</span><div><b>índice de qualidade do ar em Boa Vista, em 9/11</b><small>Sesau, dados IQAir</small></div></li>
+          <li data-a style="--d:1"><span class="num" data-count="4">4</span><div><b>municípios em situação de emergência</b><small>Defesa Civil de Roraima</small></div></li>
+          <li data-a style="--d:1.3"><span class="num" data-count="184">184</span><div><b>focos de calor, com queimadas proibidas no estado</b><small>Inpe</small></div></li>
+        </ul>
+      </div>
+      <figure class="sos-map" data-a style="--d:.2">
+        <svg viewBox="0 0 750 862" role="img" aria-label="Mapa de Roraima com o apoio aéreo acionado">
+          <path class="uf-ok" id="okUf"/>
+          <g id="okMun"></g>
+          <circle class="bv-dot" id="okDot" r="6"/><text class="bv-lab" id="okLab">BOA VISTA</text>
+          <text class="ok-txt" x="408" y="520">ACIONADO</text>
+          <text class="ok-sub" x="408" y="560">APOIO AÉREO A CAMINHO</text>
+        </svg>
+        <figcaption class="sos-call"><b>Acionamento registrado.</b></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · EM CAMPO -->
+<section class="scene gridbg" id="campo" data-label="Quem já está em campo">
+  <div class="inner">
+    <p class="eyebrow" data-a>Acionamento registrado · em campo em Roraima</p>
+    <h2 class="t-h1" data-a style="--d:.1">O avião chega para somar com quem <span class="ember">já está no fogo</span></h2>
+    <div class="stats">
+      <div class="stat" data-a style="--d:.35"><span class="num">167</span><p>brigadistas</p></div>
+      <div class="stat" data-a style="--d:.55"><span class="num">80+</span><p>militares</p></div>
+      <div class="stat" data-a style="--d:.75"><span class="num">4</span><p>bases avançadas</p></div>
+      <div class="stat" data-a style="--d:.95"><span class="num">14</span><p>caminhões-pipa</p></div>
+    </div>
+    <p class="src" data-a style="--d:1.1">Fonte: Folha BV, 09/11/2026.</p>
+    <div class="command bottom" data-show="1">
+      <p class="t-h2">A partir daqui, vocês são o comando.</p>
+      <p class="t-lead">A seguir, um dia de operação. É uma simulação, montada com imagens reais e com as médias reais da operação no Amazonas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · ÁGUA -->
+<section class="scene" id="agua" data-label="Abastecimento">
+  <div class="bgmedia low"><video src="/roraima/m/bolsao.mp4" poster="/roraima/m/bolsao.jpg" muted loop playsinline preload="metadata" data-auto aria-label="Piscina de 5 mil litros cheia de água na pista, ao nascer do sol"></video></div>
+  <div class="inner">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
+      <span class="tag" data-a>Imagem real · operação no Amazonas</span>
+      <div class="gauge" data-a style="--d:.4"><span>Carga da aeronave</span><div class="tank"><i></i></div><b>até 1.930 L</b></div>
+    </div>
+    <div class="lower bottom">
+      <p class="eyebrow" data-a style="--d:.2">Fase 2 · abastecimento</p>
+      <h2 class="t-h1" data-a style="--d:.3">Primeiro, a água</h2>
+      <p class="t-lead" data-a style="--d:.5">Piscinas de 5 mil litros montadas na pista, caminhão-pipa e equipe de solo. A aeronave abastece ao lado de onde decola.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · DECOLAGEM -->
+<section class="scene" id="decolagem" data-label="Decolagem">
+  <div class="bgmedia low"><video src="/roraima/m/saida.mp4" poster="/roraima/m/saida.jpg" muted loop playsinline preload="metadata" data-auto data-vol=".55" aria-label="Aeronave da Jusarah rolando na pista ao amanhecer"></video></div>
+  <div class="inner">
+    <span class="tag" data-a style="align-self:flex-start">Imagem real · Itacoatiara, AM · som original</span>
+    <div class="lower bottom">
+      <p class="eyebrow" data-a style="--d:.2">Fase 3 · decolagem</p>
+      <h2 class="t-h1" data-a style="--d:.3">Motor ligado. A aeronave sai para o foco.</h2>
+      <p class="t-lead" data-a style="--d:.5">Cerca de 245 km/h e cerca de 3h30 de autonomia. Pilotos preparados para:</p>
+      <ul class="checks">
+        <li data-a style="--d:.9">Fumaça e visibilidade reduzida</li>
+        <li data-a style="--d:1.15">Calor</li>
+        <li data-a style="--d:1.4">Ar turbulento</li>
+        <li data-a style="--d:1.65">Voo baixo com precisão</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · SOBRE O FOCO -->
+<section class="scene gridbg" id="foco" data-label="Sobre o foco">
+  <div class="inner">
+    <div class="cols" style="--cols:minmax(0,.62fr) minmax(0,1fr);flex:1;min-height:0;align-items:stretch">
+      <figure class="feed media" data-a>
+        <video id="vidAereo" src="/roraima/m/lancamento.mp4" poster="/roraima/m/lancamento.jpg" muted loop playsinline preload="metadata" data-vol=".35" aria-label="Avião da Jusarah lança água sobre foco de incêndio na floresta, visto de outra aeronave"></video>
+        <div class="cross" aria-hidden="true"><svg viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="#F3EFE7" stroke-width="1.5" opacity=".8"><circle class="ring" cx="200" cy="330" r="92" stroke-dasharray="6 14"/><circle cx="200" cy="330" r="46"/><path d="M200 250v50M200 360v50M120 330h50M230 330h50"/></g></svg></div>
+        <span class="tag">Imagem real · Amazonas · vista de outra aeronave</span>
+      </figure>
+      <div class="swap" style="align-content:center">
+        <div class="stack" data-until="1" style="justify-content:center">
+          <p class="eyebrow" data-a style="--d:.2">Fase 4 · lançamento</p>
+          <h2 class="t-mega" data-a style="--d:.3">Sobre<br>o foco</h2>
+          <p class="t-lead" data-a style="--d:.5">A aeronave está na posição. A ordem é de vocês.</p>
+          <div data-a style="--d:.8"><button class="btn hot" type="button" id="btnComporta">Abrir comporta</button></div>
+        </div>
+        <div class="stack" data-show="2" style="justify-content:center">
+          <p class="eyebrow">Fase 4 · lançamento</p>
+          <p class="bigfact"><span class="water">1.800 a 1.930 litros</span> por lançamento</p>
+          <p class="bigfact" style="font-size:calc(64*var(--u))">Tudo de uma vez, em 2 a 3 segundos.</p>
+          <p class="t-lead">Onde o acesso por terra é difícil, o avião alcança. Ao lado, um lançamento real visto do alto, sobre a mata.</p>
+          <div><button class="btn" type="button" id="btnReplay">↻ Ver a comporta de novo</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figure class="takeover" id="takeover">
+    <video id="vidComporta" src="/roraima/m/comporta.mp4" poster="/roraima/m/comporta.jpg" muted playsinline preload="auto" data-vol="1" aria-label="A comporta abre e a água despenca no piso do hangar"></video>
+    <figcaption class="tag">Imagem real · teste de comporta em hangar · som original</figcaption>
+  </figure>
+</section>
+
+<!-- 6 · BRIGADA -->
+<section class="scene" id="brigada" data-label="Apoio à brigada" style="background:#050807">
+  <div class="inner">
+    <div class="cols" style="--cols:minmax(0,.95fr) minmax(0,1fr);align-items:center;flex:1;min-height:0">
+      <figure class="media" data-a style="aspect-ratio:720/740;max-height:100%;justify-self:center;width:100%;max-width:calc(760*var(--u))">
+        <video src="/roraima/m/brigada.mp4" poster="/roraima/m/brigada.jpg" muted loop playsinline preload="metadata" data-auto aria-label="Avião lança água sobre bombeiros militares em combate ao fogo"></video>
+      </figure>
+      <div class="stack">
+        <p class="eyebrow" data-a style="--d:.3">Fase 5 · apoio à brigada</p>
+        <h2 class="t-h1" data-a style="--d:1.6">A água cai onde os bombeiros estão.</h2>
+        <p class="t-lead" data-a style="--d:2.4">O lançamento baixa o calor da frente de fogo, protege e refresca quem combate no chão. A brigada segue no combate. O avião soma.</p>
+        <p class="src" data-a style="--d:2.8">Imagem real · bombeiros militares no Amazonas · crédito: Portal Sateré.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · RELATO -->
+<section class="scene" id="relato" data-label="A voz de quem está em solo">
+  <div class="bgmedia low"><video id="vidRelato" src="/roraima/m/base.mp4" poster="/roraima/m/base.jpg" muted loop playsinline preload="metadata" data-auto data-vol="1" aria-label="Aeronave ao lado do caminhão-pipa e das piscinas de água na pista de Itacoatiara"></video></div>
+  <div class="inner">
+    <span class="tag" data-a style="align-self:flex-start">Relato real da equipe de combate em solo · Itacoatiara, AM · áudio original</span>
+    <div class="lower bottom" style="max-width:calc(1500*var(--u))">
+      <div data-until="1" style="display:flex;flex-direction:column;gap:calc(22*var(--u))">
+        <h2 class="t-h1" data-a style="--d:.3">Abastece, decola, lança e volta.</h2>
+        <div data-a style="--d:.6"><button class="btn hot" type="button" id="btnRelato">▶ Ouvir o relato</button></div>
+      </div>
+      <div class="caps" data-show="1"><p id="capLine" aria-live="off"></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · CICLO -->
+<section class="scene" id="ciclo" data-label="O dia inteiro">
+  <div class="bgmedia"><img src="/roraima/m/dc-lancamento.jpg" alt="Aeronave lança água sobre área queimada ao lado de um lago"></div>
+  <div class="dusk" id="dusk"></div>
+  <div class="inner">
+    <div class="cols" style="align-items:center;flex:1">
+      <div class="stack">
+        <p class="eyebrow" data-a>Simulação · um dia de voo na média do Amazonas</p>
+        <h2 class="t-h1" data-a style="--d:.1">O ciclo se repete até o fim da luz</h2>
+        <div class="stats three daystats">
+          <div class="stat" data-a style="--d:.3"><span class="num ember" id="dayL">27</span><p>lançamentos</p></div>
+          <div class="stat" data-a style="--d:.4"><span class="num ember" id="dayV">≈ 50 mil</span><p>litros de água</p></div>
+          <div class="stat" data-a style="--d:.5"><span class="num ember" id="dayH">14</span><p>horas de voo</p></div>
+        </div>
+        <div class="daybar" data-a style="--d:.6"><i id="dayBar" style="--p:1"></i></div>
+        <p class="src" data-a style="--d:.7">Médias reais por dia de voo, somando as aeronaves em operação no dia. Foto: Defesa Civil do Amazonas.</p>
+      </div>
+      <figure class="loop" data-a style="--d:.2">
+        <svg viewBox="0 0 760 520" role="img" aria-label="Ciclo da missão: abastece, decola, lança e volta">
+          <path id="loopPath" d="M380 60 C600 60 700 160 700 260 C700 360 600 460 380 460 C160 460 60 360 60 260 C60 160 160 60 380 60Z" fill="none" stroke="#F3EFE7" stroke-opacity=".35" stroke-width="3" stroke-dasharray="4 12"/>
+          <g font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="800" font-size="40" fill="#F3EFE7" text-anchor="middle">
+            <text x="380" y="130">ABASTECE</text><text x="590" y="274">DECOLA</text><text x="380" y="420">LANÇA</text><text x="170" y="274">VOLTA</text>
+          </g>
+          <g fill="#F3EFE7"><circle cx="380" cy="60" r="9"/><circle cx="700" cy="260" r="9"/><circle cx="60" cy="260" r="9"/></g>
+          <circle id="loopDrop" cx="380" cy="460" r="13" fill="#8FD3F4"/>
+          <g id="loopPlane"><circle r="20" fill="#FF5A1F"/><path d="M-11 0L11 0M0 -10L0 10" stroke="#1A0C05" stroke-width="4"/></g>
+        </svg>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · RELATÓRIO -->
+<section class="scene gridbg" id="relatorio" data-label="Fim do dia: relatório">
+  <div class="inner">
+    <div class="cols" style="--cols:minmax(0,.9fr) minmax(0,1fr);align-items:center;flex:1">
+      <div class="stack">
+        <p class="eyebrow" data-a>Fase 6 · relatório</p>
+        <h2 class="t-h1" data-a style="--d:.1">Todo dia termina assim</h2>
+        <p class="t-lead" data-a style="--d:.3">Cada hora voada tem registro, foto e assinatura. O relatório chega à Defesa Civil no mesmo dia.</p>
+        <div class="callout" data-show="1"><p>Enviado no mesmo dia. No contrato, o atesto é do fiscal designado pela Defesa Civil.</p></div>
+      </div>
+      <div class="sheet" id="sheet" data-a style="--d:.2">
+        <h3>Relatório diário de voo <small>EXEMPLO</small></h3>
+        <div class="row" style="--i:0"><span>Acionamento e corte do motor</span><b>registrados</b></div>
+        <div class="row" style="--i:1"><span>Horímetros</span><b>foto anexada</b></div>
+        <div class="row" style="--i:2"><span>Lançamentos no dia</span><b>27</b></div>
+        <div class="row" style="--i:3"><span>Água lançada</span><b>cerca de 50 mil litros</b></div>
+        <div class="row" style="--i:4"><span>Horas de voo (soma das aeronaves)</span><b>14 h</b></div>
+        <div class="row" style="--i:5"><span>Assinatura digital do piloto</span><b>confirmada</b></div>
+        <div class="row fiscal" style="--i:6"><span>Atesto do fiscal do contrato</span><b><button class="btn hot" type="button" id="btnAtestar">Atestar</button></b></div>
+        <div class="stamp">Atestado<small>EXEMPLO</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · 32 VEZES -->
+<section class="scene" id="virada" data-label="32 dias de verdade" style="background:#050807">
+  <div class="inner" style="justify-content:center">
+    <p class="eyebrow leaf" data-a style="color:var(--leaf)">Dados reais · Amazonas · 07/10 a 10/11/2026</p>
+    <h2 class="t-mega" data-a style="--d:.15;font-size:calc(128*var(--u))">Esse dia se repetiu <span class="fire">32 vezes</span> no Amazonas</h2>
+    <div class="tiles" id="tiles" aria-hidden="true"></div>
+    <div class="stats three" data-show="1">
+      <div class="stat"><span class="num fire" data-count="448" data-suffix="h59">448h59</span><p>de voo em combate</p></div>
+      <div class="stat"><span class="num fire" data-count="874">874</span><p>lançamentos de água</p></div>
+      <div class="stat"><span class="num fire" data-count="1601810">1.601.810</span><p>litros sobre o fogo</p></div>
+    </div>
+    <p class="src" data-show="1">35 dias de operação, voo em 32. Três aeronaves com comporta, em Manaus, Itacoatiara e Parintins. Os números do contrato 18/2026 aguardam atesto da Defesa Civil do Amazonas.</p>
+  </div>
+</section>
+
+<!-- 11 · CONTRATOS -->
+<section class="scene gridbg" id="contratos" data-label="Contratado e voado">
+  <div class="inner">
+    <p class="eyebrow" data-a>Contratos com a Defesa Civil do Amazonas</p>
+    <h2 class="t-h1" data-a style="--d:.1">500 horas contratadas. <span class="fire">448h59 voadas.</span></h2>
+    <div class="cbar" data-a style="--d:.3">
+      <header><b>016/2026 · emergencial · 1 aeronave · 07 a 19/10</b><span>100h00 de 100h00</span></header>
+      <div class="track"><i style="--w:100%;--d:.6"></i></div>
+      <p>Cumprido por inteiro em 13 dias · 182 lançamentos · 326.420 L</p>
+    </div>
+    <div class="cbar" data-a style="--d:.5">
+      <header><b>18/2026 · até 2 aeronaves por dia · 20/10 a 10/11</b><span>348h59 de 400h00</span></header>
+      <div class="track"><i style="--w:87.25%;--d:.9"></i><em>saldo 51h01</em></div>
+      <p>692 lançamentos · 1.275.390 L · em fase de atesto</p>
+    </div>
+    <div class="cbar" data-a style="--d:.7">
+      <header><b>Total</b><span><span data-count="89.8" data-dec="1">89,8</span>% das horas contratadas</span></header>
+      <div class="track"><i style="--w:89.8%;--d:1.2"></i></div>
+    </div>
+    <ul class="strip" data-show="1">
+      <li>Registro de acionamento e corte do motor</li><li>Foto dos horímetros</li><li>Assinatura digital do piloto</li><li>Revisões de 50 e 100 horas</li><li>Atesto do fiscal</li>
+    </ul>
+    <p class="src">Fonte: relatórios diários de voo. Números do contrato 18/2026 aguardam atesto da Defesa Civil do Amazonas.</p>
+  </div>
+</section>
+
+<!-- 12 · FRENTES -->
+<section class="scene gridbg" id="frentes" data-label="35 dias, quatro frentes">
+  <div class="inner">
+    <div class="cols" style="--cols:minmax(0,1fr) minmax(0,.95fr);align-items:center;flex:1">
+      <div class="stack">
+        <p class="eyebrow" data-a>35 dias, quatro frentes</p>
+        <h2 class="t-h1" data-a style="--d:.1">A aeronave foi para onde o fogo estava</h2>
+        <ol class="legs">
+          <li data-a style="--d:.4"><small>07 e 08/10 · início do contrato emergencial</small><b>Parintins, Itacoatiara e Flores (Manaus)</b><span class="num">20h13</span></li>
+          <li data-a style="--d:.55"><small>09 a 11/10 · na capital</small><b>Manaus</b><span class="num">19h19</span></li>
+          <li data-a style="--d:.7"><small>12/10 a 02/11 · Lago do Canaçari, a frente mais longa</small><b>Itacoatiara</b><span class="num">275h34</span></li>
+          <li data-a style="--d:.85"><small>04 a 10/11 · sete dias seguidos</small><b>Parintins</b><span class="num">133h53</span></li>
+        </ol>
+        <div class="mini" data-show="1">
+          <div><span class="num">14 h</span><p>de voo em média por dia de voo</p></div>
+          <div><span class="num">21h59</span><p>somadas num único dia, nos picos de 21 e 22/10</p></div>
+          <div><span class="num">20</span><p>jornadas de mais de 10 h de voo por aeronave</p></div>
+        </div>
+      </div>
+      <figure class="regmap" data-a style="--d:.2"><svg id="regSvg" viewBox="0 0 925 794" role="img" aria-label="Mapa do Amazonas e de Roraima com Manaus, Itacoatiara, Parintins e Boa Vista"></svg></figure>
+    </div>
+  </div>
+</section>
+
+<!-- 13 · JUSARAH -->
+<section class="scene" id="jusarah" data-label="Quem opera">
+  <div class="bgmedia"><video src="/roraima/m/pista-am.mp4" poster="/roraima/m/pista-am.jpg" muted loop playsinline preload="metadata" data-auto aria-label="Aeronave da Jusarah com a pintura AMAZONAS na pista da base"></video></div>
+  <div class="inner" style="justify-content:center">
+    <div class="swap">
+      <div class="stack" data-until="1" style="justify-content:center">
+        <p class="eyebrow" data-a>Como a Defesa Civil do Amazonas classificou a chegada da aeronave</p>
+        <p class="quote" data-a style="--d:.2">“Marco<br><span class="fire">histórico</span>”</p>
+        <div class="press" data-a style="--d:.5"><span>Jornal Nacional</span><span>g1</span><span>SBT Norte</span></div>
+      </div>
+      <div class="stack" data-show="1" style="justify-content:center">
+        <p class="eyebrow">Quem opera</p>
+        <h2 class="t-h1">Jusarah Agro Aérea</h2>
+        <div class="facts">
+          <div><span class="num">2020</span><p>ano de fundação, com base em Cerejeiras, RO, e filial em Manaus</p></div>
+          <div><span class="num">12.500 h</span><p>de voo acumuladas</p></div>
+          <div><span class="num">2,5 mi ha</span><p>atendidos em aviação agrícola</p></div>
+          <div><span class="num">RO · MT · RR · AM</span><p>estados atendidos</p></div>
+          <div><span class="num">2024</span><p>combate a incêndios em Rondônia, com atestado de capacidade técnica</p></div>
+          <div><span class="num">5 aeronaves</span><p>de frota própria. No Amazonas, 3 operaram com comporta de combate</p></div>
+        </div>
+        <p class="t-small" style="color:#C5D1C8">ANAC 2022-11-00ND-01 · MAPA RO 000541-0 · Imagem real: base da Jusarah.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 · PLANO -->
+<section class="scene" id="plano" data-label="Plano de Roraima">
+  <div class="inner">
+    <div class="stack" style="gap:calc(10*var(--u))">
+      <p class="eyebrow" style="color:var(--water)">Agora o comando é de vocês</p>
+      <h2 class="t-h2" style="font-size:calc(52*var(--u))">Plano de Roraima: dez definições para desenhar a operação</h2>
+    </div>
+    <div class="plan">
+      <figure class="planmap">
+        <svg id="planSvg" viewBox="0 0 750 862" aria-label="Mapa de Roraima: toque nos municípios mais sensíveis"></svg>
+        <figcaption class="t-small">Toque nos municípios que precisam primeiro do apoio aéreo.</figcaption>
+      </figure>
+      <form class="qlist" id="qform" autocomplete="off"></form>
+      <aside class="ficha" id="ficha">
+        <h3>Ficha da operação <small>RORAIMA</small></h3>
+        <div class="prog"><span id="progTxt">0 de 10</span><div class="bar"><i id="progBar"></i></div></div>
+        <dl class="sumlist" id="sumlist"></dl>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button class="btn mini-btn" type="button" id="btnClear">Limpar respostas</button><span class="note" id="noteClear" style="color:#8A3B12"></span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- 15 · FECHAR -->
+<section class="scene gridbg" id="fechar" data-label="Para fechar hoje">
+  <div class="inner">
+    <div class="cols" style="--cols:minmax(0,.82fr) minmax(0,1fr);flex:1;min-height:0;align-items:stretch">
+      <aside class="ficha" id="ficha2">
+        <h3>Plano de Roraima <small id="planDate">definido nesta reunião</small></h3>
+        <dl class="sumlist" id="sumlist2"></dl>
+        <div class="seal">Plano definido<small id="sealDate"></small></div>
+      </aside>
+      <div class="stack" style="justify-content:center">
+        <p class="eyebrow" data-a>Para fechar hoje</p>
+        <h2 class="t-h1" data-a style="--d:.1;font-size:calc(72*var(--u))">O plano sai desta sala</h2>
+        <ol class="path">
+          <li class="now" data-a style="--d:.3"><span class="when">Agora</span><div><b>Conferir e confirmar o plano</b><span>As dez definições, lidas em voz alta nesta sala.</span></div></li>
+          <li data-a style="--d:.45"><span class="when">Hoje</span><div><b>Enviar o plano à Jusarah</b><span>Pelo WhatsApp, direto desta tela.</span></div></li>
+          <li data-a style="--d:.6"><span class="when">Em seguida</span><div><b>Proposta com base no plano</b><span>Aeronaves, horas e período sob medida para Roraima.</span></div></li>
+          <li data-a style="--d:.75"><span class="when">Depois</span><div><b>Mobilização</b><span>Aeronave, equipe de solo e piscinas na base escolhida.</span></div></li>
+        </ol>
+        <div class="actions" data-a style="--d:.9">
+          <button class="btn hot" type="button" id="btnConfirm" style="font-size:calc(28*var(--u))">Confirmar plano</button>
+          <a class="btn primary" id="btnWa" href="https://wa.me/5569993257000" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+          <button class="btn" type="button" id="btnCopy">Copiar</button>
+          <button class="btn" type="button" id="btnSave" hidden>Baixar</button>
+        </div>
+        <p class="note" id="note"></p>
+        <dl class="contacts" data-a style="--d:1">
+          <div><dt>Taylla Lara Scherwinski de Faria</dt><dd>financeiro@voejusarah.com</dd></div>
+          <div><dt>WhatsApp da Jusarah</dt><dd>(69) 99325-7000</dd></div>
+          <div><dt>Rodrigo de Faria · Jusarah Agro Aérea</dt><dd>jusarah.com.br · @voejusarah</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="hud hud-bot" aria-label="Navegação da apresentação">
+  <dl class="tele off" id="tele">
+    <div><dt id="teleLab">Aeronave</dt><dd class="st" id="teleSt">Em solo</dd></div>
+    <div><dt>Lançamentos</dt><dd id="teleL">0</dd></div>
+    <div><dt>Litros</dt><dd id="teleV">0</dd></div>
+  </dl>
+  <div class="segs" id="segs"></div>
+  <span class="count" id="count"></span>
+  <button class="navbtn" id="prev" type="button" aria-label="Voltar">←</button>
+  <button class="navbtn" id="next" type="button" aria-label="Avançar">→</button>
+  <button class="navbtn wide" id="snd" type="button" aria-pressed="false">Som desligado</button>
+  <button class="navbtn" id="fs" type="button" aria-label="Tela cheia" title="Tela cheia (F)">⛶</button>
+</nav>
+
+<script>
+window.GEO={"rr":{"vb":[750,862],"uf":"M95.1 233.9L103.1 252.1L91.0 281.7L99.9 289.5L115.5 315.2L118.9 334.8L109.9 352.1L122.0 355.8L135.8 353.0L145.8 359.3L164.8 357.8L181.4 364.4L187.5 358.1L194.6 366.7L192.6 387.2L204.1 394.1L220.7 393.3L234.4 410.9L256.6 410.6L272.9 420.6L269.8 448.6L260.6 461.7L268.9 469.1L280.5 480.0L294.7 522.6L300.7 522.3L304.1 537.6L301.7 559.4L292.7 571.6L295.0 599.4L303.7 607.1L302.9 627.7L308.1 643.6L318.2 653.0L318.9 664.2L328.3 673.1L327.5 688.2L334.6 691.3L319.1 718.0L322.9 728.5L314.4 736.9L298.9 734.4L296.0 743.7L309.8 751.1L326.2 769.7L342.2 777.1L355.2 789.6L369.7 820.1L376.5 820.7L381.5 818.3L404.7 826.4L420.3 842.1L412.7 824.6L403.0 820.0L401.8 808.8L412.1 780.1L407.6 770.0L413.0 743.1L422.3 731.2L449.2 720.0L450.5 712.6L485.2 718.4L499.4 735.5L505.8 754.4L517.0 759.2L532.9 757.0L537.5 746.3L559.9 738.8L549.9 718.7L569.9 667.2L592.7 621.0L665.2 621.0L685.7 621.0L729.8 621.0L729.8 505.3L726.4 494.5L711.4 493.9L686.9 486.0L677.7 471.0L667.7 466.4L653.2 446.7L634.4 441.9L637.8 429.2L627.7 430.4L629.1 412.7L628.4 377.5L615.9 374.1L598.7 331.0L599.1 301.2L608.3 267.2L620.5 250.1L620.6 231.4L612.5 225.0L637.7 206.8L654.1 181.7L632.2 153.2L629.4 138.2L636.1 131.0L629.0 121.8L600.6 111.5L577.9 110.5L594.2 87.9L600.6 43.6L585.8 35.7L581.0 22.8L571.8 20.0L557.9 28.0L528.0 28.9L513.6 25.2L527.2 57.9L519.0 66.5L507.2 82.2L483.5 94.0L477.5 110.7L459.3 114.6L444.9 107.9L435.1 122.4L423.5 119.9L416.3 134.0L409.8 142.5L388.7 141.8L379.0 152.5L358.1 151.6L340.0 163.6L310.5 151.3L290.9 159.6L293.3 166.9L268.9 167.8L262.6 185.4L269.8 196.1L267.4 211.9L260.0 204.7L238.9 219.4L227.5 209.4L230.0 202.4L212.7 195.2L212.7 178.5L183.0 178.0L187.8 183.2L175.9 191.0L156.0 170.3L151.6 184.2L146.4 179.8L126.1 181.5L121.4 188.4L104.2 162.4L96.6 157.2L65.5 156.5L50.0 160.4L23.6 138.2L20.0 151.7L59.8 198.6L82.6 208.7L93.7 223.1L95.1 233.9Z","mun":[{"n":"Amajari","d":"M524.5 238.8L522.6 236.6L524.1 232.5L521.4 229.0L511.8 226.3L507.0 223.6L505.0 224.6L499.8 221.2L500.6 218.8L495.2 216.8L490.5 204.0L492.8 195.8L491.9 191.4L485.2 179.9L485.7 174.3L482.5 170.0L475.2 167.4L470.0 172.1L460.4 170.1L453.5 166.6L448.5 162.7L447.6 147.2L441.2 139.8L440.8 136.8L435.5 133.6L416.3 134.0L409.8 142.5L401.4 143.7L398.3 141.2L390.4 143.3L387.2 142.0L381.0 145.2L379.0 152.5L375.1 151.7L366.5 153.9L365.6 160.2L358.1 151.6L355.9 153.9L351.5 154.6L344.4 158.8L343.5 162.1L339.5 163.1L322.2 155.7L318.0 156.5L314.8 152.8L304.7 150.7L301.1 152.6L302.0 155.5L292.2 159.5L293.3 166.9L288.3 170.8L284.1 167.3L279.7 167.1L274.5 168.7L268.9 167.8L265.3 171.1L268.1 176.0L262.9 181.1L262.6 185.4L266.8 190.7L268.1 195.6L269.5 207.4L267.4 211.9L263.1 208.7L260.0 204.7L256.7 204.3L254.7 207.4L248.5 212.0L243.0 219.2L238.9 219.4L233.4 212.7L228.5 210.4L229.6 208.0L229.0 202.3L222.5 196.1L212.7 195.2L210.1 192.4L209.2 186.8L212.6 178.8L204.0 178.0L202.9 175.9L196.6 177.8L190.1 175.0L185.8 175.4L183.0 178.0L187.8 183.2L183.2 189.6L179.6 187.8L175.9 191.0L167.5 186.3L166.2 181.2L160.0 175.1L158.0 171.4L155.0 171.5L153.2 179.3L148.3 180.7L137.0 179.8L135.2 178.6L126.1 181.5L121.0 187.2L117.6 184.2L117.0 180.7L113.0 180.5L105.3 168.5L104.2 162.4L96.6 157.2L91.0 158.8L84.1 155.4L77.0 157.1L65.5 156.5L61.3 158.4L51.9 159.0L50.0 160.4L42.4 156.4L38.2 147.2L35.1 143.9L23.6 138.2L18.7 141.6L18.6 147.2L20.0 151.7L29.4 158.2L32.2 164.6L35.2 167.8L36.4 172.1L42.3 177.8L47.6 181.2L49.1 186.8L54.3 191.6L59.8 198.6L64.0 198.6L73.5 203.0L82.6 208.7L83.5 212.3L93.7 223.1L95.1 233.9L100.3 235.8L108.6 234.9L117.2 240.6L125.8 239.6L129.2 242.2L135.5 238.1L140.5 227.9L148.4 224.2L151.2 213.5L151.7 208.9L161.3 203.6L168.9 205.2L171.0 210.6L176.0 210.2L178.7 212.6L189.9 218.7L196.2 219.4L198.5 223.7L204.2 219.4L204.0 210.8L213.4 210.8L218.9 219.9L216.3 229.8L224.8 239.5L230.6 242.2L233.7 245.2L237.2 251.3L241.7 254.3L246.9 255.7L258.7 263.0L268.8 264.0L274.3 266.2L280.9 262.8L284.2 264.3L290.4 264.6L302.4 270.3L303.6 276.7L308.0 277.5L315.2 274.0L322.7 274.4L327.3 276.1L329.3 273.4L342.2 264.6L351.5 261.0L355.2 262.7L360.9 261.3L368.0 257.8L374.9 261.0L378.7 253.9L394.5 254.1L402.3 250.0L405.5 255.2L414.9 255.8L417.9 252.4L422.5 250.8L428.6 250.6L431.6 248.8L439.3 249.8L451.0 238.7L458.8 238.7L461.0 240.4L477.2 238.9L483.4 235.1L488.3 237.0L492.8 234.7L501.1 234.4L508.1 232.8L513.8 235.8L518.8 240.2L522.1 241.4L524.5 238.8Z","c":[304.7,204.7]},{"n":"Alto Alegre","d":"M477.2 238.9L461.0 240.4L458.8 238.7L451.0 238.7L439.3 249.8L431.6 248.8L428.6 250.6L422.5 250.8L417.9 252.4L414.9 255.8L405.5 255.2L402.3 250.0L394.5 254.1L378.7 253.9L374.9 261.0L368.0 257.8L360.9 261.3L355.2 262.7L351.5 261.0L342.2 264.6L329.3 273.4L327.3 276.1L322.7 274.4L315.2 274.0L308.0 277.5L303.6 276.7L302.4 270.3L290.4 264.6L284.2 264.3L280.9 262.8L274.3 266.2L268.8 264.0L258.7 263.0L246.9 255.7L241.7 254.3L237.2 251.3L233.7 245.2L230.6 242.2L224.8 239.5L216.3 229.8L218.9 219.9L213.4 210.8L204.0 210.8L204.2 219.4L198.5 223.7L196.2 219.4L189.9 218.7L178.7 212.6L176.0 210.2L171.0 210.6L168.9 205.2L161.3 203.6L151.7 208.9L151.2 213.5L148.4 224.2L140.5 227.9L135.5 238.1L129.2 242.2L125.8 239.6L117.2 240.6L108.6 234.9L100.3 235.8L95.1 233.9L99.4 239.8L99.6 248.1L103.5 252.4L102.7 259.2L98.2 263.4L98.8 265.3L95.5 272.2L90.8 274.5L91.6 281.8L98.3 287.0L99.9 289.5L98.0 294.2L103.0 294.3L108.8 302.5L107.9 307.0L112.3 312.8L115.5 315.2L115.3 319.3L118.8 326.7L116.4 327.5L118.9 334.8L116.0 340.1L112.1 343.0L111.5 350.4L114.5 356.8L116.3 354.9L122.0 355.8L122.3 356.2L156.9 340.9L160.0 338.0L164.0 341.8L168.6 341.6L174.4 343.9L180.5 338.5L179.3 333.7L181.9 321.2L186.2 319.3L190.7 321.8L194.6 319.7L201.5 319.5L208.0 314.5L214.3 314.5L217.2 316.9L225.4 317.7L235.3 316.4L240.6 319.4L247.8 321.2L254.0 320.0L261.9 325.8L265.5 325.0L277.6 328.3L282.5 325.5L294.3 323.3L299.0 320.2L308.4 318.7L315.6 319.6L322.0 321.6L334.5 322.7L347.3 323.1L359.6 326.4L360.4 329.9L367.6 329.6L374.1 330.5L381.8 328.1L384.2 326.2L389.2 326.4L388.2 320.8L390.2 318.5L392.8 310.3L401.9 300.6L407.7 298.8L414.5 305.1L420.4 305.5L428.5 309.3L432.8 313.4L434.5 320.1L437.0 321.3L438.2 325.2L441.7 328.2L442.1 331.8L450.5 333.9L451.6 330.8L455.2 331.4L460.8 328.5L468.3 329.7L472.9 331.5L477.2 330.8L477.2 301.8L477.2 238.9Z","c":[268.3,283.9]},{"n":"Boa Vista","d":"M524.5 238.8L522.1 241.4L518.8 240.2L513.8 235.8L508.1 232.8L501.1 234.4L492.8 234.7L488.3 237.0L483.4 235.1L477.2 238.9L477.2 301.8L477.2 330.8L486.9 336.8L487.2 345.0L483.9 350.1L490.0 351.7L490.2 355.5L496.9 360.1L497.9 358.0L498.3 347.0L504.2 335.4L510.8 327.7L513.9 325.2L516.6 317.2L519.3 312.4L529.1 306.4L536.7 295.8L539.2 289.9L542.9 287.6L552.3 272.1L548.2 262.0L548.5 257.9L556.1 253.9L558.7 248.3L558.2 245.1L563.0 238.7L558.4 228.8L548.0 223.0L538.2 222.9L533.9 226.1L530.8 235.3L524.5 238.8Z","c":[511.2,278.4]},{"n":"Bonfim","d":"M578.5 412.7L629.1 412.7L630.2 410.2L628.3 405.1L630.6 400.2L628.6 395.1L628.4 391.0L630.8 384.2L628.4 377.5L623.7 378.3L617.4 373.1L609.4 369.1L608.2 365.9L610.3 361.5L609.5 354.7L606.9 351.7L605.7 344.6L600.0 335.9L598.7 331.0L598.0 318.3L598.3 311.7L599.9 305.2L599.1 301.2L603.6 292.4L601.8 290.8L602.5 282.9L608.3 279.0L607.8 269.2L610.8 266.6L611.5 261.7L620.5 250.1L618.8 243.3L616.3 241.6L620.6 231.4L617.2 229.9L616.0 226.2L612.5 225.0L608.6 222.3L604.9 225.5L602.3 223.9L591.0 229.4L587.3 233.4L576.0 239.4L573.6 243.8L561.8 246.2L558.7 248.3L556.1 253.9L548.5 257.9L548.2 262.0L552.3 272.1L542.9 287.6L539.2 289.9L536.7 295.8L529.1 306.4L530.4 309.5L536.0 312.1L543.6 313.6L546.8 315.6L554.4 317.5L557.6 322.8L555.6 328.4L550.0 333.5L552.0 335.4L559.8 335.0L566.1 340.4L570.6 341.4L570.5 345.2L573.8 347.8L573.1 360.4L576.0 371.4L572.6 377.1L572.8 383.5L577.4 384.0L578.3 393.5L576.0 395.2L571.1 394.5L564.8 404.0L567.0 409.6L571.5 406.6L577.4 408.2L578.5 412.7Z","c":[585.3,318.1]},{"n":"Cantá","d":"M474.6 412.7L474.8 414.8L479.9 419.1L485.7 414.6L497.6 414.6L502.6 412.7L508.2 412.7L506.0 420.3L508.5 424.9L518.7 424.9L520.6 428.2L526.5 430.5L528.2 437.8L533.9 445.9L548.6 443.0L550.5 444.1L554.3 439.5L557.3 438.0L561.0 433.3L569.7 426.6L577.3 417.6L578.5 412.7L577.4 408.2L571.5 406.6L567.0 409.6L564.8 404.0L571.1 394.5L576.0 395.2L578.3 393.5L577.4 384.0L572.8 383.5L572.6 377.1L576.0 371.4L573.1 360.4L573.8 347.8L570.5 345.2L570.6 341.4L566.1 340.4L559.8 335.0L552.0 335.4L550.0 333.5L555.6 328.4L557.6 322.8L554.4 317.5L546.8 315.6L543.6 313.6L536.0 312.1L530.4 309.5L529.1 306.4L519.3 312.4L516.6 317.2L513.9 325.2L510.8 327.7L504.2 335.4L498.3 347.0L497.9 358.0L496.9 360.1L495.6 364.8L496.9 370.4L495.8 375.0L490.4 378.6L488.1 384.3L484.7 386.8L475.4 395.2L470.9 405.1L474.6 412.7Z","c":[532.2,379.6]},{"n":"Caracaraí","d":"M578.5 412.7L577.3 417.6L569.7 426.6L561.0 433.3L557.3 438.0L554.3 439.5L550.5 444.1L548.6 443.0L533.9 445.9L528.2 437.8L526.5 430.5L520.6 428.2L518.7 424.9L508.5 424.9L506.0 420.3L508.2 412.7L502.6 412.7L497.6 414.6L485.7 414.6L479.9 419.1L474.8 414.8L474.6 412.7L465.4 414.5L453.2 416.0L443.4 415.4L433.3 413.0L427.5 409.5L423.4 411.4L419.8 411.0L413.2 413.9L410.9 416.4L403.4 420.0L390.4 420.1L383.4 419.0L379.4 420.8L372.4 420.5L369.8 421.9L362.3 422.9L352.6 426.7L340.1 432.9L328.1 439.6L323.0 441.6L314.0 446.9L309.4 450.5L298.5 456.4L285.9 462.2L276.7 468.4L268.9 469.1L269.6 472.7L276.0 478.1L280.5 480.0L282.8 484.2L282.8 489.1L290.2 510.1L291.8 518.1L294.7 522.6L300.7 522.3L300.3 530.7L304.1 537.6L301.2 541.8L299.1 547.5L301.3 553.1L301.7 559.4L297.2 562.9L293.3 568.5L292.7 571.6L295.0 581.4L293.3 591.6L295.0 599.4L299.0 598.1L302.2 602.5L303.7 607.1L301.2 612.7L301.3 620.5L302.9 627.7L306.4 634.2L305.9 637.2L308.1 643.6L312.9 645.7L318.2 653.0L318.9 664.2L323.9 670.6L328.3 673.1L326.9 685.0L328.4 688.8L334.6 691.3L333.7 696.2L329.3 703.6L323.6 706.7L323.0 711.8L320.4 713.6L319.8 721.7L322.4 724.4L322.9 728.5L320.3 731.5L315.1 733.4L312.2 737.6L303.8 734.9L298.9 734.4L296.3 738.3L297.9 742.7L297.1 746.4L305.3 749.1L312.1 753.0L313.5 757.9L319.7 764.3L324.6 766.9L326.2 769.7L330.0 769.4L333.3 772.7L336.6 773.3L345.3 784.2L349.8 784.6L355.2 789.6L361.2 801.8L363.3 808.3L368.4 815.4L369.7 820.1L376.5 820.7L373.0 815.4L372.6 812.3L376.5 804.5L375.8 798.6L371.6 786.7L374.2 779.5L370.5 772.7L372.9 764.4L371.2 759.9L372.3 755.9L375.5 751.2L373.1 739.5L380.0 725.6L378.3 715.7L381.0 709.5L381.1 706.6L375.9 699.3L377.7 690.7L376.7 685.2L380.3 670.1L382.4 665.4L379.3 657.2L383.6 647.9L384.9 640.9L383.9 632.5L386.2 615.5L389.5 609.4L391.9 600.3L395.2 593.9L399.2 590.8L403.2 580.4L410.1 571.1L417.2 565.8L422.8 558.4L426.3 548.2L432.2 541.6L435.8 535.1L439.2 533.2L447.2 536.0L451.0 532.7L453.5 537.6L456.4 537.2L461.9 539.4L464.5 533.8L469.1 531.5L469.6 528.1L475.7 520.9L486.3 523.8L491.0 517.0L498.8 524.9L498.5 531.9L504.2 539.7L509.1 540.6L509.5 546.7L511.6 548.6L517.0 547.2L519.2 544.3L522.9 545.0L527.2 540.7L529.9 539.9L533.2 533.5L535.6 533.8L536.6 528.6L539.2 527.3L541.5 522.7L549.3 516.8L559.1 515.5L562.3 518.8L565.2 517.2L571.5 517.1L581.4 520.3L586.4 520.5L599.4 516.4L601.9 511.3L610.4 509.0L616.3 508.3L618.4 501.9L623.7 499.5L622.4 492.0L624.6 488.7L622.2 480.9L619.1 478.5L619.1 473.9L622.1 466.6L625.2 465.0L625.5 459.9L632.2 460.1L635.8 458.6L639.5 459.7L641.6 457.7L655.0 461.8L659.7 461.7L663.5 467.1L667.7 466.4L663.5 458.3L659.3 457.4L654.1 449.7L653.2 446.7L649.3 444.3L643.2 446.8L641.3 443.7L634.4 441.9L635.8 435.8L638.3 433.9L634.2 430.2L627.7 430.4L626.1 424.6L628.7 418.0L629.1 412.7L578.5 412.7Z","c":[420.7,533.8]},{"n":"Caroebe","d":"M623.7 499.5L626.9 509.9L628.6 523.5L627.0 532.5L626.0 544.0L623.7 554.2L619.5 578.4L628.0 587.6L634.8 587.8L639.2 584.1L645.9 585.0L646.6 587.3L651.8 590.0L654.5 593.8L656.7 600.2L661.5 601.2L662.8 606.5L660.7 611.2L664.8 617.8L665.2 621.0L685.7 621.0L729.8 621.0L729.8 581.6L729.8 544.1L729.8 505.3L727.0 498.4L727.0 494.6L721.3 495.1L714.7 492.9L711.4 493.9L704.9 490.8L699.7 491.0L693.7 487.2L686.9 486.0L676.5 470.4L672.5 471.9L667.7 466.4L663.5 467.1L659.7 461.7L655.0 461.8L641.6 457.7L639.5 459.7L635.8 458.6L632.2 460.1L625.5 459.9L625.2 465.0L622.1 466.6L619.1 473.9L619.1 478.5L622.2 480.9L624.6 488.7L622.4 492.0L623.7 499.5Z","c":[676.7,542.9]},{"n":"Iracema","d":"M484.7 386.8L471.1 376.9L453.9 382.0L450.0 379.1L444.0 380.4L440.6 379.2L436.6 381.0L429.7 366.2L427.9 363.5L416.3 358.6L408.0 359.0L402.4 358.3L390.7 360.2L384.1 364.3L379.9 370.1L376.5 372.0L372.8 376.5L369.8 377.2L365.5 381.4L353.5 386.0L348.5 386.0L341.1 384.2L339.1 385.5L327.0 386.7L320.6 389.8L316.4 389.5L306.5 399.4L298.4 399.6L291.4 397.3L287.2 394.4L283.8 383.5L275.8 381.9L267.6 382.7L258.6 380.2L251.7 372.9L244.8 371.7L243.0 368.0L234.4 368.3L231.8 365.7L232.0 359.6L228.5 354.6L231.3 349.6L228.5 346.2L228.8 342.1L232.7 337.6L233.3 333.6L245.4 328.4L248.0 326.1L247.8 321.2L240.6 319.4L235.3 316.4L225.4 317.7L217.2 316.9L214.3 314.5L208.0 314.5L201.5 319.5L194.6 319.7L190.7 321.8L186.2 319.3L181.9 321.2L179.3 333.7L180.5 338.5L174.4 343.9L168.6 341.6L164.0 341.8L160.0 338.0L156.9 340.9L122.3 356.2L122.0 355.8L122.7 357.5L125.1 357.7L126.8 355.8L131.4 356.3L137.2 353.5L143.2 356.1L147.2 359.6L152.8 357.7L160.8 359.7L164.8 357.8L170.7 358.9L174.9 362.0L179.6 360.6L184.2 362.6L185.0 359.6L192.6 361.4L193.6 365.9L192.1 369.8L194.0 373.3L194.0 380.3L191.6 385.1L192.6 387.2L200.0 392.8L204.1 394.1L214.0 390.9L219.7 391.8L222.9 401.0L228.0 407.1L234.4 410.9L243.4 408.9L256.6 410.6L259.7 413.6L269.7 417.4L272.9 420.6L272.8 427.7L269.5 434.4L270.6 445.9L269.8 448.6L262.1 456.4L260.6 461.7L268.9 469.1L276.7 468.4L285.9 462.2L298.5 456.4L309.4 450.5L314.0 446.9L323.0 441.6L328.1 439.6L340.1 432.9L352.6 426.7L362.3 422.9L369.8 421.9L372.4 420.5L379.4 420.8L383.4 419.0L390.4 420.1L403.4 420.0L410.9 416.4L413.2 413.9L419.8 411.0L423.4 411.4L427.5 409.5L433.3 413.0L443.4 415.4L453.2 416.0L465.4 414.5L474.6 412.7L470.9 405.1L475.4 395.2L484.7 386.8Z","c":[309.2,390.8]},{"n":"Mucajaí","d":"M477.2 330.8L472.9 331.5L468.3 329.7L460.8 328.5L455.2 331.4L451.6 330.8L450.5 333.9L442.1 331.8L441.7 328.2L438.2 325.2L437.0 321.3L434.5 320.1L432.8 313.4L428.5 309.3L420.4 305.5L414.5 305.1L407.7 298.8L401.9 300.6L392.8 310.3L390.2 318.5L388.2 320.8L389.2 326.4L384.2 326.2L381.8 328.1L374.1 330.5L367.6 329.6L360.4 329.9L359.6 326.4L347.3 323.1L334.5 322.7L322.0 321.6L315.6 319.6L308.4 318.7L299.0 320.2L294.3 323.3L282.5 325.5L277.6 328.3L265.5 325.0L261.9 325.8L254.0 320.0L247.8 321.2L248.0 326.1L245.4 328.4L233.3 333.6L232.7 337.6L228.8 342.1L228.5 346.2L231.3 349.6L228.5 354.6L232.0 359.6L231.8 365.7L234.4 368.3L243.0 368.0L244.8 371.7L251.7 372.9L258.6 380.2L267.6 382.7L275.8 381.9L283.8 383.5L287.2 394.4L291.4 397.3L298.4 399.6L306.5 399.4L316.4 389.5L320.6 389.8L327.0 386.7L339.1 385.5L341.1 384.2L348.5 386.0L353.5 386.0L365.5 381.4L369.8 377.2L372.8 376.5L376.5 372.0L379.9 370.1L384.1 364.3L390.7 360.2L402.4 358.3L408.0 359.0L416.3 358.6L427.9 363.5L429.7 366.2L436.6 381.0L440.6 379.2L444.0 380.4L450.0 379.1L453.9 382.0L471.1 376.9L484.7 386.8L488.1 384.3L490.4 378.6L495.8 375.0L496.9 370.4L495.6 364.8L496.9 360.1L490.2 355.5L490.0 351.7L483.9 350.1L487.2 345.0L486.9 336.8L477.2 330.8Z","c":[357.6,351.3]},{"n":"Normandia","d":"M612.5 225.0L615.1 220.2L622.7 218.6L632.7 209.9L637.1 208.2L636.5 201.3L637.5 198.7L645.8 197.2L647.9 194.5L646.0 189.2L649.4 182.7L655.3 179.1L654.1 176.4L648.6 174.2L645.1 169.1L638.8 164.3L642.5 157.1L632.2 153.2L621.8 151.1L625.3 147.2L610.4 145.6L605.1 143.5L599.4 138.9L591.8 136.2L587.7 141.4L582.9 141.3L580.4 146.0L573.1 150.9L568.7 150.0L564.7 152.5L561.3 151.7L557.6 153.4L551.2 149.2L540.9 147.9L535.3 148.5L532.5 147.4L533.1 152.6L540.7 157.4L543.6 162.5L544.5 168.3L542.0 173.7L541.9 178.4L538.1 180.0L537.3 187.7L539.4 190.2L539.6 199.6L538.8 203.5L540.2 208.5L545.4 214.8L548.0 223.0L558.4 228.8L563.0 238.7L558.2 245.1L558.7 248.3L561.8 246.2L573.6 243.8L576.0 239.4L587.3 233.4L591.0 229.4L602.3 223.9L604.9 225.5L608.6 222.3L612.5 225.0Z","c":[589.6,187.1]},{"n":"Pacaraima","d":"M416.3 134.0L435.5 133.6L440.8 136.8L441.2 139.8L447.6 147.2L448.5 162.7L453.5 166.6L460.4 170.1L470.0 172.1L475.2 167.4L482.5 170.0L485.7 174.3L485.2 179.9L491.9 191.4L492.8 195.8L490.5 204.0L495.2 216.8L500.6 218.8L499.8 221.2L505.0 224.6L507.0 223.6L511.8 226.3L521.4 229.0L524.1 232.5L522.6 236.6L524.5 238.8L530.8 235.3L533.9 226.1L538.2 222.9L548.0 223.0L545.4 214.8L540.2 208.5L538.8 203.5L539.6 199.6L539.4 190.2L537.3 187.7L538.1 180.0L541.9 178.4L542.0 173.7L544.5 168.3L543.6 162.5L540.7 157.4L533.1 152.6L532.5 147.4L536.1 143.9L529.1 139.1L530.6 135.6L525.4 125.9L520.0 125.4L518.5 122.4L520.5 113.4L523.9 107.1L520.4 98.6L519.8 84.5L520.7 75.8L523.6 71.5L519.0 66.5L518.2 70.7L510.8 79.3L506.4 82.2L500.0 83.3L494.8 88.3L489.3 86.4L486.9 93.0L483.5 94.0L485.2 102.4L482.5 102.8L482.3 107.2L477.5 110.7L471.7 109.8L462.2 111.9L459.6 114.9L456.1 111.2L445.2 108.1L438.5 108.4L437.7 110.7L443.8 115.3L439.7 117.7L435.1 122.4L423.5 119.9L414.7 126.5L416.3 134.0Z","c":[496.6,152.8]},{"n":"Rorainópolis","d":"M578.9 585.0L570.4 584.7L568.6 580.0L570.5 577.1L566.5 571.9L565.6 563.5L561.8 559.5L573.1 547.1L564.4 538.0L563.9 535.5L548.9 532.3L560.5 527.7L565.2 517.2L562.3 518.8L559.1 515.5L549.3 516.8L541.5 522.7L539.2 527.3L536.6 528.6L535.6 533.8L533.2 533.5L529.9 539.9L527.2 540.7L522.9 545.0L519.2 544.3L517.0 547.2L511.6 548.6L509.5 546.7L509.1 540.6L504.2 539.7L498.5 531.9L498.8 524.9L491.0 517.0L486.3 523.8L475.7 520.9L469.6 528.1L469.1 531.5L464.5 533.8L461.9 539.4L456.4 537.2L453.5 537.6L451.0 532.7L447.2 536.0L439.2 533.2L435.8 535.1L432.2 541.6L426.3 548.2L422.8 558.4L417.2 565.8L410.1 571.1L403.2 580.4L399.2 590.8L395.2 593.9L391.9 600.3L389.5 609.4L386.2 615.5L383.9 632.5L384.9 640.9L383.6 647.9L379.3 657.2L382.4 665.4L380.3 670.1L376.7 685.2L377.7 690.7L375.9 699.3L381.1 706.6L381.0 709.5L378.3 715.7L380.0 725.6L373.1 739.5L375.5 751.2L372.3 755.9L371.2 759.9L372.9 764.4L370.5 772.7L374.2 779.5L371.6 786.7L375.8 798.6L376.5 804.5L372.6 812.3L373.0 815.4L376.5 820.7L381.5 818.3L388.4 819.7L391.1 821.8L404.7 826.4L410.1 832.0L411.9 835.7L420.3 842.1L420.5 836.0L414.4 831.5L411.5 824.2L403.0 820.0L407.4 815.0L402.0 807.9L404.3 802.9L409.3 788.1L408.5 781.7L412.1 780.1L411.1 770.6L407.6 770.0L408.1 761.9L411.0 759.3L410.5 756.4L413.0 743.1L419.1 738.6L422.3 731.2L425.8 730.6L434.1 724.2L449.2 720.0L450.5 712.6L457.0 714.6L457.9 712.8L467.8 713.3L470.4 717.9L479.2 720.0L485.2 718.4L485.9 725.3L490.3 730.1L494.3 731.3L494.6 735.0L499.4 735.5L500.5 741.4L504.6 743.1L502.8 746.7L505.7 750.1L505.8 754.4L515.1 756.5L517.6 758.4L526.7 753.8L532.9 757.0L536.9 753.5L537.5 746.3L540.3 744.0L546.3 745.1L552.7 740.4L555.7 741.4L560.9 735.2L560.6 732.6L554.0 724.4L551.7 723.3L549.2 714.7L551.1 708.1L555.7 705.2L555.4 701.9L558.0 698.3L560.5 690.7L560.7 683.9L562.3 678.1L565.0 673.8L570.5 669.3L569.9 667.2L568.8 665.7L572.0 660.2L572.8 656.2L580.5 649.4L582.7 642.1L581.2 640.2L590.2 633.1L592.7 621.0L596.8 615.5L592.9 614.8L584.7 609.7L587.4 604.5L583.0 597.7L581.5 589.6L578.9 585.0Z","c":[475.9,648.1]},{"n":"São João da Baliza","d":"M592.7 621.0L665.2 621.0L664.8 617.8L660.7 611.2L662.8 606.5L661.5 601.2L656.7 600.2L654.5 593.8L651.8 590.0L646.6 587.3L645.9 585.0L639.2 584.1L634.8 587.8L628.0 587.6L619.5 578.4L623.7 554.2L626.0 544.0L627.0 532.5L628.6 523.5L626.9 509.9L623.7 499.5L618.4 501.9L616.3 508.3L610.4 509.0L601.9 511.3L599.4 516.4L599.5 532.7L598.6 536.8L595.0 537.6L593.8 542.7L591.2 544.7L589.8 552.1L591.4 556.6L589.3 569.2L587.6 572.0L589.0 579.2L578.9 585.0L581.5 589.6L583.0 597.7L587.4 604.5L584.7 609.7L592.9 614.8L596.8 615.5L592.7 621.0Z","c":[615.9,576.3]},{"n":"São Luiz","d":"M565.2 517.2L560.5 527.7L548.9 532.3L563.9 535.5L564.4 538.0L573.1 547.1L561.8 559.5L565.6 563.5L566.5 571.9L570.5 577.1L568.6 580.0L570.4 584.7L578.9 585.0L589.0 579.2L587.6 572.0L589.3 569.2L591.4 556.6L589.8 552.1L591.2 544.7L593.8 542.7L595.0 537.6L598.6 536.8L599.5 532.7L599.4 516.4L586.4 520.5L581.4 520.3L571.5 517.1L565.2 517.2Z","c":[578.9,546.5]},{"n":"Uiramutã","d":"M632.2 153.2L629.5 150.9L628.5 144.4L631.1 141.1L629.4 138.2L636.1 131.0L634.1 127.0L629.0 121.8L623.5 118.8L613.8 118.3L609.5 115.2L600.6 111.5L600.2 114.0L589.5 113.2L589.3 109.8L586.3 108.6L582.6 112.4L577.9 110.5L578.8 106.8L582.5 100.0L588.8 98.6L588.2 94.0L594.2 87.9L594.6 78.7L592.9 77.7L595.1 72.2L598.0 60.5L598.6 51.9L600.6 43.6L591.9 39.9L589.6 36.1L585.8 35.7L584.4 29.3L581.3 25.6L576.7 25.4L571.8 20.0L557.9 28.0L553.2 28.1L551.5 26.1L543.3 28.6L535.0 27.7L531.8 29.3L526.2 26.5L522.3 26.8L519.0 25.0L513.6 25.2L513.9 29.0L518.4 33.9L520.1 38.6L519.9 45.6L525.4 52.7L527.2 57.9L521.8 66.0L519.0 66.5L523.6 71.5L520.7 75.8L519.8 84.5L520.4 98.6L523.9 107.1L520.5 113.4L518.5 122.4L520.0 125.4L525.4 125.9L530.6 135.6L529.1 139.1L536.1 143.9L532.5 147.4L535.3 148.5L540.9 147.9L551.2 149.2L557.6 153.4L561.3 151.7L564.7 152.5L568.7 150.0L573.1 150.9L580.4 146.0L582.9 141.3L587.7 141.4L591.8 136.2L599.4 138.9L605.1 143.5L610.4 145.6L625.3 147.2L621.8 151.1L632.2 153.2Z","c":[563.7,90.5]}],"bv":[516.6,314.2]},"reg":{"vb":[925,794],"rr":"M500.9 109.1L504.2 116.7L499.1 129.1L502.8 132.3L509.3 143.0L510.8 151.2L507.0 158.4L512.1 159.9L517.8 158.8L522.0 161.4L529.9 160.7L536.8 163.5L539.3 160.9L542.3 164.5L541.5 173.0L546.3 175.9L553.2 175.5L558.9 182.9L568.1 182.8L574.9 186.9L573.6 198.6L569.8 204.0L573.3 207.1L578.1 211.7L584.0 229.4L586.5 229.3L587.9 235.7L586.9 244.7L583.2 249.8L584.1 261.4L587.8 264.6L587.4 273.2L589.6 279.8L593.8 283.7L594.1 288.4L598.0 292.1L597.7 298.4L600.6 299.7L594.2 310.8L595.7 315.2L592.2 318.7L585.7 317.7L584.6 321.5L590.3 324.6L597.1 332.4L603.8 335.5L609.2 340.7L615.2 353.4L618.1 353.6L620.2 352.6L629.8 356.0L636.3 362.5L633.2 355.3L629.1 353.3L628.6 348.7L632.9 336.7L631.0 332.5L633.3 321.3L637.2 316.3L648.4 311.7L648.9 308.6L663.4 311.0L669.3 318.1L672.0 326.0L676.6 328.0L683.3 327.1L685.2 322.6L694.5 319.5L690.4 311.1L698.7 289.7L708.2 270.4L738.4 270.4L746.9 270.4L765.3 270.4L765.3 222.2L763.9 217.7L757.6 217.5L747.4 214.2L743.6 207.9L739.4 206.0L733.4 197.8L725.6 195.8L727.0 190.5L722.8 191.0L723.4 183.6L723.1 168.9L717.9 167.5L710.7 149.6L710.9 137.2L714.7 123.0L719.8 115.9L719.8 108.1L716.4 105.4L726.9 97.8L733.8 87.4L724.6 75.5L723.5 69.3L726.3 66.2L723.3 62.4L711.5 58.1L702.0 57.7L708.8 48.3L711.5 29.8L705.3 26.6L703.3 21.2L699.5 20.0L693.7 23.3L681.2 23.7L675.2 22.2L680.9 35.8L677.5 39.4L672.5 45.9L662.7 50.8L660.2 57.8L652.6 59.4L646.6 56.6L642.5 62.6L637.7 61.6L634.7 67.5L632.0 71.0L623.2 70.7L619.1 75.2L610.4 74.8L602.9 79.8L590.6 74.7L582.4 78.2L583.4 81.2L573.3 81.6L570.6 88.9L573.6 93.4L572.6 100.0L569.6 97.0L560.8 103.1L556.0 98.9L557.0 96.0L549.9 93.0L549.8 86.0L537.5 85.8L539.5 88.0L534.5 91.2L526.2 82.6L524.4 88.4L522.2 86.6L513.8 87.3L511.8 90.2L504.6 79.3L501.5 77.1L488.5 76.9L482.1 78.5L471.1 69.3L469.6 74.9L486.1 94.4L495.6 98.6L500.3 104.6L500.9 109.1Z","am":"M802.7 650.8L801.0 642.7L793.3 632.9L788.3 629.0L786.0 622.7L788.7 614.4L796.7 607.4L817.0 563.6L842.6 508.7L862.3 466.5L864.4 461.7L869.6 450.2L871.7 445.7L890.0 406.4L886.9 405.2L890.6 397.5L899.9 392.7L905.1 384.9L898.7 386.4L889.4 392.4L883.7 390.5L880.8 392.4L876.1 394.2L872.0 392.3L872.7 384.2L867.1 384.4L858.7 379.5L856.0 372.7L847.1 368.4L842.4 370.4L830.7 362.6L826.3 363.3L824.5 358.8L812.1 353.4L810.1 350.2L811.8 342.1L808.4 338.5L802.3 345.2L797.2 340.1L794.2 341.0L788.6 335.0L788.4 328.2L776.9 319.5L773.3 314.2L773.9 305.7L766.6 301.0L766.9 287.5L765.3 284.1L765.3 270.4L746.9 270.4L738.4 270.4L708.2 270.4L698.7 289.7L690.4 311.1L694.5 319.5L685.2 322.6L683.3 327.1L676.6 328.0L672.0 326.0L669.3 318.1L663.4 311.0L648.9 308.6L648.4 311.7L637.2 316.3L633.3 321.3L631.0 332.5L632.9 336.7L628.6 348.7L629.1 353.3L633.2 355.3L636.3 362.5L629.8 356.0L620.2 352.6L618.1 353.6L615.2 353.4L609.2 340.7L603.8 335.5L597.1 332.4L590.3 324.6L584.6 321.5L585.7 317.7L592.2 318.7L595.7 315.2L594.2 310.8L600.6 299.7L597.7 298.4L598.0 292.1L594.1 288.4L593.8 283.7L589.6 279.8L587.4 273.2L587.8 264.6L584.1 261.4L583.2 249.8L586.9 244.7L587.9 235.7L586.5 229.3L584.0 229.4L578.1 211.7L573.3 207.1L569.8 204.0L573.6 198.6L574.9 186.9L568.1 182.8L558.9 182.9L553.2 175.5L546.3 175.9L541.5 173.0L540.2 176.2L532.0 177.0L518.6 185.2L511.3 184.0L507.0 187.1L506.8 199.8L493.8 211.8L490.1 213.8L490.2 207.2L482.4 212.7L480.5 216.7L471.9 222.1L468.9 219.7L462.5 222.0L459.0 227.8L452.3 227.3L451.8 236.1L443.6 237.0L437.9 249.1L433.1 251.1L430.5 247.5L435.1 241.5L430.8 233.1L423.1 233.6L413.8 239.0L411.9 243.1L402.5 246.4L399.4 244.6L394.3 246.8L394.2 245.8L367.2 222.1L355.7 225.2L356.5 211.5L355.2 197.0L352.2 191.2L346.2 189.8L340.6 171.4L334.0 175.1L329.1 182.4L321.1 182.0L313.0 192.1L305.7 188.5L303.0 184.3L297.9 187.3L296.7 192.2L302.2 197.0L240.5 197.1L233.4 194.7L227.4 197.7L217.8 198.2L217.7 229.7L224.9 227.7L224.9 229.8L244.0 229.2L247.8 231.3L253.1 239.4L250.7 246.2L254.3 251.4L242.6 252.9L236.0 246.8L228.7 252.2L225.7 250.4L218.9 254.0L207.8 255.5L207.8 280.2L207.2 292.9L213.9 300.2L217.8 300.9L229.5 309.3L231.9 315.6L228.8 321.1L233.7 329.7L239.0 333.6L240.2 340.8L238.6 353.0L229.4 405.6L218.2 467.9L212.5 497.1L207.8 502.3L203.4 497.7L200.1 501.4L194.7 495.9L195.4 491.6L184.0 490.5L179.3 493.3L172.1 491.5L166.8 496.3L163.2 502.8L146.8 502.8L147.0 504.8L135.0 505.5L129.2 510.0L121.1 507.8L114.3 510.1L112.7 514.0L98.0 522.6L91.5 524.0L89.4 528.6L80.2 532.7L65.7 541.7L66.6 548.6L61.9 558.5L62.0 566.3L52.5 576.8L47.6 590.8L54.6 604.1L49.4 612.5L42.4 613.3L27.9 621.7L22.3 630.7L23.7 634.7L20.0 639.2L23.2 640.3L65.1 655.5L80.8 661.2L101.6 663.6L112.8 664.9L141.0 668.2L155.7 669.9L184.3 673.2L207.3 675.8L220.0 686.6L237.9 701.9L249.4 711.8L264.0 724.3L277.7 736.1L299.1 745.7L311.2 751.2L334.2 761.6L343.8 763.2L343.8 763.2L353.3 767.4L369.6 774.5L379.6 766.8L385.0 765.3L390.5 758.6L389.6 753.9L401.4 755.3L411.6 754.2L418.8 760.1L423.6 761.7L426.1 756.2L430.7 754.3L438.5 756.5L438.1 749.2L440.4 750.6L446.6 746.8L449.5 747.5L452.9 755.9L457.4 753.7L464.1 744.6L463.1 739.8L469.7 732.9L479.5 734.4L481.1 733.0L493.9 730.0L494.5 733.4L503.0 730.8L502.9 720.7L508.3 718.3L513.9 711.6L511.4 707.5L512.9 700.2L516.5 698.0L520.5 700.2L522.6 694.0L529.0 685.1L529.0 682.4L566.7 682.4L575.5 688.2L577.3 695.0L582.0 697.8L584.2 702.8L586.8 700.6L592.0 703.5L591.8 708.3L595.6 715.5L596.6 712.4L600.7 713.1L603.8 723.7L608.5 723.6L610.6 727.2L614.9 726.7L618.3 720.2L624.4 718.0L630.9 723.5L689.1 723.4L753.7 723.8L788.0 723.5L793.7 719.2L788.2 718.8L790.6 713.3L789.2 708.1L794.3 699.7L795.8 688.0L791.2 675.0L795.4 672.2L800.0 664.6L799.4 656.5L803.2 651.4L802.7 650.8Z","c":{"boavista":[676.5,142.6],"manaus":[709.0,439.5],"itacoatiara":[787.9,440.7],"parintins":[873.3,415.0]},"eq":283.6}};
+(function(){
+  const $=id=>document.getElementById(id), body=document.body;
+  const scenes=[...document.querySelectorAll('.scene')];
+  const idx=id=>scenes.findIndex(s=>s.id===id);
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmt=(v,dec)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
+  const NS='http://www.w3.org/2000/svg';
+  const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+  let cur=0, step=0, soundOn=false, sndUser=false, relatoLive=false, timers=[], rafs=new Set();
+  const later=(fn,ms)=>{const t=setTimeout(fn,ms);timers.push(t);return t};
+  const clearTimers=()=>{timers.forEach(clearTimeout);timers=[];rafs.forEach(cancelAnimationFrame);rafs.clear()};
+  const isStage=()=>body.classList.contains('stage');
+
+  /* ---------- mapas ---------- */
+  const RR=GEO.rr, REG=GEO.reg;
+  ['sonarA','sonarB','sonarC','ufHit'].forEach(i=>$(i).setAttribute('d',RR.uf));
+  RR.mun.forEach(m=>el('path',{class:'mun-line',d:m.d},$('sosMun')));
+  $('bvDot').setAttribute('cx',RR.bv[0]);$('bvDot').setAttribute('cy',RR.bv[1]);
+  $('bvLab').setAttribute('x',RR.bv[0]+12);$('bvLab').setAttribute('y',RR.bv[1]-10);
+  $('okUf').setAttribute('d',RR.uf);RR.mun.forEach(m=>el('path',{class:'mun-line',d:m.d},$('okMun')));
+  $('okDot').setAttribute('cx',RR.bv[0]);$('okDot').setAttribute('cy',RR.bv[1]);$('okLab').setAttribute('x',RR.bv[0]+12);$('okLab').setAttribute('y',RR.bv[1]-10);
+  (function(){
+    const s=$('regSvg');
+    el('path',{class:'am',d:REG.am},s);el('path',{class:'rr',d:REG.rr},s);
+    el('line',{x1:0,y1:REG.eq,x2:925,y2:REG.eq,stroke:'#3A4A40','stroke-width':1.5,'stroke-dasharray':'6 6'},s);
+    const t=(x,y,txt,cls,size,fill,anchor)=>{const e=el('text',{x,y,'font-family':cls==='m'?'IBM Plex Mono, monospace':'Barlow Condensed, Arial Narrow, sans-serif','font-weight':cls==='m'?500:700,'font-size':size,fill:fill||'#F3EFE7','text-anchor':anchor||'start'},s);e.textContent=txt;return e};
+    t(12,REG.eq-8,'0° · LINHA DO EQUADOR','m',15,'#7F9386');
+    const c=REG.c;
+    el('path',{class:'route',d:`M${c.manaus[0]} ${c.manaus[1]} L${c.boavista[0]} ${c.boavista[1]}`,stroke:'#FFB547','stroke-width':3,style:'--d:1.6;stroke-dasharray:10 10'},s);
+    el('path',{class:'route',d:`M${c.manaus[0]} ${c.manaus[1]} L${c.itacoatiara[0]} ${c.itacoatiara[1]} L${c.parintins[0]} ${c.parintins[1]}`,stroke:'#FF5A1F','stroke-width':6,style:'--d:.6'},s);
+    [['manaus','MANAUS',-14,34,'end'],['itacoatiara','ITACOATIARA',0,38,'middle'],['parintins','PARINTINS',10,-18,'end']].forEach(([k,n,dx,dy,a])=>{el('circle',{cx:c[k][0],cy:c[k][1],r:9,fill:'#FF5A1F'},s);t(c[k][0]+dx,c[k][1]+dy,n,'d',27,null,a)});
+    el('circle',{cx:c.boavista[0],cy:c.boavista[1],r:10,fill:'#FFB547'},s);
+    el('circle',{cx:c.boavista[0],cy:c.boavista[1],r:22,fill:'none',stroke:'#FFB547','stroke-width':2,opacity:.5},s);
+    t(c.boavista[0]-18,c.boavista[1]-22,'BOA VISTA','d',30,null,'end');
+    t(c.manaus[0]-18,c.manaus[1]+56,'filial Jusarah','m',15,'#A3B4A9','end');
+    t(c.boavista[0]+34,(c.boavista[1]+c.manaus[1])/2,'≈ 660 km em linha reta','m',16,'#FFB547');
+    t(260,560,'AMAZONAS','d',44,'rgba(243,239,231,.22)');t(c.boavista[0]-150,c.boavista[1]+90,'RORAIMA','d',30,'rgba(255,181,71,.6)');
+  })();
+
+  /* ---------- HUD ---------- */
+  const MODES={calmo:'Central de monitoramento · painel ilustrativo',alerta:'Alerta máximo · painel ilustrativo',painel:'Painel ilustrativo · dados públicos',sim:'Simulação · médias reais do Amazonas',real:'Dados reais · Amazonas',plano:'Plano de Roraima'};
+  const PH=['Acionamento','Abastecimento','Decolagem','Lançamento','Apoio à brigada','Relatório'];
+  const tele={l:0,v:0},twId={l:0,v:0};
+  function tween(key,to,node,dur,post){
+    const from=tele[key],id=++twId[key];tele[key]=to;
+    if(reduce||from===to||!isStage()){node.textContent=fmt(to)+(post||'');return}
+    const t0=performance.now();
+    (function tick(t){if(twId[key]!==id)return;const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);node.textContent=fmt(Math.round(from+(to-from)*e))+(post||'');if(k<1)requestAnimationFrame(tick)})(t0);
+  }
+  function hud(h){
+    $('hudMode').dataset.m=h.m;$('hudMode').textContent=h.m==='plano'&&h.txt?h.txt:MODES[h.m];
+    const ph=$('hudPhases');ph.hidden=!(h.m==='sim'&&h.f);
+    if(h.f){[...ph.querySelectorAll('i')].forEach((d,i)=>d.classList.toggle('on',i<h.f));$('hudPhase').textContent='Fase '+h.f+' de 6 · '+PH[h.f-1]}
+    $('tele').classList.toggle('off',!(h.m==='sim'||h.m==='real'));
+    $('teleLab').textContent=h.m==='real'?'Operação':'Aeronave';
+    if(h.st)$('teleSt').textContent=h.st;
+    if(h.l!=null)tween('l',h.l,$('teleL'),h.dur||900);
+    if(h.v!=null)tween('v',h.v,$('teleV'),h.dur||900);
+  }
+
+  /* ---------- som e vídeo ---------- */
+  function applySound(){
+    $('snd').textContent=soundOn?'Som ligado':'Som desligado';$('snd').setAttribute('aria-pressed',String(soundOn));
+    document.querySelectorAll('video[data-vol]').forEach(v=>{v.volume=+v.dataset.vol;v.muted=!soundOn||(v.id==='vidRelato'&&!relatoLive)});
+    const so=$('sos');if(!soundOn)sirenStop();else if(isStage()&&scenes[cur].id==='sos'&&so.classList.contains('alert')&&!so.classList.contains('fired'))sirenStart();
+  }
+  const play=v=>{const p=v.play();if(p)p.catch(e=>{if(e&&e.name==='NotAllowedError'&&!v.muted){v.muted=true;const q=v.play();if(q)q.catch(()=>{})}})};
+  function wantSound(){if(!soundOn&&!sndUser){soundOn=true;applySound()}}
+  /* sirene sintetizada: só toca depois de um toque ou tecla e para quando o apoio é acionado */
+  let actx=null,siren=null;
+  function sirenStart(){
+    if(!soundOn||siren)return;
+    try{
+      actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      if(actx.state==='suspended')actx.resume();
+      const now=actx.currentTime,o=actx.createOscillator(),lfo=actx.createOscillator(),lg=actx.createGain(),f=actx.createBiquadFilter(),g=actx.createGain();
+      o.type='sawtooth';o.frequency.value=780;lfo.type='sine';lfo.frequency.value=.55;lg.gain.value=330;
+      f.type='lowpass';f.frequency.value=2200;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.12,now+.35);g.gain.setValueAtTime(.12,now+8);g.gain.linearRampToValueAtTime(.04,now+11);
+      lfo.connect(lg);lg.connect(o.frequency);o.connect(f);f.connect(g);g.connect(actx.destination);o.start();lfo.start();
+      siren={o,lfo,g};
+    }catch(e){siren=null}
+  }
+  document.addEventListener('visibilitychange',()=>{const so=$('sos');if(document.hidden)sirenStop();else if(soundOn&&isStage()&&scenes[cur].id==='sos'&&so.classList.contains('alert')&&!so.classList.contains('fired'))sirenStart()});
+  addEventListener('pagehide',()=>sirenStop());
+  function sirenStop(){
+    if(!siren)return;const z=siren;siren=null;
+    try{const now=actx.currentTime;z.g.gain.cancelScheduledValues(now);z.g.gain.setValueAtTime(z.g.gain.value,now);z.g.gain.linearRampToValueAtTime(0,now+.45);z.o.stop(now+.5);z.lfo.stop(now+.5)}catch(e){}
+  }
+  function sceneVideos(on){
+    scenes.forEach((sc,i)=>sc.querySelectorAll('video').forEach(v=>{
+      if(i===cur&&on){if(v.hasAttribute('data-auto')){v.loop=true;try{v.currentTime=0}catch(e){}play(v)}}
+      else v.pause();
+    }));
+  }
+
+  /* ---------- contadores das cenas ---------- */
+  function runCounters(root){
+    if(reduce)return;
+    root.querySelectorAll('[data-count]').forEach(n=>{
+      const end=parseFloat(n.dataset.count),dec=+(n.dataset.dec||0),suf=n.dataset.suffix||'';
+      const host=n.closest('[data-a]');const delay=host?(parseFloat(host.style.getPropertyValue('--d'))||0)*1000:0;
+      const t0=performance.now(),dur=1500;
+      n.textContent=fmt(0,dec)+suf;
+      (function tick(t){const k=Math.min(1,Math.max(0,(t-t0-delay)/dur)),e=1-Math.pow(1-k,4);n.textContent=fmt(dec?end*e:Math.round(end*e),dec)+suf;if(k<1&&n.isConnected)requestAnimationFrame(tick)})(t0);
+    });
+  }
+
+  /* ---------- relato: legenda sincronizada ---------- */
+  const FALAS=[
+    {fim:3.1,w:[[0.0,'Olha'],[0.84,'aí,'],[0.96,'pessoal:'],[1.6,'hoje'],[1.64,'a'],[1.74,'nossa'],[1.98,'aeronave'],[2.32,'está'],[2.5,'em'],[2.7,'ação.']]},
+    {fim:7.5,w:[[3.26,'Itacoatiara'],[4.22,'está'],[4.36,'combatendo'],[4.84,'incêndio'],[5.62,'junto'],[5.94,'conosco.']]},
+    {fim:10.3,w:[[7.72,'Já'],[7.8,'fez'],[7.86,'aqui'],[8.12,'várias'],[8.42,'voltas'],[8.82,'para'],[9.0,'jogar'],[9.28,'água'],[9.5,'no'],[9.8,'incêndio,']]},
+    {fim:12.8,w:[[10.42,'chegou'],[10.5,'mais'],[10.74,'uma'],[10.94,'vez'],[11.02,'aqui'],[11.22,'para'],[11.44,'abastecer.']]},
+    {fim:16.7,w:[[12.92,'Aí'],[13.1,'ficam'],[13.34,'essas'],[13.66,'duas'],[13.94,'piscinas'],[14.42,'de'],[14.9,'5'],[15.3,'mil'],[15.52,'litros'],[15.68,'de'],[16.14,'água']]},
+    {fim:19.0,w:[[16.78,'abastecendo'],[18.22,'o'],[18.74,'avião']]},
+    {fim:21.8,w:[[19.04,'e'],[19.26,'ele'],[19.42,'fica'],[19.56,'fazendo'],[19.86,'essa'],[20.1,'viagem'],[20.56,'de'],[20.8,'voltar.']]},
+    {fim:25.1,w:[[22.0,'E,'],[22.12,'sem'],[22.32,'dúvidas,'],[23.0,'é'],[23.34,'um'],[23.56,'apoio'],[24.42,'muito'],[24.88,'bom']]},
+    {fim:27.9,w:[[25.18,'aqui'],[25.32,'para'],[25.5,'a'],[25.54,'gente'],[25.68,'que'],[25.88,'está'],[25.98,'na'],[26.18,'via'],[26.36,'terrestre.']]}
+  ];
+  const FINAL='“É um apoio muito bom aqui para a gente que está na via terrestre.”';
+  let capG=-2;
+  function capFinal(){const p=$('capLine');p.className='final';p.textContent=FINAL;capG=-1}
+  function capTick(){
+    const v=$('vidRelato'),p=$('capLine'),t=v.currentTime;
+    if(v.ended||t>=28.2){capFinal();return}
+    let g=FALAS.findIndex(f=>t<f.fim);if(g<0)g=FALAS.length-1;
+    if(t<FALAS[g].w[0][0]-.25&&g>0)g=g-1;
+    if(g!==capG){capG=g;p.className='';p.innerHTML='';FALAS[g].w.forEach(([tt,w])=>{const s=document.createElement('span');s.className='w';s.dataset.t=tt;s.textContent=w+' ';p.appendChild(s)})}
+    p.querySelectorAll('.w').forEach(s=>s.classList.toggle('on',t>=+s.dataset.t-.05));
+    rafs.add(requestAnimationFrame(capTick));
+  }
+  function startRelato(){
+    const v=$('vidRelato');relatoLive=true;wantSound();v.loop=false;try{v.currentTime=0}catch(e){}v.muted=!soundOn;play(v);capG=-2;
+    rafs.add(requestAnimationFrame(capTick));
+    hud({m:'sim',f:5,st:'Reabastecendo'});
+  }
+  $('vidRelato').addEventListener('ended',capFinal);
+
+  /* ---------- comporta ---------- */
+  function fireComporta(){
+    wantSound();
+    const to=$('takeover'),v=$('vidComporta'),a=$('vidAereo');
+    if(!isStage())to.scrollIntoView({behavior:'smooth',block:'center'});
+    a.pause();
+    if(isStage())to.classList.add('on');
+    try{v.currentTime=0}catch(e){}v.muted=!soundOn;
+    hud({m:'sim',f:4,st:'Comporta aberta'});
+    later(()=>play(v),isStage()?750:0);
+    const done=()=>{v.removeEventListener('ended',done);if(done.ran)return;done.ran=true;to.classList.remove('on');v.pause();
+      if(isStage()){if(cur!==idx('foco'))return;step=2;applySteps()}
+      hud({m:'sim',f:4,st:'Lançamento feito',l:1,v:1830});try{a.currentTime=0}catch(e){}a.loop=true;a.muted=!soundOn;play(a)};
+    v.addEventListener('ended',done);later(done,8200);
+  }
+  $('btnComporta').onclick=()=>{if(isStage()){if(step<1)advance()}else fireComporta()};
+  $('btnReplay').onclick=()=>{clearTimers();step=1;applySteps();fireComporta()};
+
+  /* ---------- ciclo ---------- */
+  function runCiclo(){
+    const path=$('loopPath'),plane=$('loopPlane'),drop=$('loopDrop'),len=path.getTotalLength();
+    const L=$('dayL'),V=$('dayV'),H=$('dayH'),bar=$('dayBar'),dusk=$('dusk');
+    const setP=d=>{const pt=path.getPointAtLength((d%1)*len);plane.setAttribute('transform',`translate(${pt.x} ${pt.y})`);const near=Math.abs((d%1)-.5);drop.setAttribute('opacity',near<.06?1:.25);drop.setAttribute('r',near<.06?22:13)};
+    const fin=()=>{L.textContent='27';V.textContent='≈ 50 mil';H.textContent='14';bar.style.setProperty('--p',1);dusk.style.setProperty('--dusk',.85);setP(0);hud({m:'sim',f:5,st:'Fim do dia de voo',l:27,v:50000,dur:1})};
+    if(reduce||!isStage()){fin();return}
+    const T=9000,LAPS=27,t0=performance.now()+900;
+    L.textContent='1';V.textContent=fmt(1830);H.textContent='0';bar.style.setProperty('--p',0);dusk.style.setProperty('--dusk',0);setP(0);
+    hud({m:'sim',f:5,st:'Em ciclo'});twId.l++;twId.v++;
+    (function tick(t){
+      const k=Math.min(1,Math.max(0,(t-t0)/T)),e=k*k*(3-2*k),laps=e*LAPS;
+      setP(laps);
+      const n=Math.max(1,Math.min(27,Math.floor(laps+.5)));
+      L.textContent=n;V.textContent=n>=27?'≈ 50 mil':fmt(n*1830);H.textContent=fmt(Math.round(e*14));
+      $('teleL').textContent=n;$('teleV').textContent=n>=27?'50.000':fmt(n*1830);tele.l=n;tele.v=n>=27?50000:n*1830;
+      $('teleSt').textContent=['Abastecendo','Em voo','Sobre o foco','Retornando'][Math.floor((laps%1)*4)];
+      bar.style.setProperty('--p',e);dusk.style.setProperty('--dusk',Math.max(0,(e-.55)/.45)*.85);
+      if(k<1)rafs.add(requestAnimationFrame(tick));else fin();
+    })(performance.now());
+  }
+
+  /* ---------- 32 folhas ---------- */
+  (function(){const t=$('tiles');for(let i=0;i<32;i++){const e=document.createElement('i');e.style.setProperty('--i',i);t.appendChild(e)}})();
+
+  /* ---------- questionário / plano ---------- */
+  const MES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const MUN=RR.mun.map(m=>m.n).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const Q=[
+    {id:'areas',t:'Quais municípios precisam primeiro do apoio aéreo?',h:'Toque no mapa ou marque aqui.',type:'multi',o:MUN,label:'Áreas mais sensíveis'},
+    {id:'vegetacao',t:'Que tipo de área mais preocupa?',type:'multi',o:['Lavrado (savana)','Floresta','Área de transição','Pastagem e lavoura','Unidade de conservação','Terra indígena'],label:'Tipo de área'},
+    {id:'dificuldade',t:'Qual é hoje a principal dificuldade da brigada?',type:'multi',o:['Acesso por terra','Água longe do foco','Frentes muito extensas','Fumaça e visibilidade','Efetivo','Desgaste e calor'],other:'Outra dificuldade',label:'Dificuldade da brigada'},
+    {id:'base',t:'De onde a aeronave opera?',type:'one',o:['Aeroporto de Boa Vista','Pista no interior','Mais de uma base','A definir com a Jusarah'],other:'Qual pista ou cidade?',label:'Base'},
+    {id:'agua',t:'De onde vem a água?',type:'multi',o:['Rio ou lago próximo','Caminhão-pipa','Rede ou hidrante na base','A definir'],label:'Água'},
+    {id:'meses',t:'Quais são os meses mais críticos?',type:'multi',o:MES,label:'Meses críticos'},
+    {id:'aeronaves',t:'Quantas aeronaves?',h:'No Amazonas: 3 aeronaves com comporta, até 2 por dia.',type:'one',o:['1 aeronave','2 aeronaves','3 ou mais','A definir com a Jusarah'],label:'Aeronaves'},
+    {id:'inicio',t:'Quando a operação precisa começar?',type:'one',o:['Imediatamente','Em até 15 dias','Em até 30 dias','Próxima temporada'],label:'Início'},
+    {id:'contratacao',t:'Qual o caminho de contratação?',type:'one',o:['Emergencial','Processo regular','Em análise'],label:'Contratação'},
+    {id:'acionamento',t:'Quem aciona a aeronave no dia a dia?',type:'contact',label:'Quem aciona'}
+  ];
+  const form=$('qform');let st={};
+  try{st=JSON.parse(localStorage.getItem('jus-rr-plano')||'{}')||{}}catch(e){st={}}
+  const save=()=>{try{localStorage.setItem('jus-rr-plano',JSON.stringify(st))}catch(e){}};
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const munEls={};
+  (function(){
+    const s=$('planSvg');
+    const SHORT={'São João da Baliza':'S. J. da Baliza'},DY={'São Luiz':-12,'São João da Baliza':16,'Caroebe':-4,'Cantá':6,'Boa Vista':-4,'Mucajaí':4};
+    RR.mun.forEach(m=>{
+      const p=el('path',{class:'mun',d:m.d,tabindex:0,role:'checkbox','aria-checked':'false','aria-label':m.n},s);
+      p.addEventListener('click',e=>{toggleMun(m.n);if(e.detail>0)p.blur()});
+      p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();toggleMun(m.n)}});
+      munEls[m.n]={p};
+    });
+    RR.mun.forEach(m=>{const t=el('text',{class:'mun-lab',x:m.c[0],y:m.c[1]+(DY[m.n]||0)},s);t.textContent=SHORT[m.n]||m.n;munEls[m.n].t=t});
+  })();
+  function toggleMun(n){const a=new Set(st.areas||[]);a.has(n)?a.delete(n):a.add(n);st.areas=MUN.filter(x=>a.has(x));form.querySelectorAll('input[name="areas"]').forEach(i=>i.checked=a.has(i.value));save();render()}
+  function build(){
+    form.innerHTML='';
+    Q.forEach((q,n)=>{
+      const fs=document.createElement('div');fs.className='q';fs.id='q-'+q.id;fs.setAttribute('role','group');fs.setAttribute('aria-labelledby','ql-'+q.id);
+      let h='<p class="ql" id="ql-'+q.id+'"><span class="qn">'+String(n+1).padStart(2,'0')+'</span>'+esc(q.t)+'</p>';
+      if(q.h)h+='<p class="hint">'+esc(q.h)+'</p>';
+      if(q.type==='multi'||q.type==='one'){
+        h+='<div class="chips">';
+        q.o.forEach((o,k)=>{h+='<label class="opt"><input id="'+q.id+'-'+k+'" type="'+(q.type==='one'?'radio':'checkbox')+'" name="'+q.id+'" value="'+esc(o)+'"><span>'+esc(o)+'</span></label>'});
+        h+='</div>';
+        if(q.other)h+='<input type="text" id="'+q.id+'-outro" aria-label="'+esc(q.other)+'" placeholder="'+esc(q.other)+'">';
+      }else h+='<div class="row2"><input type="text" id="acion-nome" aria-label="Nome e cargo de quem aciona" placeholder="Nome e cargo"><input type="tel" id="acion-fone" aria-label="Telefone ou WhatsApp de quem aciona" placeholder="Telefone ou WhatsApp"></div>';
+      fs.innerHTML=h;form.appendChild(fs);
+    });
+    const obs=document.createElement('div');obs.className='q';obs.id='q-obs';
+    obs.innerHTML='<p class="ql"><span class="qn">+</span><label for="obs">Algo mais que a Jusarah precisa saber?</label></p><textarea id="obs" placeholder="Áreas específicas, restrições, contatos de campo..."></textarea>';
+    form.appendChild(obs);
+    Q.forEach(q=>{
+      const v=st[q.id];
+      if(q.type==='multi'&&Array.isArray(v))form.querySelectorAll('input[name="'+q.id+'"]').forEach(i=>i.checked=v.includes(i.value));
+      if(q.type==='one'&&v)form.querySelectorAll('input[name="'+q.id+'"]').forEach(i=>i.checked=i.value===v);
+      if(q.other&&st[q.id+'_outro'])$(q.id+'-outro').value=st[q.id+'_outro'];
+    });
+    if(st.acion){$('acion-nome').value=st.acion.nome||'';$('acion-fone').value=st.acion.fone||''}
+    if(st.obs)$('obs').value=st.obs;
+  }
+  function read(){
+    Q.forEach(q=>{
+      if(q.type==='multi')st[q.id]=[...form.querySelectorAll('input[name="'+q.id+'"]:checked')].map(i=>i.value);
+      if(q.type==='one'){const c=form.querySelector('input[name="'+q.id+'"]:checked');st[q.id]=c?c.value:''}
+      if(q.other)st[q.id+'_outro']=$(q.id+'-outro').value.trim();
+    });
+    st.acion={nome:$('acion-nome').value.trim(),fone:$('acion-fone').value.trim()};st.obs=$('obs').value.trim();
+  }
+  function value(q){
+    if(q.type==='contact')return [st.acion&&st.acion.nome,st.acion&&st.acion.fone].filter(Boolean).join(' · ');
+    const extra=q.other&&st[q.id+'_outro']?st[q.id+'_outro']:'';
+    if(q.type==='multi')return [...(st[q.id]||[]),...(extra?[extra]:[])].join(', ');
+    return (st[q.id]||'')+(extra?(st[q.id]?' ('+extra+')':extra):'');
+  }
+  const doneCount=()=>Q.filter(q=>!!value(q)).length;
+  function fill(dl){dl.innerHTML='';Q.forEach(q=>{const d=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd'),v=value(q);dt.textContent=q.label;dd.textContent=v||'a definir';if(!v)dd.className='empty';d.append(dt,dd);dl.appendChild(d)});
+    if(st.obs){const d=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent='Observações';dd.textContent=st.obs;d.append(dt,dd);dl.appendChild(d)}}
+  function planText(){
+    let t='PLANO DE RORAIMA · DEFESA CIVIL DE RORAIMA × JUSARAH\n';
+    Q.forEach(q=>{t+='\n• '+q.label+': '+(value(q)||'a definir')});
+    if(st.obs)t+='\n• Observações: '+st.obs;
+    return t;
+  }
+  function render(){
+    const n=doneCount();
+    $('progTxt').textContent=n+' de '+Q.length;$('progBar').style.setProperty('--p',n/Q.length);
+    Q.forEach(q=>$('q-'+q.id).classList.toggle('ok',!!value(q)));
+    const a=new Set(st.areas||[]);
+    for(const k in munEls){const on=a.has(k);munEls[k].p.classList.toggle('sel',on);munEls[k].p.setAttribute('aria-checked',String(on));munEls[k].t.classList.toggle('sel',on)}
+    fill($('sumlist'));fill($('sumlist2'));
+    $('btnWa').href='https://wa.me/5569993257000?text='+encodeURIComponent(planText());
+    if(cur===idx('plano')||cur===idx('fechar'))hud({m:'plano',txt:'Plano de Roraima · '+n+' de '+Q.length+' definições'});
+  }
+  build();
+  form.addEventListener('input',()=>{read();save();render()});
+  form.addEventListener('change',()=>{read();save();render()});
+  form.addEventListener('submit',e=>e.preventDefault());
+  const note=$('note');
+  function copyFallback(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let r=false;try{r=document.execCommand('copy')}catch(e){}ta.remove();note.textContent=r?'Plano copiado.':'Não foi possível copiar aqui. Use o botão do WhatsApp.'}
+  $('btnCopy').onclick=()=>{const t=planText();try{navigator.clipboard.writeText(t).then(()=>{note.textContent='Plano copiado.'},()=>copyFallback(t))}catch(e){copyFallback(t)}};
+  $('btnClear').onclick=()=>{
+    const nc=$('noteClear');
+    if(nc.dataset.c!=='1'){nc.dataset.c='1';nc.textContent='Toque de novo para apagar tudo.';setTimeout(()=>{if(nc.dataset.c==='1'){nc.dataset.c='';nc.textContent=''}},4000);return}
+    nc.dataset.c='';st={};save();build();$('ficha2').classList.remove('ok');render();nc.textContent='Respostas apagadas.';note.textContent='';
+  };
+  function confirmPlan(){
+    const d=new Date();$('sealDate').textContent=d.toLocaleDateString('pt-BR');
+    $('ficha2').classList.add('ok');note.textContent='Plano confirmado. Envie pelo WhatsApp para a Jusarah.';
+  }
+  $('btnConfirm').onclick=()=>{if(isStage()&&cur===idx('fechar')&&step<1)advance();else confirmPlan()};
+  (async()=>{try{
+    const b=$('btnSave');
+    if(!window.claude||!window.claude.use){
+      b.hidden=false;
+      b.onclick=()=>{try{const u=URL.createObjectURL(new Blob([planText()],{type:'text/plain;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='Plano de Roraima - Jusarah.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);note.textContent='Plano salvo.'}catch(e){note.textContent='Não foi possível baixar aqui. Use Copiar ou WhatsApp.'}};
+      return;
+    }
+    const dl=await window.claude.use('downloads');if(!dl)return;
+    b.hidden=false;
+    b.onclick=async()=>{try{await dl.save({filename:'Plano de Roraima - Jusarah.txt',data:planText()});note.textContent='Plano salvo.'}catch(e){note.textContent=e&&e.code==='declined'?'':'Não foi possível baixar aqui. Use Copiar ou WhatsApp.'}};
+  }catch(e){}})();
+
+  /* ---------- SOS ---------- */
+  const sosEl=$('sos');
+  function sosCalm(){
+    sosEl.classList.remove('alert','fired','glitch');
+    $('sosTxt').textContent='RORAIMA';$('sosSub').textContent='MONITORAMENTO';
+    $('sosEyebrow').textContent='Central de monitoramento · painel ilustrativo';$('sosTitle').textContent='Situação em Roraima';
+    $('sosCall').textContent='Monitoramento em andamento. Avance para iniciar.';
+  }
+  function sosAlert(withFx){
+    sosEl.classList.remove('fired');sosEl.classList.add('alert');
+    $('sosTxt').textContent='SOS';$('sosSub').textContent='TOQUE NO ESTADO';
+    $('sosEyebrow').textContent='Alerta máximo · painel ilustrativo';
+    $('sosTitle').innerHTML='Roraima em <span class="fire">alerta</span>';
+    $('sosCall').innerHTML='Toque no estado para <b>acionar o apoio aéreo</b>.';
+    if(withFx&&!reduce){
+      sosEl.classList.add('glitch');
+      const c=$('sosNoise'),x=c.getContext('2d');c.width=320;c.height=180;
+      const t0=performance.now();
+      (function n(t){const d=x.createImageData(320,180);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=v;d.data[i+1]=v*.35;d.data[i+2]=v*.3;d.data[i+3]=Math.random()<.5?255:0}x.putImageData(d,0,0);if(t-t0<850)rafs.add(requestAnimationFrame(n));else sosEl.classList.remove('glitch')})(t0);
+      later(()=>sosEl.classList.remove('glitch'),1000);
+    }
+  }
+  function fireSos(){
+    if(sosEl.classList.contains('fired'))return;
+    sirenStop();
+    sosEl.classList.remove('glitch');sosEl.classList.add('alert','fired');
+    $('sosTxt').textContent='ACIONADO';$('sosSub').textContent='APOIO AÉREO A CAMINHO';
+    $('sosCall').innerHTML='<b>Acionamento registrado.</b>';
+    wantSound();
+  }
+  const uf=$('ufHit');
+  uf.addEventListener('click',()=>{if(isStage()){if(cur===idx('sos')&&step<2)advance()}else{fireSos();$('dados').scrollIntoView({behavior:'smooth'})}});
+  uf.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();uf.dispatchEvent(new MouseEvent('click'))}});
+
+  /* ---------- cenas: passos e ganchos ---------- */
+  const SC={
+    sos:{steps:2,enter(){sosCalm();hud({m:'calmo'})},
+      step(n){if(n===1){wantSound();sosAlert(true);sirenStart();hud({m:'alerta'})}else{fireSos();later(()=>{if(cur===idx('sos'))go(cur+1)},1700)}},
+      leave(){sirenStop()}},
+    dados:{steps:0,enter(){hud({m:'painel'})}},
+    campo:{steps:1,enter(){hud({m:'painel'})},step(){hud({m:'sim',f:1,st:'Em solo',l:0,v:0})}},
+    agua:{steps:0,enter(){hud({m:'sim',f:2,st:'Abastecendo',l:0,v:0})}},
+    decolagem:{steps:0,enter(){hud({m:'sim',f:3,st:'Em voo',l:0,v:0})}},
+    foco:{steps:1,enter(){$('takeover').classList.remove('on');$('vidComporta').pause();hud({m:'sim',f:4,st:'Sobre o foco',l:0,v:0})},step(n){if(n===1)fireComporta()},leave(){$('takeover').classList.remove('on');$('vidComporta').pause()}},
+    brigada:{steps:0,enter(){hud({m:'sim',f:5,st:'Em voo',l:1,v:1830})}},
+    relato:{steps:1,enter(){relatoLive=false;$('vidRelato').muted=true;$('capLine').textContent='';hud({m:'sim',f:5,st:'Reabastecendo',l:1,v:1830})},step(){startRelato()}},
+    ciclo:{steps:0,enter(){runCiclo()}},
+    relatorio:{steps:1,enter(){$('sheet').classList.remove('ok');hud({m:'sim',f:6,st:'Em solo',l:27,v:50000})},step(){$('sheet').classList.add('ok')}},
+    virada:{steps:1,enter(){hud({m:'real',st:'Média por dia de voo',l:27,v:50000})},step(){hud({m:'real',st:'32 dias de voo',l:874,v:1601810,dur:2400});runCounters($('virada'))}},
+    contratos:{steps:1,enter(){hud({m:'real',st:'32 dias de voo',l:874,v:1601810})}},
+    frentes:{steps:1,enter(){hud({m:'real',st:'32 dias de voo',l:874,v:1601810})}},
+    jusarah:{steps:1,enter(){hud({m:'real',st:'32 dias de voo',l:874,v:1601810})}},
+    plano:{steps:0,enter(){render()}},
+    fechar:{steps:1,enter(){render()},step(){confirmPlan()}}
+  };
+  $('btnRelato').onclick=()=>{if(isStage()){if(step<1)advance()}else startRelato()};
+  $('btnAtestar').onclick=()=>{if(isStage()){if(step<1)advance()}else $('sheet').classList.add('ok')};
+
+  function unscroll(){if(!isStage())return;scenes.forEach(sc=>{if(sc.scrollTop||sc.scrollLeft){sc.scrollTop=0;sc.scrollLeft=0}});const d=$('deck');if(d.scrollTop)d.scrollTop=0;if(document.documentElement.scrollTop)document.documentElement.scrollTop=0}
+  document.addEventListener('focusin',()=>setTimeout(unscroll,0));
+  function applySteps(){
+    const sc=scenes[cur];sc.dataset.step=step;
+    sc.querySelectorAll('[data-show]').forEach(e=>e.classList.toggle('vis',step>=+e.dataset.show));
+    sc.querySelectorAll('[data-until]').forEach(e=>e.classList.toggle('gone',step>=+e.dataset.until));
+    const ae=document.activeElement;if(ae&&ae!==document.body&&ae.closest&&(ae.closest('.gone')||ae.closest('[data-show]:not(.vis)')||ae.closest('.sheet.ok')))ae.blur();
+  }
+  const segs=$('segs');
+  scenes.forEach((sc,i)=>{const b=document.createElement('button');b.type='button';b.title=sc.dataset.label;b.setAttribute('aria-label',(i+1)+'. '+sc.dataset.label);b.onclick=()=>go(i);segs.appendChild(b)});
+  document.querySelectorAll('.hud-bot button,.scene button').forEach(b=>b.addEventListener('click',e=>{if(e.detail>0)b.blur()}));
+  function go(i){
+    i=Math.max(0,Math.min(scenes.length-1,i));
+    const prev=SC[scenes[cur].id];clearTimers();if(prev&&prev.leave)prev.leave();
+    cur=i;step=0;
+    scenes.forEach((sc,k)=>sc.classList.toggle('is-on',k===i));
+    [...segs.children].forEach((b,k)=>{b.classList.toggle('on',k===i);b.classList.toggle('done',k<i)});
+    $('count').textContent=(i+1)+' / '+scenes.length;$('hudWhere').textContent=scenes[i].dataset.label;
+    try{if(location.hash!=='#'+scenes[i].id)history.replaceState(null,'','#'+scenes[i].id)}catch(e){}
+    applySteps();
+    const c=SC[scenes[i].id];if(c&&c.enter)c.enter();
+    if(scenes[i].id!=='virada')runCounters(scenes[i]);
+    sceneVideos(true);
+  }
+  function advance(){
+    const c=SC[scenes[cur].id]||{steps:0};
+    if(scenes[cur].id==='foco'&&step===1)return; /* a comporta está abrindo */
+    if(step<(c.steps||0)){step++;applySteps();if(c.step)c.step(step)}
+    else if(cur<scenes.length-1)go(cur+1);
+  }
+  const back=()=>{if(cur>0)go(cur-1)};
+  $('prev').onclick=back;$('next').onclick=advance;
+  $('snd').onclick=()=>{sndUser=true;soundOn=!soundOn;applySound()};
+  function toggleFs(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}}
+  $('fs').onclick=toggleFs;
+  addEventListener('keydown',e=>{
+    if(!isStage())return;
+    const tag=(e.target.tagName||'').toLowerCase();
+    const chip=tag==='input'&&(e.target.type==='checkbox'||e.target.type==='radio');
+    if((tag==='input'&&!chip)||tag==='textarea')return;
+    if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){if((tag==='button'||tag==='a'||chip)&&(e.key===' '||e.key==='Enter'))return;e.preventDefault();advance()}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();back()}
+    else if(e.key==='Home')go(0);else if(e.key==='End')go(scenes.length-1);
+    else if(e.key==='f'||e.key==='F')toggleFs();
+    else if((e.key==='r'||e.key==='R')&&scenes[cur].id==='foco'&&step===2)$('btnReplay').click();
+    else if(e.key==='m'||e.key==='M')$('snd').click();
+  });
+  let wheelLock=0,wheelAcc=0;
+  addEventListener('wheel',e=>{
+    if(!isStage()||e.ctrlKey)return;
+    const box=e.target.closest&&e.target.closest('.qlist,.ficha');
+    if(box&&box.scrollHeight>box.clientHeight+2)return;
+    e.preventDefault();
+    const now=performance.now();if(now<wheelLock)return;
+    wheelAcc+=e.deltaY;
+    if(Math.abs(wheelAcc)>=40){wheelAcc>0?advance():back();wheelAcc=0;wheelLock=now+900}
+  },{passive:false});
+  let tx=null;
+  addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  addEventListener('touchend',e=>{if(tx===null||!isStage())return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>70)dx<0?advance():back();tx=null},{passive:true});
+  const fromHash=()=>{const i=idx(location.hash.slice(1));return i<0?0:i};
+  addEventListener('hashchange',()=>{if(isStage()&&fromHash()!==cur)go(fromHash())});
+
+  /* ---------- modos ---------- */
+  const wantStage=()=>innerWidth>=900&&innerHeight>=520&&innerWidth/innerHeight>=1.15;
+  let flowIO=null;
+  function applyMode(){
+    const s=wantStage();body.classList.toggle('stage',s);clearTimers();
+    if(flowIO){flowIO.disconnect();flowIO=null}
+    if(s){document.querySelectorAll('[data-show].vis').forEach(e=>e.classList.remove('vis'));go(cur)}
+    else{
+      scenes.forEach(sc=>{sc.classList.add('is-on');sc.querySelectorAll('[data-show]').forEach(e=>e.classList.add('vis'));sc.querySelectorAll('[data-until]').forEach(e=>e.classList.remove('gone'))});
+      sirenStop();if(!sosEl.classList.contains('fired'))sosAlert(false);
+      $('dayL').textContent='27';$('dayV').textContent='≈ 50 mil';$('dayH').textContent='14';
+      $('loopPlane').setAttribute('transform','translate(380 60)');
+      render();
+      flowIO=new IntersectionObserver(es=>es.forEach(en=>{const v=en.target;if(en.isIntersecting){if(v.hasAttribute('data-auto'))play(v)}else v.pause()}),{threshold:.3});
+      document.querySelectorAll('video').forEach(v=>flowIO.observe(v));
+    }
+  }
+  applySound();
+  cur=fromHash();
+  applyMode();
+  setTimeout(()=>body.classList.add('ready'),80);
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(isStage()!==wantStage())applyMode()},150)});
+})();
+</script>
+
+</body>
+</html>
