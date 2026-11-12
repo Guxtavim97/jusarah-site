@@ -133,7 +133,7 @@ body.stage{padding:0;overflow:hidden;height:100%}
 .phases i{width:calc(34*var(--u));height:calc(5*var(--u));background:#33433A;border-radius:2px;transition:background .4s}
 .phases i.on{background:var(--ember)}
 .phases span{margin-left:calc(12*var(--u));color:var(--paper)}
-.hud-top .where{margin-left:auto;font:500 calc(17*var(--u))/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--smoke)}
+.hud-top .where{margin-left:auto;font:500 calc(17*var(--u))/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--paper);text-shadow:0 1px 8px rgba(0,0,0,.9)}
 .hud-bot{position:fixed;z-index:20;left:0;right:0;bottom:0;align-items:center;gap:calc(26*var(--u));padding:calc(40*var(--u)) calc(120*var(--u)) calc(34*var(--u));background:linear-gradient(0deg,rgba(8,13,11,.9),rgba(8,13,11,0))}
 .tele{display:flex;gap:calc(34*var(--u));align-items:flex-end;min-width:calc(640*var(--u));transition:opacity .4s}
 .tele.off{opacity:0}
@@ -1297,7 +1297,7 @@ window.GEO={"rr":{"vb":[750,862],"uf":"M95.1 233.9L103.1 252.1L91.0 281.7L99.9 2
   addEventListener('hashchange',()=>{if(isStage()&&fromHash()!==cur)go(fromHash())});
 
   /* ---------- modos ---------- */
-  const wantStage=()=>innerWidth>=900&&innerHeight>=520&&innerWidth/innerHeight>=1.15;
+  const wantStage=()=>innerWidth>=900&&innerHeight>=440&&innerWidth/innerHeight>=1.15;
   let flowIO=null;
   function applyMode(){
     const s=wantStage();body.classList.toggle('stage',s);clearTimers();
