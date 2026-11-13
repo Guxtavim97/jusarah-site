@@ -1149,6 +1149,8 @@ window.GEO={"rr":{"vb":[750,862],"uf":"M95.1 233.9L103.1 252.1L91.0 281.7L99.9 2
   form.addEventListener('input',()=>{read();save();render()});
   form.addEventListener('change',()=>{read();save();render()});
   form.addEventListener('submit',e=>e.preventDefault());
+  // clicar de novo na opção já marcada desmarca (perguntas de escolha única)
+  form.addEventListener('click',e=>{const i=e.target;if(i.type==='radio'&&st[i.name]===i.value){i.checked=false;read();save();render()}});
   const note=$('note');
   function copyFallback(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let r=false;try{r=document.execCommand('copy')}catch(e){}ta.remove();note.textContent=r?'Plano copiado.':'Não foi possível copiar aqui. Use o botão do WhatsApp.'}
   $('btnCopy').onclick=()=>{const t=planText();try{navigator.clipboard.writeText(t).then(()=>{note.textContent='Plano copiado.'},()=>copyFallback(t))}catch(e){copyFallback(t)}};
