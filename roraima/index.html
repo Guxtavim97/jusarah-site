@@ -335,10 +335,10 @@ body:not(.stage) #sos:not(.alert) .warns{display:none}
 /* frentes */
 .legs{display:grid;grid-template-columns:minmax(0,1fr);gap:0 calc(40*var(--u))}
 .stage .legs{grid-template-columns:repeat(2,minmax(0,1fr))}
-.legs li{display:flex;flex-direction:column;gap:calc(6*var(--u));padding:calc(16*var(--u)) 0;border-top:1px solid var(--line)}
+.legs li{display:flex;flex-direction:column;gap:calc(8*var(--u));padding:calc(22*var(--u)) 0;border-top:1px solid var(--line)}
 .legs small{font:400 calc(16*var(--u))/1.3 var(--mono);color:var(--smoke);letter-spacing:.05em}
-.legs b{font:700 calc(32*var(--u))/1.05 var(--display);text-transform:uppercase}
-.legs .num{font-size:calc(58*var(--u));color:var(--ember)}
+.legs b{font:700 calc(44*var(--u))/1.05 var(--display);text-transform:uppercase}
+.legs .num{font-size:calc(104*var(--u));color:var(--ember)}
 .regmap svg{display:block;width:100%;height:auto}
 .regmap .am{fill:#16221B;stroke:#3A4A40;stroke-width:1.5}
 .regmap .rr{fill:rgba(255,181,71,.14);stroke:var(--ember);stroke-width:2}
@@ -450,6 +450,7 @@ body:not(.stage) .bigfact{font-size:calc(54*var(--u))}
 body:not(.stage) .caps p{font-size:calc(30*var(--u))}
 body:not(.stage) .caps p.final{font-size:calc(40*var(--u))}
 body:not(.stage) .feed{max-width:340px}
+body:not(.stage) .legs .num{font-size:calc(84*var(--u))}
 body:not(.stage) #sos{padding-inline:14px}
 body:not(.stage) .path li{grid-template-columns:minmax(0,1fr);gap:4px}
 body:not(.stage) .gauge .tank i{transform:none}
@@ -748,17 +749,15 @@ body:not(.stage)::before{content:"";position:fixed;inset:0 0 auto;height:env(saf
 </section>
 
 <!-- 12 · FRENTES -->
-<section class="scene gridbg" id="frentes" data-label="35 dias, quatro frentes">
+<section class="scene gridbg" id="frentes" data-label="35 dias, duas frentes">
   <div class="inner">
     <div class="cols" style="--cols:minmax(0,1fr) minmax(0,.95fr);align-items:center;flex:1">
       <div class="stack">
-        <p class="eyebrow" data-a>35 dias, quatro frentes</p>
+        <p class="eyebrow" data-a>35 dias, duas frentes</p>
         <h2 class="t-h1" data-a style="--d:.1">A aeronave foi para onde o fogo estava</h2>
         <ol class="legs">
-          <li data-a style="--d:.4"><small>07 e 08/10 · início do contrato emergencial</small><b>Parintins, Itacoatiara e Flores (Manaus)</b><span class="num">20h13</span></li>
-          <li data-a style="--d:.55"><small>09 a 11/10 · na capital</small><b>Manaus</b><span class="num">19h19</span></li>
-          <li data-a style="--d:.7"><small>12/10 a 02/11 · Lago do Canaçari, a frente mais longa</small><b>Itacoatiara</b><span class="num">275h34</span></li>
-          <li data-a style="--d:.85"><small>04 a 10/11 · sete dias seguidos</small><b>Parintins</b><span class="num">133h53</span></li>
+          <li data-a style="--d:.4"><small>07/10 a 02/11 · Lago do Canaçari, a frente mais longa</small><b>Itacoatiara</b><span class="num">315h06</span></li>
+          <li data-a style="--d:.6"><small>04 a 10/11 · sete dias seguidos</small><b>Parintins</b><span class="num">133h53</span></li>
         </ol>
         <div class="mini" data-show="1">
           <div><span class="num">14 h</span><p>de voo em média por dia de voo</p></div>
@@ -766,7 +765,7 @@ body:not(.stage)::before{content:"";position:fixed;inset:0 0 auto;height:env(saf
           <div><span class="num">20</span><p>jornadas de mais de 10 h de voo por aeronave</p></div>
         </div>
       </div>
-      <figure class="regmap" data-a style="--d:.2"><svg id="regSvg" viewBox="0 0 925 794" role="img" aria-label="Mapa do Amazonas e de Roraima com Manaus, Itacoatiara, Parintins e Boa Vista"></svg></figure>
+      <figure class="regmap" data-a style="--d:.2"><svg id="regSvg" viewBox="0 0 925 794" role="img" aria-label="Mapa do Amazonas e de Roraima com Itacoatiara, Parintins, Manaus (filial) e Boa Vista"></svg></figure>
     </div>
   </div>
 </section>
@@ -903,8 +902,8 @@ window.GEO={"rr":{"vb":[750,862],"uf":"M95.1 233.9L103.1 252.1L91.0 281.7L99.9 2
     t(12,REG.eq-8,'0° · LINHA DO EQUADOR','m',15,'#7F9386');
     const c=REG.c;
     el('path',{class:'route',d:`M${c.manaus[0]} ${c.manaus[1]} L${c.boavista[0]} ${c.boavista[1]}`,stroke:'#FFB547','stroke-width':3,style:'--d:1.6;stroke-dasharray:10 10'},s);
-    el('path',{class:'route',d:`M${c.manaus[0]} ${c.manaus[1]} L${c.itacoatiara[0]} ${c.itacoatiara[1]} L${c.parintins[0]} ${c.parintins[1]}`,stroke:'#FF5A1F','stroke-width':6,style:'--d:.6'},s);
-    [['manaus','MANAUS',-14,34,'end'],['itacoatiara','ITACOATIARA',0,38,'middle'],['parintins','PARINTINS',10,-18,'end']].forEach(([k,n,dx,dy,a])=>{el('circle',{cx:c[k][0],cy:c[k][1],r:9,fill:'#FF5A1F'},s);t(c[k][0]+dx,c[k][1]+dy,n,'d',27,null,a)});
+    el('path',{class:'route',d:`M${c.itacoatiara[0]} ${c.itacoatiara[1]} L${c.parintins[0]} ${c.parintins[1]}`,stroke:'#FF5A1F','stroke-width':6,style:'--d:.6'},s);
+    [['manaus','MANAUS',-14,34,'end'],['itacoatiara','ITACOATIARA',0,38,'middle'],['parintins','PARINTINS',10,-18,'end']].forEach(([k,n,dx,dy,a])=>{const op=k!=='manaus';el('circle',{cx:c[k][0],cy:c[k][1],r:op?10:7,fill:op?'#FF5A1F':'#0E1611',stroke:op?'none':'#F3EFE7','stroke-width':op?0:3},s);t(c[k][0]+dx,c[k][1]+dy,n,'d',op?27:22,op?null:'#C5D1C8',a)});
     el('circle',{cx:c.boavista[0],cy:c.boavista[1],r:10,fill:'#FFB547'},s);
     el('circle',{cx:c.boavista[0],cy:c.boavista[1],r:22,fill:'none',stroke:'#FFB547','stroke-width':2,opacity:.5},s);
     t(c.boavista[0]-18,c.boavista[1]-22,'BOA VISTA','d',30,null,'end');
