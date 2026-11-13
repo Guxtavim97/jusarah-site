@@ -765,6 +765,11 @@
     .cb-eco{font-size:8.5pt;color:#0f3d24;font-style:italic;padding-bottom:6px}
     .cb-obs{border:1px solid #9aa6ae;border-left:3px solid #12294d;padding:8px 11px;
       font-size:9.5pt;line-height:1.5;background:#fbfcfd}
+    .cb-docs{display:flex;gap:12px;align-items:center;border:1px solid #9aa6ae;padding:9px 11px;margin-top:6px}
+    .cb-docs ul{margin:0;padding-left:16px;font-size:9.5pt;line-height:1.5}
+    .cb-docs img{width:26mm;height:26mm;flex:0 0 26mm}
+    .cb-docs__l{font-size:8.5pt;margin-top:4px;color:#3b4a56}
+    .cb-docs__l a{color:#12294d;word-break:break-all}
     .cb-pix{border:1.5px solid #12294d;margin-top:16px}
     .cb-pix__t{background:#12294d;color:#fff;font-size:8pt;letter-spacing:.14em;
       text-transform:uppercase;padding:5px 10px;font-weight:bold}
@@ -1489,7 +1494,7 @@ var BANCO = {
   chave: '61.078.588/0001-90', favorecido: 'PJ Aero Centro'
 };
 
-function montaCobranca(o, a, pecas, maoObra, dono, obs){
+function montaCobranca(o, a, pecas, maoObra, dono, obs, anexos){
   pecas = pecas || []; maoObra = maoObra || [];
   function moeda(v){ return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
   function cobrado(m){
@@ -1628,6 +1633,20 @@ function montaCobranca(o, a, pecas, maoObra, dono, obs){
 
     /* ---------- observações (pauta em branco) ---------- */
     (obs ? '<h2>Observações</h2><div class="cb-obs">'+quebras(esc(obs))+'</div>' : '')+
+
+    /* ---------- documentos anexos: nota fiscal etc., marcados para ir junto ---------- */
+    (function(){
+      var ds = (anexos||[]).filter(function(x){ return x.publico; });
+      if(!ds.length) return '';
+      var NOME = { nota:'Nota fiscal', orcamento:'Orçamento', laudo:'Laudo', form:'FORM' };
+      var url = o.token ? (location.origin + '/os/' + o.token) : '';
+      var qr = (url && typeof QR !== 'undefined') ? QR.dataURI(url, 96) : '';
+      return '<h2>Documentos anexos</h2><div class="cb-docs">'+
+        (qr ? '<img src="'+qr+'" alt="QR">' : '')+
+        '<div><ul>'+ds.map(function(x){ return '<li><b>'+esc(NOME[x.tipo]||'Documento')+'</b> · '+esc(x.titulo)+'</li>'; }).join('')+'</ul>'+
+        (url ? '<div class="cb-docs__l">Para abrir os arquivos, aponte a câmera para o código ou acesse: <a href="'+url+'">'+url+'</a></div>' : '')+
+        '</div></div>';
+    })()+
 
     /* ---------- pagamento ---------- */
     '<div class="cb-pix">'+
@@ -4853,10 +4872,10 @@ async function abreOS(id, scrollRestaurar){
         return '<div class="oshist"><span class="oshist__n">📎</span>'+
           '<div class="oshist__b"><div class="oshist__t">'+esc(x.titulo)+'</div>'+
             '<div class="oshist__s">'+esc(x.tipo||'arquivo')+' · '+dt(x.criado_em)+
-              (x.publico?' · <b style="color:var(--green-d)">visível ao cliente</b>':' · <span class="no">só interno</span>')+
+              (x.publico?' · <b style="color:var(--green-d)">vai no resumo e no link do cliente</b>':' · <span class="no">só interno</span>')+
             '</div></div>'+
           '<button class="btn btn--ghost btn--sm anx-ver" data-c="'+esc(x.caminho)+'">Abrir</button>'+
-          (travadoFin?'':'<button class="btn btn--ghost btn--sm anx-pub" data-id="'+x.id+'" data-p="'+(x.publico?1:0)+'">'+(x.publico?'Ocultar':'Liberar ao cliente')+'</button>'+
+          (travadoFin?'':'<button class="btn btn--ghost btn--sm anx-pub" data-id="'+x.id+'" data-p="'+(x.publico?1:0)+'">'+(x.publico?'Tirar do resumo':'Incluir no resumo')+'</button>'+
                         '<button class="btn btn--ghost btn--sm anx-del" data-id="'+x.id+'" style="color:#ff9a8a">🗑️</button>')+
         '</div>';
       }).join('')
@@ -4985,8 +5004,8 @@ async function abreOS(id, scrollRestaurar){
        : '')+
      vlogHtml+
      '<div class="box"><h3>📎 Anexos da OS <span class="c">'+anexos.length+'</span></h3>'+
-       '<div class="no" style="margin-bottom:10px">Suba aqui o orçamento em PDF que vocês já fazem, laudos ou notas. '+
-       'O que for <b>liberado ao cliente</b> aparece no link de acompanhamento dele.</div>'+anxHtml+'</div>'+
+       '<div class="no" style="margin-bottom:10px">Suba aqui a nota fiscal, o orçamento em PDF que vocês já fazem ou laudos. '+
+       'O que estiver marcado para <b>ir no resumo</b> sai listado no Resumo de Cobrança e abre no link de acompanhamento do cliente.</div>'+anxHtml+'</div>'+
      '<div class="box"><h3>⚠️ Pendências <span class="c">'+abertas.length+' aberta(s)</span></h3>'+pHtml+'</div>'+
      '<div class="box"><h3>🛬 Cadeia de custódia</h3>'+custHtml+'</div>'+
      /* Fora de base (Aislan): serviço na cidade do cliente, com status
@@ -5186,15 +5205,21 @@ async function abreOS(id, scrollRestaurar){
   /* Resumo de Serviços e Cobrança: sai pronto com o que está lançado na
      OS. É o documento que a Bianca leva para receber — antes ela tinha
      que redigitar tudo num outro sistema só para chegar nele. */
-  if($("bt-cob")) $("bt-cob").onclick = function(){
+  if($("bt-cob")) $("bt-cob").onclick = async function(){
     if(!maoObra.length && !pecas.length){
       toast('Lance ao menos um serviço ou material antes de emitir a cobrança.','err');
       var b = document.getElementById('mo-add'); if(b) b.scrollIntoView({behavior:'smooth', block:'center'});
       return;
     }
     var dono = a.proprietario_id ? PROPMAP[a.proprietario_id] : null;
+    var fora = anexos.filter(function(x){ return x.tipo === 'nota' && !x.publico; });
+    if(fora.length && !travadoFin && confirm((fora.length>1?'Há '+fora.length+' notas fiscais anexadas que não estão marcadas':'Há uma nota fiscal anexada que não está marcada')+
+        ' para ir junto com o resumo.\n\nOK = incluir no resumo agora\nCancelar = emitir sem ela')){
+      try{ for(var i=0;i<fora.length;i++) await pubAnexo(fora[i]); toast('Nota incluída no resumo ✓','ok'); }
+      catch(e){ toast('Não deu para incluir a nota: '+(e.message||e),'err'); return; }
+    }
     emiteDoc('Resumo de Serviços e Cobrança', function(){
-      montaCobranca(o, a, pecas, maoObra, dono, o.cobranca_observacoes);
+      montaCobranca(o, a, pecas, maoObra, dono, o.cobranca_observacoes, anexos);
     }, 160);
   };
   /* As observações da cobrança ficam guardadas na OS: o documento é enviado
@@ -6245,6 +6270,18 @@ async function abreOS(id, scrollRestaurar){
   });
 
   /* ---- ANEXOS (PDF do orçamento que a oficina já faz) ---- */
+  /* Marca um anexo para ir junto com o Resumo de Cobrança: copia para o
+     bucket do cliente (é o que o link /os/ abre) e liga o 'publico'. */
+  async function pubAnexo(x){
+    var dl = await sb.storage.from('manutencao').download(x.caminho);
+    if(dl.error) throw new Error(dl.error.message);
+    var cp = x.caminho;
+    var up = await sb.storage.from('manutencao-pub').upload(cp, dl.data, { upsert:true, cacheControl:'31536000' });
+    if(up.error) throw new Error(up.error.message);
+    var r = await sb.from('manut_os_anexos').update({ publico:true, caminho_pub:cp }).eq('id', x.id);
+    if(r.error) throw new Error(r.error.message);
+    x.publico = true; x.caminho_pub = cp;
+  }
   if($("anx-file")) $("anx-file").onchange = function(){
     var f = this.files && this.files[0]; if(!f) return;
     if(f.size > 10*1024*1024){ toast('Arquivo maior que 10 MB. Reduza e tente de novo.','err'); this.value=''; return; }
@@ -6262,20 +6299,31 @@ async function abreOS(id, scrollRestaurar){
         '<option value="laudo">📋 Laudo</option>'+
         '<option value="outro">📄 Outro</option>'+
       '</select>'+
+      '<label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;cursor:pointer"><input type="checkbox" id="ax-pub" style="margin-top:3px">'+
+        '<span><b>Vai junto com o Resumo de Cobrança</b><br><span class="no">Sai listado no resumo e o cliente abre pelo link da OS. Desmarcado, fica só interno.</span></span></label>'+
       '<div class="no" style="margin-top:8px">FORM e nota fiscal ficam ligados a esta OS e acompanham a documentação da aeronave.</div>',
       'Enviar', async function(){
         var tit = $("ax-tit").value.trim() || f.name;
+        var vai = !!($("ax-pub") && $("ax-pub").checked);
         var ext = (f.name.split('.').pop()||'pdf').toLowerCase();
         var caminho = 'os/'+id+'/anexos/'+Date.now()+'.'+ext;
         var up = await sb.storage.from('manutencao').upload(caminho, f, { contentType: f.type || 'application/pdf', cacheControl:'31536000' });
         if(up.error){ toast(up.error.message,'err'); return false; }
         var r = await sb.from('manut_os_anexos').insert({ os_id:id, titulo:tit,
-          tipo:$("ax-tipo").value, caminho:caminho, tamanho:f.size });
+          tipo:$("ax-tipo").value, caminho:caminho, tamanho:f.size }).select().single();
         if(r.error){ toast(r.error.message,'err'); return false; }
         input.value = '';
-        toast('Documento anexado ✓ Libere ao cliente se quiser que ele veja.','ok');
+        if(vai){
+          try{ await pubAnexo(r.data); toast('Documento anexado ✓ Vai junto com o Resumo de Cobrança.','ok'); }
+          catch(e){ toast('Anexado, mas não foi marcado para o resumo: '+(e.message||e)+'. Use o botão "Incluir no resumo".','err'); }
+        } else toast('Documento anexado ✓ (só interno).','ok');
         recarrega(); return true;
       });
+    setTimeout(function(){
+      var sel = $("ax-tipo"), ck = $("ax-pub"); if(!sel || !ck) return;
+      ck.checked = sel.value === 'nota';
+      sel.onchange = function(){ ck.checked = sel.value === 'nota' || sel.value === 'orcamento' || sel.value === 'laudo'; };
+    }, 0);
   };
   document.querySelectorAll('.anx-ver').forEach(function(b){
     b.onclick = async function(){
@@ -6287,7 +6335,7 @@ async function abreOS(id, scrollRestaurar){
   document.querySelectorAll('.anx-pub').forEach(function(b){
     b.onclick = async function(){
       var ligar = b.dataset.p !== '1';
-      b.disabled = true; b.textContent = ligar ? 'Liberando…' : 'Ocultando…';
+      b.disabled = true; b.textContent = ligar ? 'Incluindo…' : 'Tirando…';
       var anx = anexos.filter(function(x){ return x.id === b.dataset.id; })[0];
       try{
         if(ligar){
@@ -6303,7 +6351,7 @@ async function abreOS(id, scrollRestaurar){
           var r2 = await sb.from('manut_os_anexos').update({ publico:false, caminho_pub:null }).eq('id', anx.id);
           if(r2.error) throw new Error(r2.error.message);
         }
-        toast(ligar?'Liberado ao cliente ✓':'Oculto do cliente ✓','ok');
+        toast(ligar?'Vai junto com o resumo ✓':'Tirado do resumo ✓','ok');
         recarrega();
       }catch(e){ toast(e.message||String(e),'err'); b.disabled=false; }
     };
